@@ -1,0 +1,87 @@
+#' Shuffle Variables
+#'
+#' \code{step_shuffle} creates a \emph{specification} of a recipe step that will
+#'   randomly change the order of rows for selected variables.
+#'
+#' @inheritParams step_center
+#' @inherit step_center return
+#' @param ... One or more selector functions to choose which variables will
+#'    permuted. See \code{\link{selections}} for  more details.
+#' @param role Not used by this step since no new variables are created.
+#' @param columns A character string that contains the names of columns that
+#'   should be shuffled. These values are not determined until
+#'   \code{\link{prep.recipe}} is called.
+#' @keywords datagen
+#' @concept preprocessing randomization permutation
+#' @export
+#' @examples
+#' integers <- data.frame(A = 1:12, B = 13:24, C = 25:36)
+#'
+#' library(dplyr)
+#' rec <- recipe(~ A + B + C, data = integers) %>%
+#'   step_shuffle(A, B)
+#'
+#' rand_set <- prep(rec, training = integers)
+#'
+#' set.seed(5377)
+#' bake(rand_set, integers)
+
+step_shuffle <- function(recipe,
+                         ...,
+                         role = NA,
+                         trained = FALSE,
+                         columns = NULL) {
+  add_step(recipe,
+           step_shuffle_new(
+             terms = check_ellipses(...),
+             role = role,
+             trained = trained,
+             columns = columns
+           ))
+}
+
+step_shuffle_new <- function(terms = NULL,
+                             role = NA,
+                             trained = FALSE,
+                             columns = NULL) {
+  step(
+    subclass = "shuffle",
+    terms = terms,
+    role = role,
+    trained = trained,
+    columns = columns
+  )
+}
+
+#' @export
+prep.step_shuffle <- function(x, training, info = NULL, ...) {
+  col_names <- terms_select(x$terms, info = info)
+  step_shuffle_new(
+    terms = x$terms,
+    role = x$role,
+    trained = TRUE,
+    columns = col_names
+  )
+}
+
+#' @export
+bake.step_shuffle <- function(object, newdata, ...) {
+  if (nrow(newdata) == 1) {
+    warning("`newdata` contains a single row; unable to shuffle",
+            call. = FALSE)
+    return(newdata)
+  }
+  
+  if (length(object$columns) > 0)
+    for (i in seq_along(object$columns))
+      newdata[, object$columns[i]] <-
+        sample(getElement(newdata, object$columns[i]))
+    as_tibble(newdata)
+}
+
+print.step_shuffle <-
+  function(x, width = max(20, options()$width - 22), ...) {
+    cat("Shuffled ")
+    printer(x$columns, x$terms, x$trained, width = width)
+    invisible(x)
+  }
