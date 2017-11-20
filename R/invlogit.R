@@ -1,19 +1,28 @@
 #' Inverse Logit Transformation
 #'
-#' \code{step_invlogit} creates a \emph{specification} of a recipe step that
-#'   will transform the data from real values to be between zero and one.
+#' `step_invlogit` creates a *specification* of a recipe
+#'  step that will transform the data from real values to be between
+#'  zero and one.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param role Not used by this step since no new variables are created.
-#' @param columns A character string of variable names that will be (eventually)
-#'   populated by the \code{terms} argument.
+#' @param ... One or more selector functions to choose which
+#'  variables are affected by the step. See [selections()]
+#'  for more details. For the `tidy` method, these are not
+#'  currently used.
+#' @param role Not used by this step since no new variables are
+#'  created.
+#' @param columns A character string of variable names that will
+#'  be (eventually) populated by the `terms` argument.
+#' @return An updated version of `recipe` with the new step
+#'  added to the sequence of existing steps (if any). For the
+#'  `tidy` method, a tibble with columns `terms` which
+#'  is the columns that will be affected.
 #' @keywords datagen
 #' @concept preprocessing transformation_methods
 #' @export
-#' @details The inverse logit transformation takes values on the real line and
-#'   translates them to be between zero and one using the function
-#'   \code{f(x) = 1/(1+exp(-x))}.
+#' @details The inverse logit transformation takes values on the
+#'  real line and translates them to be between zero and one using
+#'  the function `f(x) = 1/(1+exp(-x))`.
 #' @examples
 #' data(biomass)
 #'
@@ -32,10 +41,10 @@
 #'
 #' transformed_te <- bake(ilogit_obj, biomass_te)
 #' plot(biomass_te$carbon, transformed_te$carbon)
-#' @seealso \code{\link{step_logit}} \code{\link{step_log}}
-#'   \code{\link{step_sqrt}}  \code{\link{step_hyperbolic}}
-#'   \code{\link{recipe}} \code{\link{prep.recipe}}
-#'   \code{\link{bake.recipe}}
+#' @seealso [step_logit()] [step_log()]
+#'   [step_sqrt()]  [step_hyperbolic()]
+#'   [recipe()] [prep.recipe()]
+#'   [bake.recipe()]
 
 step_invlogit <-
   function(recipe, ...,  role = NA, trained = FALSE, columns = NULL) {
@@ -88,3 +97,9 @@ print.step_invlogit <-
     printer(x$columns, x$terms, x$trained, width = width)
     invisible(x)
   }
+
+#' @rdname step_invlogit
+#' @param x A `step_invlogit` object.
+tidy.step_invlogit <- function(x, ...) {
+  simple_terms(x, ...)
+}

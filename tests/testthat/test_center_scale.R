@@ -14,7 +14,24 @@ test_that('correct means and std devs', {
     step_center(carbon, hydrogen, oxygen, nitrogen, sulfur) %>%
     step_scale(carbon, hydrogen, oxygen, nitrogen, sulfur)
 
+  cent_tibble_un <-
+    tibble(terms = c("carbon", "hydrogen", "oxygen", "nitrogen", "sulfur"),
+           value = rep(na_dbl, 5))
+
+  expect_equal(tidy(standardized, 1), cent_tibble_un)
+  expect_equal(tidy(standardized, 2), cent_tibble_un)
+
   standardized_trained <- prep(standardized, training = biomass, verbose = FALSE)
+
+  cent_tibble_tr <-
+    tibble(terms = c("carbon", "hydrogen", "oxygen", "nitrogen", "sulfur"),
+           value = means)
+  scal_tibble_tr <-
+    tibble(terms = c("carbon", "hydrogen", "oxygen", "nitrogen", "sulfur"),
+           value = sds)
+
+  expect_equal(tidy(standardized_trained, 1), cent_tibble_tr)
+  expect_equal(tidy(standardized_trained, 2), scal_tibble_tr)
 
   expect_equal(standardized_trained$steps[[1]]$means, means)
   expect_equal(standardized_trained$steps[[2]]$sds, sds)
@@ -63,6 +80,6 @@ test_that('printing', {
     step_center(carbon) %>%
     step_scale(hydrogen)
   expect_output(print(standardized))
-  expect_output(prep(standardized, training = biomass))
+  expect_output(prep(standardized, training = biomass, verbose = TRUE))
 })
 

@@ -31,6 +31,12 @@ test_that('correct Isomap values', {
   im_pred <- bake(im_trained, newdata = dat2)
 
   all.equal(as.matrix(im_pred), as.matrix(exp_res))
+
+  im_tibble <-
+    tibble(terms = c("x1", "x2", "x3"))
+
+  expect_equal(tidy(im_rec, 1), im_tibble)
+  expect_equal(tidy(im_trained, 1), im_tibble)
 })
 
 
@@ -38,6 +44,6 @@ test_that('printing', {
   im_rec <- rec %>%
     step_isomap(x1, x2, x3, options = list(knn = 3), num = 3)
   expect_output(print(im_rec))
-  expect_output(prep(im_rec, training = dat1))
+  expect_output(prep(im_rec, training = dat1, verbose = TRUE))
 })
 

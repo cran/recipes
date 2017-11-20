@@ -2,55 +2,86 @@
 % Please edit documentation in R/interactions.R
 \name{step_interact}
 \alias{step_interact}
+\alias{tidy.step_interact}
 \title{Create Interaction Variables}
 \usage{
 step_interact(recipe, terms, role = "predictor", trained = FALSE,
   objects = NULL, sep = "_x_")
+
+\method{tidy}{step_interact}(x, ...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the sequence of 
-operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the
+sequence of operations for this recipe.}
 
-\item{terms}{A traditional R formula that contains interaction terms.}
+\item{terms}{A traditional R formula that contains interaction
+terms. This can include \code{.} and selectors.}
 
-\item{role}{For model terms created by this step, what analysis role should
-they be assigned?. By default, the function assumes that the new columns
-created from the original variables will be used as predictors in a model.}
+\item{role}{For model terms created by this step, what analysis
+role should they be assigned?. By default, the function assumes
+that the new columns created from the original variables will be
+used as predictors in a model.}
 
-\item{trained}{A logical to indicate if the quantities for preprocessing 
-have been estimated.}
+\item{trained}{A logical to indicate if the quantities for
+preprocessing have been estimated.}
 
-\item{objects}{A list of \code{terms} objects for each individual interation.}
+\item{objects}{A list of \code{terms} objects for each
+individual interaction.}
 
-\item{sep}{A character value used to delinate variables in an interaction
-(e.g. \code{var1_x_var2} instead of the more traditional \code{var1:var2}).}
+\item{sep}{A character value used to delineate variables in an
+interaction (e.g. \code{var1_x_var2} instead of the more
+traditional \code{var1:var2}).}
+
+\item{x}{A \code{step_interact} object}
+
+\item{...}{One or more selector functions to choose which
+variables are affected by the step. See \code{\link[=selections]{selections()}}
+for more details. For the \code{tidy} method, these are not
+currently used.}
 }
 \value{
-An updated version of \code{recipe} with the
-  new step added to the sequence of existing steps (if any).
+An updated version of \code{recipe} with the new step
+added to the sequence of existing steps (if any). For the
+\code{tidy} method, a tibble with columns \code{terms} which is
+the interaction effects.
 }
 \description{
-\code{step_interact} creates a \emph{specification} of a recipe step that
-  will create new columns that are interaction terms between two or more
-  variables.
+\code{step_interact} creates a \emph{specification} of a recipe
+step that will create new columns that are interaction terms
+between two or more variables.
 }
 \details{
-\code{step_interact} can create interactions between variables. It
-  is primarily intended for \bold{numeric data}; categorical variables
-  should probably be converted to dummy variables using
-  \code{\link{step_dummy}} prior to being used for interactions.
+\code{step_interact} can create interactions between
+variables. It is primarily intended for \strong{numeric data};
+categorical variables should probably be converted to dummy
+variables using \code{\link[=step_dummy]{step_dummy()}} prior to being used for
+interactions.
 
-Unlike other step functions, the \code{terms} argument should be a
-  traditional R model formula but should contain no inline functions (e.g.
-  \code{log}). For example, for predictors \code{A}, \code{B}, and \code{C},
-  a formula such as \code{~A:B:C} can be used to make a three way
-  interaction between the variables. If the formula contains terms other
-  than interactions (e.g. \code{(A+B+C)^3}) only the interaction terms are
-  retained for the design matrix.
+Unlike other step functions, the \code{terms} argument should
+be a traditional R model formula but should contain no inline
+functions (e.g. \code{log}). For example, for predictors
+\code{A}, \code{B}, and \code{C}, a formula such as
+\code{~A:B:C} can be used to make a three way interaction
+between the variables. If the formula contains terms other than
+interactions (e.g. \code{(A+B+C)^3}) only the interaction terms
+are retained for the design matrix.
 
-The separator between the variables defaults to "\code{_x_}" so that the
-  three way interaction shown previously would generate a column named
-  \code{A_x_B_x_C}. This can be changed using the \code{sep} argument.
+The separator between the variables defaults to "\code{_x_}" so
+that the three way interaction shown previously would generate a
+column named \code{A_x_B_x_C}. This can be changed using the
+\code{sep} argument.
+
+When dummy variables are created and are used in interactions,
+selectors can help specify the interactions succinctly. For
+example, suppose a factor column \code{X} gets converted to dummy
+variables \code{x_2}, \code{x_3}, ..., \code{x_6} using \code{\link[=step_dummy]{step_dummy()}}. If
+you wanted an interaction with numeric column \code{z}, you could
+create a set of specific interaction effects (e.g.
+\code{x_2:z + x_3:z} and so on) or you could use
+\code{starts_with("z_"):z}. When \code{\link[=prep]{prep()}} evaluates this step,
+\code{starts_with("z_")} resolves to \code{(x_2 + x_3 + x_4 + x_5 + x6)}
+so that the formula is now \code{(x_2 + x_3 + x_4 + x_5 + x6):z} and
+all two-way interactions are created.
 }
 \examples{
 data(biomass)
@@ -64,8 +95,8 @@ rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
 int_mod_1 <- rec \%>\%
   step_interact(terms = ~ carbon:hydrogen)
 
-int_mod_2 <- int_mod_1 \%>\%
-  step_interact(terms = ~ (oxygen + nitrogen + sulfur)^3)
+int_mod_2 <- rec \%>\%
+  step_interact(terms = ~ (matches("gen$") + sulfur)^2)
 
 int_mod_1 <- prep(int_mod_1, training = biomass_tr)
 int_mod_2 <- prep(int_mod_2, training = biomass_tr)
@@ -75,6 +106,9 @@ dat_2 <- bake(int_mod_2, biomass_te)
 
 names(dat_1)
 names(dat_2)
+
+tidy(int_mod_1, number = 1)
+tidy(int_mod_2, number = 1)
 }
 \concept{
 preprocessing model_specification

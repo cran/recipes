@@ -2,37 +2,47 @@
 % Please edit documentation in R/logit.R
 \name{step_logit}
 \alias{step_logit}
+\alias{tidy.step_logit}
 \title{Logit Transformation}
 \usage{
 step_logit(recipe, ..., role = NA, trained = FALSE, columns = NULL)
+
+\method{tidy}{step_logit}(x, ...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the sequence of 
-operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the
+sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which variables are 
-affected by the step. See \code{\link{selections}} for more details.}
+\item{...}{One or more selector functions to choose which
+variables are affected by the step. See \code{\link[=selections]{selections()}}
+for more details. For the \code{tidy} method, these are not
+currently used.}
 
-\item{role}{Not used by this step since no new variables are created.}
+\item{role}{Not used by this step since no new variables are
+created.}
 
-\item{trained}{A logical to indicate if the quantities for preprocessing 
-have been estimated.}
+\item{trained}{A logical to indicate if the quantities for
+preprocessing have been estimated.}
 
-\item{columns}{A character string of variable names that will be (eventually)
-populated by the \code{terms} argument.}
+\item{columns}{A character string of variable names that will
+be (eventually) populated by the \code{terms} argument.}
+
+\item{x}{A \code{step_logit} object.}
 }
 \value{
-An updated version of \code{recipe} with the
-  new step added to the sequence of existing steps (if any).
+An updated version of \code{recipe} with the new step
+added to the sequence of existing steps (if any). For the
+\code{tidy} method, a tibble with columns \code{terms} which
+is the columns that will be affected.
 }
 \description{
-\code{step_logit} creates a \emph{specification} of a recipe step that will
-  logit transform the data.
+\code{step_logit} creates a \emph{specification} of a recipe
+step that will logit transform the data.
 }
 \details{
-The inverse logit transformation takes values between zero and one
-  and translates them to be on the real line using the function
-  \code{f(p) = log(p/(1-p))}.
+The logit transformation takes values between
+zero and one and translates them to be on the real line using
+the function \code{f(p) = log(p/(1-p))}.
 }
 \examples{
 set.seed(313)
@@ -48,11 +58,14 @@ logit_obj <- prep(logit_trans, training = examples)
 
 transformed_te <- bake(logit_obj, examples)
 plot(examples$X1, transformed_te$X1)
+
+tidy(logit_trans, number = 1)
+tidy(logit_obj, number = 1)
 }
 \seealso{
-\code{\link{step_invlogit}} \code{\link{step_log}}
-\code{\link{step_sqrt}}  \code{\link{step_hyperbolic}} \code{\link{recipe}}
-\code{\link{prep.recipe}} \code{\link{bake.recipe}}
+\code{\link[=step_invlogit]{step_invlogit()}} \code{\link[=step_log]{step_log()}}
+\code{\link[=step_sqrt]{step_sqrt()}}  \code{\link[=step_hyperbolic]{step_hyperbolic()}} \code{\link[=recipe]{recipe()}}
+\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
 }
 \concept{
 preprocessing transformation_methods

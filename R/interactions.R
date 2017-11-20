@@ -1,37 +1,64 @@
 #' Create Interaction Variables
 #'
-#' \code{step_interact} creates a \emph{specification} of a recipe step that
-#'   will create new columns that are interaction terms between two or more
-#'   variables.
+#' `step_interact` creates a *specification* of a recipe
+#'  step that will create new columns that are interaction terms
+#'  between two or more variables.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param terms A traditional R formula that contains interaction terms.
-#' @param role For model terms created by this step, what analysis role should
-#'   they be assigned?. By default, the function assumes that the new columns
-#'   created from the original variables will be used as predictors in a model.
-#' @param objects A list of \code{terms} objects for each individual interation.
-#' @param sep A character value used to delinate variables in an interaction
-#'   (e.g. \code{var1_x_var2} instead of the more traditional \code{var1:var2}).
+#' @param ... One or more selector functions to choose which
+#'  variables are affected by the step. See [selections()]
+#'  for more details. For the `tidy` method, these are not
+#'  currently used.
+#' @param terms A traditional R formula that contains interaction
+#'  terms. This can include `.` and selectors. 
+#' @param role For model terms created by this step, what analysis
+#'  role should they be assigned?. By default, the function assumes
+#'  that the new columns created from the original variables will be
+#'  used as predictors in a model.
+#' @param objects A list of `terms` objects for each
+#'  individual interaction.
+#' @param sep A character value used to delineate variables in an
+#'  interaction (e.g. `var1_x_var2` instead of the more
+#'  traditional `var1:var2`).
+#' @return An updated version of `recipe` with the new step
+#'  added to the sequence of existing steps (if any). For the
+#'  `tidy` method, a tibble with columns `terms` which is
+#'  the interaction effects.
 #' @keywords datagen
 #' @concept preprocessing model_specification
 #' @export
-#' @details \code{step_interact} can create interactions between variables. It
-#'   is primarily intended for \bold{numeric data}; categorical variables
-#'   should probably be converted to dummy variables using
-#'   \code{\link{step_dummy}} prior to being used for interactions.
+#' @details `step_interact` can create interactions between
+#'  variables. It is primarily intended for **numeric data**;
+#'  categorical variables should probably be converted to dummy
+#'  variables using [step_dummy()] prior to being used for
+#'  interactions.
 #'
-#' Unlike other step functions, the \code{terms} argument should be a
-#'   traditional R model formula but should contain no inline functions (e.g.
-#'   \code{log}). For example, for predictors \code{A}, \code{B}, and \code{C},
-#'   a formula such as \code{~A:B:C} can be used to make a three way
-#'   interaction between the variables. If the formula contains terms other
-#'   than interactions (e.g. \code{(A+B+C)^3}) only the interaction terms are
-#'   retained for the design matrix.
+#' Unlike other step functions, the `terms` argument should
+#'  be a traditional R model formula but should contain no inline
+#'  functions (e.g. `log`). For example, for predictors
+#'  `A`, `B`, and `C`, a formula such as
+#'  `~A:B:C` can be used to make a three way interaction
+#'  between the variables. If the formula contains terms other than
+#'  interactions (e.g. `(A+B+C)^3`) only the interaction terms
+#'  are retained for the design matrix.
 #'
-#' The separator between the variables defaults to "\code{_x_}" so that the
-#'   three way interaction shown previously would generate a column named
-#'   \code{A_x_B_x_C}. This can be changed using the \code{sep} argument.
+#' The separator between the variables defaults to "`_x_`" so
+#'  that the three way interaction shown previously would generate a
+#'  column named `A_x_B_x_C`. This can be changed using the
+#'  `sep` argument.
+#'  
+#' When dummy variables are created and are used in interactions,
+#'  selectors can help specify the interactions succinctly. For
+#'  example, suppose a factor column `X` gets converted to dummy
+#'  variables `x_2`, `x_3`, ..., `x_6` using [step_dummy()]. If
+#'  you wanted an interaction with numeric column `z`, you could
+#'  create a set of specific interaction effects (e.g. 
+#'  `x_2:z + x_3:z` and so on) or you could use 
+#'  `starts_with("z_"):z`. When [prep()] evaluates this step,
+#'  `starts_with("z_")` resolves to `(x_2 + x_3 + x_4 + x_5 + x6)`
+#'  so that the formula is now `(x_2 + x_3 + x_4 + x_5 + x6):z` and
+#'  all two-way interactions are created. 
+
 #' @examples
 #' data(biomass)
 #'
@@ -44,8 +71,8 @@
 #' int_mod_1 <- rec %>%
 #'   step_interact(terms = ~ carbon:hydrogen)
 #'
-#' int_mod_2 <- int_mod_1 %>%
-#'   step_interact(terms = ~ (oxygen + nitrogen + sulfur)^3)
+#' int_mod_2 <- rec %>%
+#'   step_interact(terms = ~ (matches("gen$") + sulfur)^2)
 #'
 #' int_mod_1 <- prep(int_mod_1, training = biomass_tr)
 #' int_mod_2 <- prep(int_mod_2, training = biomass_tr)
@@ -55,6 +82,9 @@
 #'
 #' names(dat_1)
 #' names(dat_2)
+#'
+#' tidy(int_mod_1, number = 1)
+#' tidy(int_mod_2, number = 1)
 
 step_interact <-
   function(recipe,
@@ -97,6 +127,28 @@ step_interact_new <-
 ## one large set of collected terms.
 #' @export
 prep.step_interact <- function(x, training, info = NULL, ...) {
+  # Identify any selectors that are involved in the interaction
+  # formula
+  
+  form_sel <- find_selectors(x$terms)
+  
+  ## Resolve the selectors to a expression containing an additive
+  ## function of the variables
+  
+  if(length(form_sel) > 0) {
+    form_res <- map(form_sel, terms_select, info = info)
+    form_res <- map(form_res, vec_2_expr)
+    ## Subsitute the column names into the original interaction
+    ## formula. 
+    for(i in seq(along = form_res)) {
+      x$terms <- replace_selectors(
+        x$terms,
+        form_sel[[i]],
+        form_res[[i]]
+      )
+    }
+  }
+  
   ## First, find the interaction terms based on the given formula
   int_terms <- get_term_names(x$terms, vnames = colnames(training))
   
@@ -185,8 +237,11 @@ make_new_formula <- function(x) {
 ## term expansion (without `.`s). This returns the factor
 ## names and would not expand dummy variables.
 get_term_names <- function(form, vnames) {
+  if(!is_formula(form))
+    form <- as.formula(form)
+  
   ## We are going to cheat and make a small fake data set to
-  ## effcicently get the full formula exapnsion from
+  ## efficiently get the full formula expansion from
   ## model.matrix (devoid of factor levels) and then
   ## pick off the interactions
   dat <- matrix(1, nrow = 5, ncol = length(vnames))
@@ -216,3 +271,65 @@ print.step_interact <-
       cat("\n")
     invisible(x)
   }
+
+int_name <- function(x)
+  get_term_names(x, all.vars(x))
+
+#' @importFrom rlang na_dbl
+#' @rdname step_interact
+#' @param x A `step_interact` object
+tidy.step_interact <- function(x, ...) {
+  tibble(terms = vapply(x$objects, int_name, character(1)))
+}
+
+map_call <- function(x, f, ...) as.call(lapply(x, f, ...))
+map_pairlist <- function(x, f, ...) as.pairlist(lapply(x, f, ...))
+
+
+# In a formula, find the selectors (if any) and return the call(s)
+find_selectors <- function (f) {
+  if (is.function(f)) {
+    find_selectors(body(f))
+  } 
+  else if (is.call(f)) {
+    fname <- as.character(f[[1]])
+    res <- if (fname %in% selectors) f else list()
+    c(res, unlist(lapply(f[-1], find_selectors), use.names = FALSE))
+  } 
+  else if (is.name(f) || is.atomic(f)) {
+    list()
+  }  
+  else {
+    # User supplied incorrect input
+    stop("Don't know how to handle type ", typeof(f),
+         call. = FALSE)
+  }
+}
+
+replace_selectors <- function(x, elem, value) {
+  if (is.atomic(x) || is.name(x)) {
+    x
+  }  else if (is.call(x)) {
+    if (identical(x, elem)) {
+      value
+    } else {
+      map_call(x, replace_selectors, elem, value)
+    }
+  } else if (is.pairlist(x)) {
+    map_pairlist(x, replace_selectors, elem, value)
+  } else {
+    # User supplied incorrect input
+    stop("Don't know how to handle type ", typeof(x),
+         call. = FALSE)
+  }
+}
+
+plus_call <- function(x, y) call("+", x, y)
+
+#' @importFrom rlang syms !!
+#' @importFrom purrr reduce
+vec_2_expr <- function(x) {
+  x <- rlang::syms(x)
+  res <- purrr::reduce(x, plus_call)
+  expr((!!res))
+}

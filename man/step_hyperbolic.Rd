@@ -2,38 +2,49 @@
 % Please edit documentation in R/hyperbolic.R
 \name{step_hyperbolic}
 \alias{step_hyperbolic}
+\alias{tidy.step_hyperbolic}
 \title{Hyperbolic Transformations}
 \usage{
 step_hyperbolic(recipe, ..., role = NA, trained = FALSE, func = "sin",
   inverse = TRUE, columns = NULL)
+
+\method{tidy}{step_hyperbolic}(x, ...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the sequence of 
-operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the
+sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which variables are 
-affected by the step. See \code{\link{selections}} for more details.}
+\item{...}{One or more selector functions to choose which
+variables are affected by the step. See \code{\link[=selections]{selections()}}
+for more details.  For the \code{tidy} method, these are not
+currently used.}
 
-\item{role}{Not used by this step since no new variables are created.}
+\item{role}{Not used by this step since no new variables are
+created.}
 
-\item{trained}{A logical to indicate if the quantities for preprocessing 
-have been estimated.}
+\item{trained}{A logical to indicate if the quantities for
+preprocessing have been estimated.}
 
-\item{func}{A character value for the function. Valid values are "sin",
-"cos", or "tan".}
+\item{func}{A character value for the function. Valid values
+are "sin", "cos", or "tan".}
 
 \item{inverse}{A logical: should the inverse function be used?}
 
-\item{columns}{A character string of variable names that will be (eventually)
-populated by the \code{terms} argument.}
+\item{columns}{A character string of variable names that will
+be (eventually) populated by the \code{terms} argument.}
+
+\item{x}{A \code{step_hyperbolic} object.}
 }
 \value{
-An updated version of \code{recipe} with the
-  new step added to the sequence of existing steps (if any).
+An updated version of \code{recipe} with the new step
+added to the sequence of existing steps (if any). For the
+\code{tidy} method, a tibble with columns \code{terms} (the
+columns that will be affected), \code{inverse}, and \code{func}.
 }
 \description{
-\code{step_hyperbolic} creates a \emph{specification} of a recipe step that
-  will transform data using a hyperbolic function.
+\code{step_hyperbolic} creates a \emph{specification} of a
+recipe step that will transform data using a hyperbolic
+function.
 }
 \examples{
 set.seed(313)
@@ -50,11 +61,14 @@ cos_obj <- prep(cos_trans, training = examples)
 
 transformed_te <- bake(cos_obj, examples)
 plot(examples$V1, transformed_te$V1)
+
+tidy(cos_trans, number = 1)
+tidy(cos_obj, number = 1)
 }
 \seealso{
-\code{\link{step_logit}} \code{\link{step_invlogit}}
-  \code{\link{step_log}}  \code{\link{step_sqrt}} \code{\link{recipe}}
-  \code{\link{prep.recipe}} \code{\link{bake.recipe}}
+\code{\link[=step_logit]{step_logit()}} \code{\link[=step_invlogit]{step_invlogit()}}
+\code{\link[=step_log]{step_log()}}  \code{\link[=step_sqrt]{step_sqrt()}} \code{\link[=recipe]{recipe()}}
+\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
 }
 \concept{
 preprocessing transformation_methods

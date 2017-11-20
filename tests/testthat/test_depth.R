@@ -19,6 +19,17 @@ test_that("defaults", {
 
   for(i in 1:ncol(exp_res))
     expect_equal(depths[, i], exp_res[, i])
+
+  depth_tibble_un <-
+    tibble(terms = "all_predictors()",
+           class = NA_character_)
+  depth_tibble_tr <-
+    tibble(terms = names(iris)[1:4],
+           class = rep("Species", 4))
+
+  expect_equal(tidy(rec, 1), depth_tibble_un)
+  expect_equal(tidy(trained, 1), depth_tibble_tr)
+
 })
 
 test_that("alt args", {
@@ -50,6 +61,6 @@ test_that('printing', {
   rec <- recipe(Species ~ ., data = iris) %>%
     step_depth(all_predictors(), class = "Species", metric = "spatial")
   expect_output(print(rec))
-  expect_output(prep(rec, training = iris))
+  expect_output(prep(rec, training = iris, verbose = TRUE))
 })
 

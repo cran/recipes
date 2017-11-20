@@ -2,66 +2,84 @@
 % Please edit documentation in R/dummy.R
 \name{step_dummy}
 \alias{step_dummy}
+\alias{tidy.step_dummy}
 \title{Dummy Variables Creation}
 \usage{
 step_dummy(recipe, ..., role = "predictor", trained = FALSE,
-  contrast = options("contrasts"), naming = function(var, lvl) paste(var,
-  make.names(lvl), sep = "_"), levels = NULL)
+  contrast = options("contrasts"), naming = dummy_names, levels = NULL)
+
+\method{tidy}{step_dummy}(x, ...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the sequence of 
-operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the
+sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which variables will
-be used to create the dummy variables. See \code{\link{selections}} for
-more details.}
+\item{...}{One or more selector functions to choose which
+variables will be used to create the dummy variables. See
+\code{\link[=selections]{selections()}} for more details. The selected
+variables must be factors. For the \code{tidy} method, these are
+not currently used.}
 
-\item{role}{For model terms created by this step, what analysis role should
-they be assigned?. By default, the function assumes that the binary
-dummy variable columns created by the original variables will be used as
-predictors in a model.}
+\item{role}{For model terms created by this step, what analysis
+role should they be assigned?. By default, the function assumes
+that the binary dummy variable columns created by the original
+variables will be used as predictors in a model.}
 
-\item{trained}{A logical to indicate if the quantities for preprocessing 
-have been estimated.}
+\item{trained}{A logical to indicate if the quantities for
+preprocessing have been estimated.}
 
-\item{contrast}{A specification for which type of contrast should be used
-to make a set of full rank dummy variables. See
-\code{\link[stats]{contrasts}} for more details. \bold{not currently
-working}}
+\item{contrast}{A specification for which type of contrast
+should be used to make a set of full rank dummy variables. See
+\code{\link[stats:contrasts]{stats::contrasts()}} for more details. \strong{not
+currently working}}
 
-\item{naming}{A function that defines the naming convention for new binary
-columns. See Details below.}
+\item{naming}{A function that defines the naming convention for
+new dummy columns. See Details below.}
 
-\item{levels}{A list that contains the information needed to create dummy
-variables for each variable contained in \code{terms}. This is
-\code{NULL} until the step is trained by \code{\link{prep.recipe}}.}
+\item{levels}{A list that contains the information needed to
+create dummy variables for each variable contained in
+\code{terms}. This is \code{NULL} until the step is trained by
+\code{\link[=prep.recipe]{prep.recipe()}}.}
+
+\item{x}{A \code{step_dummy} object.}
 }
 \value{
-An updated version of \code{recipe} with the
-  new step added to the sequence of existing steps (if any).
+An updated version of \code{recipe} with the new step
+added to the sequence of existing steps (if any). For the
+\code{tidy} method, a tibble with columns \code{terms} (the
+selectors or variables selected).
 }
 \description{
-\code{step_dummy} creates a a \emph{specification} of a recipe step that
-  will convert nominal data (e.g. character or factors) into one or more
-  numeric binary model terms for the levels of the original data.
+\code{step_dummy} creates a a \emph{specification} of a recipe
+step that will convert nominal data (e.g. character or factors)
+into one or more numeric binary model terms for the levels of
+the original data.
 }
 \details{
-\code{step_dummy} will create a set of binary dummy variables 
-  from a factor variable. For example, if a factor column in the data set
-  has levels of "red", "green", "blue", the dummy variable bake will
-  create two additional columns of 0/1 data for two of those three values
-  (and remove the original column).
+\code{step_dummy} will create a set of binary dummy
+variables from a factor variable. For example, if an unordered
+factor column in the data set has levels of "red", "green",
+"blue", the dummy variable bake will create two additional
+columns of 0/1 data for two of those three values (and remove
+the original column). For ordered factors, polynomial contrasts
+are used to encode the numeric values.
 
-By default, the missing dummy variable will correspond to the first level
-  of the factor being converted.
+By default, the missing dummy variable (i.e. the reference
+cell) will correspond to the first level of the unordered
+factor being converted.
 
-The function allows for non-standard naming of the resulting variables. For
-  a factor named \code{x}, with levels \code{"a"} and \code{"b"}, the
-  default naming convention would be to create a new variable called
-  \code{x_b}. Note that if the factor levels are not valid variable names
-  (e.g. "some text with spaces"), it will be changed by
-  \code{\link[base]{make.names}} to be valid (see the example below). The
-  naming format can be changed using the \code{naming} argument.
+The function allows for non-standard naming of the resulting
+variables. For an unordered factor named \code{x}, with levels \code{"a"}
+and \code{"b"}, the default naming convention would be to create a
+new variable called \code{x_b}. Note that if the factor levels are
+not valid variable names (e.g. "some text with spaces"), it will
+be changed by \code{\link[base:make.names]{base::make.names()}} to be valid (see the example
+below). The naming format can be changed using the \code{naming}
+argument and the function \code{\link[=dummy_names]{dummy_names()}} is the default. This
+function will also change the names of ordinal dummy variables.
+Instead of values such as "\code{.L}", "\code{.Q}", or "\code{^4}", ordinal
+dummy variables are given simple integer suffixes such as
+"\code{_1}", "\code{_2}", etc.
 }
 \examples{
 data(okc)
@@ -76,9 +94,16 @@ dummy_data <- bake(dummies, newdata = okc)
 
 unique(okc$diet)
 grep("^diet", names(dummy_data), value = TRUE)
+
+tidy(dummies, number = 1)
+}
+\seealso{
+\code{\link[=step_factor2string]{step_factor2string()}}, \code{\link[=step_string2factor]{step_string2factor()}},
+\code{\link[=dummy_names]{dummy_names()}}, \code{\link[=step_regex]{step_regex()}}, \code{\link[=step_count]{step_count()}},
+\code{\link[=step_ordinalscore]{step_ordinalscore()}}, \code{\link[=step_unorder]{step_unorder()}}, \code{\link[=step_other]{step_other()}}
 }
 \concept{
-preprocessing dummy_variables model_specification dummy_variables
-  variable_encodings
+preprocessing dummy_variables model_specification
+dummy_variables variable_encodings
 }
 \keyword{datagen}

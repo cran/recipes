@@ -64,17 +64,23 @@ get_lhs_vars <- function(formula, data) {
     formula <- as.formula(formula)
   ## Want to make sure that multiple outcomes can be expressed as
   ## additions with no cbind business and that `.` works too (maybe)
-  formula <- as.formula(paste("~", deparse(f_lhs(formula))))
-  get_rhs_vars(formula, data)
+  new_formula <- as.formula(paste("~", deparse(f_lhs(formula))))
+  get_rhs_vars(new_formula, data)
 }
 
+#' @importFrom rlang f_rhs
 #' @importFrom stats model.frame
-get_rhs_vars <- function(formula, data) {
+get_rhs_vars <- function(formula, data, no_lhs = FALSE) {
   if (!is_formula(formula))
     formula <- as.formula(formula)
+  if(no_lhs) 
+    formula <- as.formula(paste("~", deparse(f_rhs(formula))))
+
   ## This will need a lot of work to account for cases with `.`
   ## or embedded functions like `Sepal.Length + poly(Sepal.Width)`.
   ## or should it? what about Y ~ log(x)?
+  ## Answer: when called from `form2args`, the function
+  ## `check_elements` stops when in-line functions are used. 
   data_info <- attr(model.frame(formula, data), "terms")
   response_info <- attr(data_info, "response")
   predictor_names <- names(attr(data_info, "dataClasses"))
@@ -90,13 +96,13 @@ get_rhs_terms <- function(x) x
 
 #' Add a New Step to Current Recipe
 #'
-#' \code{add_step} adds a step to the last location in the recipe.
+#' `add_step` adds a step to the last location in the recipe.
 #'
-#' @param rec A \code{\link{recipe}}.
+#' @param rec A [recipe()].
 #' @param object A step object.
 #' @keywords datagen
 #' @concept preprocessing
-#' @return A updated \code{\link{recipe}} with the new step in the last slot.
+#' @return A updated [recipe()] with the new step in the last slot.
 #' @export
 add_step <- function(rec, object) {
   rec$steps[[length(rec$steps) + 1]] <- object
@@ -118,11 +124,11 @@ var_by_role <-
 ## Overall wrapper to make new step_X objects
 #' A General Step Wrapper
 #'
-#' \code{step} sets the class of the step.
+#' `step` sets the class of the step.
 #'
 #' @param subclass A character string for the resulting class. For example,
-#'   if \code{subclass = "blah"} the step object that is returned has class
-#'   \code{step_blah}.
+#'   if `subclass = "blah"` the step object that is returned has class
+#'   `step_blah`.
 #' @param ... All arguments to the step that should be returned.
 #' @keywords datagen
 #' @concept preprocessing
@@ -189,19 +195,42 @@ mod_call_args <- function(cl, args, removals = NULL) {
     cl
 }
 
-#' Sequences of Names with Padded Zeros
+#' Naming Tools
 #'
-#' This function creates a series of \code{num} names with a common prefix.
-#'   The names are numbered with leading zeros (e.g.
-#'   \code{prefix01}-\code{prefix10} instead of \code{prefix1}-\code{prefix10}).
+#' `names0` creates a series of `num` names with a common prefix.
+#'  The names are numbered with leading zeros (e.g.
+#'  `prefix01`-`prefix10` instead of `prefix1`-`prefix10`).
+#'  `dummy_names` can be used for renaming unordered and ordered
+#'  dummy variables (in [step_dummy()]).
 #'
 #' @param num A single integer for how many elements are created.
-#' @param prefix A character string that will start each name. .
-#' @return A character string of length \code{num}.
+#' @param prefix A character string that will start each name. 
+#' @param var A single string for the original factor name.
+#' @param lvl A character vectors of the factor levels (in order).
+#'  When used with [step_dummy()], `lvl` would be the suffixes
+#'  that result _after_ `model.matrix` is called (see the
+#'  example below). 
+#' @param ordinal A logical; was the original factor ordered?
+#' @return `names0` returns a character string of length `num` and
+#'  `dummy_names` generates a character vector the same length as
+#'  `lvl`, 
 #' @keywords datagen
 #' @concept string_functions naming_functions
+#' @examples 
+#' names0(9, "x")
+#' names0(10, "x")
+#' 
+#' example <- data.frame(y = ordered(letters[1:5]),
+#'                       z = factor(LETTERS[1:5]))
+#' 
+#' dummy_names("z", levels(example$z)[-1])
+#' 
+#' after_mm <- colnames(model.matrix(~y, data = example))[-1]
+#' after_mm
+#' levels(example$y)
+#' 
+#' dummy_names("y", substring(after_mm, 2), ordinal = TRUE)
 #' @export
-
 
 names0 <- function(num, prefix = "x") {
   if (num < 1)
@@ -211,6 +240,17 @@ names0 <- function(num, prefix = "x") {
   paste0(prefix, ind)
 }
 
+#' @export
+#' @rdname names0
+dummy_names <- function(var, lvl, ordinal = FALSE) {
+  if(!ordinal) 
+    nms <- paste(var, make.names(lvl), sep = "_") 
+  else 
+    # assuming they are in order:
+    nms <- paste0(var, names0(length(lvl), "_")) 
+  
+  nms
+}
 
 
 ## As suggested by HW, brought in from the `pryr` package
@@ -308,9 +348,12 @@ printer <- function(tr_obj = NULL,
                     trained = FALSE,
                     width = max(20, options()$width - 30)) {
   if (trained) {
-    cat(format_ch_vec(tr_obj, width = width))
+    txt <- format_ch_vec(tr_obj, width = width)
   } else
-    cat(format_selectors(untr_obj, wdth = width))
+    txt <- format_selectors(untr_obj, wdth = width)
+  if (nchar(txt) == 0)
+    txt <- "<none>"
+  cat(txt)
   if (trained)
     cat(" [trained]\n")
   else
@@ -324,3 +367,13 @@ printer <- function(tr_obj = NULL,
 prepare   <- function(x, ...) 
   stop("As of version 0.0.1.9006, used `prep` ",
        "instead of `prepare`", call. = FALSE)
+
+
+fully_trained <- function(x) {
+  if (is.null(x$steps))
+    return(TRUE)
+  is_tr <- vapply(x$steps, function(x) isTRUE(x$trained), logical(1))
+  all(is_tr)
+}
+
+
