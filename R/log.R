@@ -12,7 +12,7 @@
 #'  created.
 #' @param base A numeric value for the base.
 #' @param columns A character string of variable names that will
-#'  be (eventually) populated by the `terms` argument.
+#'  be populated (eventually) by the `terms` argument.
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
 #'  `tidy` method, a tibble with columns `terms` (the
@@ -48,15 +48,17 @@ step_log <-
            role = NA,
            trained = FALSE,
            base = exp(1),
-           columns = NULL) {
+           columns = NULL,
+           skip = FALSE) {
     add_step(
       recipe,
       step_log_new(
-        terms = check_ellipses(...),
+        terms = ellipse_check(...),
         role = role,
         trained = trained,
         base = base,
-        columns = columns
+        columns = columns,
+        skip = skip
       )
     )
   }
@@ -66,14 +68,16 @@ step_log_new <-
            role = NA,
            trained = FALSE,
            base = NULL,
-           columns = NULL) {
+           columns = NULL,
+           skip = FALSE) {
     step(
       subclass = "log",
       terms = terms,
       role = role,
       trained = trained,
       base = base,
-      columns = columns
+      columns = columns,
+      skip = skip
     )
   }
 
@@ -85,7 +89,8 @@ prep.step_log <- function(x, training, info = NULL, ...) {
     role = x$role,
     trained = TRUE,
     base = x$base,
-    columns = col_names
+    columns = col_names,
+    skip = x$skip
   )
 }
 

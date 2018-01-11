@@ -6,7 +6,7 @@
 \title{Collapse Some Categorical Levels}
 \usage{
 step_other(recipe, ..., role = NA, trained = FALSE, threshold = 0.05,
-  other = "other", objects = NULL)
+  other = "other", objects = NULL, skip = FALSE)
 
 \method{tidy}{step_other}(x, ...)
 }
@@ -32,6 +32,13 @@ preprocessing have been estimated.}
 \item{objects}{A list of objects that contain the information
 to pool infrequent levels that is determined by
 \code{\link[=prep.recipe]{prep.recipe()}}.}
+
+\item{skip}{A logical. Should the step be skipped when the
+recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
+when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
+conducted on new data (e.g. processing the outcome variable(s)).
+Care should be taken when using \code{skip = TRUE} as it may affect
+the computations for subsequent operations}
 
 \item{x}{A \code{step_other} object.}
 }
@@ -84,6 +91,11 @@ collapsed <- bake(rec, okc_te)
 table(okc_te$diet, collapsed$diet, useNA = "always")
 
 tidy(rec, number = 1)
+}
+\seealso{
+\code{\link[=step_factor2string]{step_factor2string()}}, \code{\link[=step_string2factor]{step_string2factor()}},
+\code{\link[=dummy_names]{dummy_names()}}, \code{\link[=step_regex]{step_regex()}}, \code{\link[=step_count]{step_count()}},
+\code{\link[=step_ordinalscore]{step_ordinalscore()}}, \code{\link[=step_unorder]{step_unorder()}}, \code{\link[=step_novel]{step_novel()}}
 }
 \concept{
 preprocessing factors

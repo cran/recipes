@@ -61,6 +61,7 @@
 #' @seealso [step_factor2string()], [step_string2factor()],
 #'  [dummy_names()], [step_regex()], [step_count()], 
 #'  [step_ordinalscore()], [step_unorder()], [step_other()]
+#'  [step_novel()]
 #' @examples
 #' data(okc)
 #' okc <- okc[complete.cases(okc),]
@@ -85,16 +86,18 @@ step_dummy <-
            trained = FALSE,
            contrast = options("contrasts"),
            naming = dummy_names,
-           levels = NULL) {
+           levels = NULL,
+           skip = FALSE) {
     add_step(
       recipe,
       step_dummy_new(
-        terms = check_ellipses(...),
+        terms = ellipse_check(...),
         role = role,
         trained = trained,
         contrast = contrast,
         naming = naming,
-        levels = levels
+        levels = levels,
+        skip = skip
       )
     )
   }
@@ -105,7 +108,8 @@ step_dummy_new <-
            trained = FALSE,
            contrast = contrast,
            naming = naming,
-           levels = levels
+           levels = levels,
+           skip = FALSE
   ) {
     step(
       subclass = "dummy",
@@ -114,7 +118,8 @@ step_dummy_new <-
       trained = trained,
       contrast = contrast,
       naming = naming,
-      levels = levels
+      levels = levels,
+      skip = skip
     )
   }
 
@@ -160,7 +165,8 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     trained = TRUE,
     contrast = x$contrast,
     naming = x$naming,
-    levels = levels
+    levels = levels,
+    skip = x$skip
   )
 }
 

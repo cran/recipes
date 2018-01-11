@@ -12,7 +12,7 @@
 #' @param role Not used by this step since no new variables are
 #'  created.
 #' @param columns A character string of variable names that will
-#'  be (eventually) populated by the `terms` argument.
+#'  be populated (eventually) by the `terms` argument.
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
 #'  `tidy` method, a tibble with columns `terms` which
@@ -47,24 +47,28 @@
 #'   [bake.recipe()]
 
 step_invlogit <-
-  function(recipe, ...,  role = NA, trained = FALSE, columns = NULL) {
+  function(recipe, ...,  role = NA, trained = FALSE, columns = NULL,
+           skip = FALSE) {
     add_step(recipe,
              step_invlogit_new(
-               terms = check_ellipses(...),
+               terms = ellipse_check(...),
                role = role,
                trained = trained,
-               columns = columns
+               columns = columns,
+               skip = skip
              ))
   }
 
 step_invlogit_new <-
-  function(terms = NULL, role = NA, trained = FALSE, columns = NULL) {
+  function(terms = NULL, role = NA, trained = FALSE, columns = NULL,
+           skip = FALSE) {
     step(
       subclass = "invlogit",
       terms = terms,
       role = role,
       trained = trained,
-      columns = columns
+      columns = columns,
+      skip = skip
     )
   }
 
@@ -75,7 +79,8 @@ prep.step_invlogit <- function(x, training, info = NULL, ...) {
     terms = x$terms,
     role = x$role,
     trained = TRUE,
-    columns = col_names
+    columns = col_names,
+    skip = x$skip
   )
 }
 

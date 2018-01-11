@@ -5,8 +5,8 @@
 \alias{tidy.step_spatialsign}
 \title{Spatial Sign Preprocessing}
 \usage{
-step_spatialsign(recipe, ..., role = "predictor", trained = FALSE,
-  columns = NULL)
+step_spatialsign(recipe, ..., role = "predictor", na.rm = TRUE,
+  trained = FALSE, columns = NULL, skip = FALSE)
 
 \method{tidy}{step_spatialsign}(x, ...)
 }
@@ -22,11 +22,21 @@ method, these are not currently used.}
 \item{role}{For model terms created by this step, what analysis
 role should they be assigned?}
 
+\item{na.rm}{A logical: should missing data be removed from the
+norm computation?}
+
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
 
 \item{columns}{A character string of variable names that will
-be (eventually) populated by the \code{terms} argument.}
+be populated (eventually) by the \code{terms} argument.}
+
+\item{skip}{A logical. Should the step be skipped when the
+recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
+when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
+conducted on new data (e.g. processing the outcome variable(s)).
+Care should be taken when using \code{skip = TRUE} as it may affect
+the computations for subsequent operations}
 
 \item{x}{A \code{step_spatialsign} object.}
 }
