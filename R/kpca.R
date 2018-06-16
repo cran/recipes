@@ -153,6 +153,7 @@ step_kpca_new <-
 #' @export
 prep.step_kpca <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
 
   kprc <- kPCA(stdpars = c(list(ndim = x$num), x$options))
   kprc <- kprc@fun(
@@ -180,7 +181,7 @@ bake.step_kpca <- function(object, newdata, ...) {
     )@data
   comps <- comps[, 1:object$num, drop = FALSE]
   colnames(comps) <- names0(ncol(comps), object$prefix)
-  newdata <- cbind(newdata, as_tibble(comps))
+  newdata <- bind_cols(newdata, as_tibble(comps))
   newdata <- newdata[, !(colnames(newdata) %in% pca_vars), drop = FALSE]
   as_tibble(newdata)
 }

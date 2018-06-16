@@ -12,9 +12,9 @@
 #' @param role Not used by this step since no new variables are
 #'  created.
 #' @param min A single numeric value for the smallest value in the
-#'  range
+#'  range.
 #' @param max A single numeric value for the largest value in the
-#'  range
+#'  range.
 #' @param ranges A character vector of variables that will be
 #'  normalized. Note that this is ignored until the values are
 #'  determined by [prep.recipe()]. Setting this value will
@@ -98,6 +98,8 @@ step_range_new <-
 #' @export
 prep.step_range <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
+
   mins <-
     vapply(training[, col_names], min, c(min = 0), na.rm = TRUE)
   maxs <-
@@ -133,7 +135,7 @@ bake.step_range <- function(object, newdata, ...) {
 print.step_range <-
   function(x, width = max(20, options()$width - 30), ...) {
     cat("Range scaling to [", x$min, ",", x$max, "] for ", sep = "")
-    printer(names(x$ranges), x$terms, x$trained, width = width)
+    printer(colnames(x$ranges), x$terms, x$trained, width = width)
     invisible(x)
   }
 

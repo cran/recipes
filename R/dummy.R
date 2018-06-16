@@ -16,10 +16,8 @@
 #'  role should they be assigned?. By default, the function assumes
 #'  that the binary dummy variable columns created by the original
 #'  variables will be used as predictors in a model.
-#' @param contrast A specification for which type of contrast
-#'  should be used to make a set of full rank dummy variables. See
-#'  [stats::contrasts()] for more details. **not
-#'  currently working**
+#' @param one_hot A logical. For C levels, should C dummy variables be created
+#' rather than C-1?
 #' @param naming A function that defines the naming convention for
 #'  new dummy columns. See Details below.
 #' @param levels A list that contains the information needed to
@@ -42,8 +40,8 @@
 #'  the original column). For ordered factors, polynomial contrasts
 #'  are used to encode the numeric values.
 #'
-#' By default, the missing dummy variable (i.e. the reference 
-#'  cell) will correspond to the first level of the unordered 
+#' By default, the excluded dummy variable (i.e. the reference
+#'  cell) will correspond to the first level of the unordered
 #'  factor being converted.
 #'
 #' The function allows for non-standard naming of the resulting
@@ -58,8 +56,22 @@
 #'  Instead of values such as "`.L`", "`.Q`", or "`^4`", ordinal
 #'  dummy variables are given simple integer suffixes such as
 #'  "`_1`", "`_2`", etc.
+#'
+#' To change the type of contrast being used, change the global 
+#' contrast option via `options`.
+#' 
+#' When the factor being converted has a missing value, all of the
+#'  corresponding dummy variables are also missing. 
+#'  
+#' When data to be processed contains novel levels (i.e., not 
+#' contained in the training set), a missing value is assigned to
+#' the results. See [step_other()] for an alternative. 
+#'
+#' The [package vignette for dummy variables](https://topepo.github.io/recipes/articles/Dummies.html)
+#' and interactions has more information.
+#'
 #' @seealso [step_factor2string()], [step_string2factor()],
-#'  [dummy_names()], [step_regex()], [step_count()], 
+#'  [dummy_names()], [step_regex()], [step_count()],
 #'  [step_ordinalscore()], [step_unorder()], [step_other()]
 #'  [step_novel()]
 #' @examples
@@ -76,6 +88,20 @@
 #' unique(okc$diet)
 #' grep("^diet", names(dummy_data), value = TRUE)
 #'
+#' # Obtain the full set of dummy variables using `one_hot` option
+#' rec %>%
+#'   step_dummy(diet, one_hot = TRUE) %>%
+#'   prep(training = okc, retain = TRUE) %>%
+#'   juice(starts_with("diet")) %>%
+#'   names() %>%
+#'   length()
+#'
+#' length(unique(okc$diet))
+#'
+#' # Without one_hot
+#' length(grep("^diet", names(dummy_data), value = TRUE))
+#'
+#'
 #' tidy(dummies, number = 1)
 
 
@@ -84,7 +110,7 @@ step_dummy <-
            ...,
            role = "predictor",
            trained = FALSE,
-           contrast = options("contrasts"),
+           one_hot = FALSE,
            naming = dummy_names,
            levels = NULL,
            skip = FALSE) {
@@ -94,7 +120,7 @@ step_dummy <-
         terms = ellipse_check(...),
         role = role,
         trained = trained,
-        contrast = contrast,
+        one_hot = one_hot,
         naming = naming,
         levels = levels,
         skip = skip
@@ -106,7 +132,7 @@ step_dummy_new <-
   function(terms = NULL,
            role = "predictor",
            trained = FALSE,
-           contrast = contrast,
+           one_hot = one_hot,
            naming = naming,
            levels = levels,
            skip = FALSE
@@ -116,14 +142,15 @@ step_dummy_new <-
       terms = terms,
       role = role,
       trained = trained,
-      contrast = contrast,
+      one_hot = one_hot,
       naming = naming,
       levels = levels,
       skip = skip
     )
   }
 
-#' @importFrom stats as.formula model.frame
+#' @importFrom stats as.formula model.frame na.pass
+#' @importFrom dplyr bind_cols
 #' @export
 prep.step_dummy <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
@@ -135,20 +162,25 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
       paste0("`", names(fac_check)[!fac_check], "`", collapse = ", "),
       call. = FALSE
     )
-  
-  
+
+
   ## I hate doing this but currently we are going to have
-  ## to save the terms object form the original (= training)
+  ## to save the terms object from the original (= training)
   ## data
   levels <- vector(mode = "list", length = length(col_names))
   names(levels) <- col_names
   for (i in seq_along(col_names)) {
-    form <- as.formula(paste0("~", col_names[i]))
+    form_chr <- paste0("~", col_names[i])
+    if(x$one_hot) {
+      form_chr <- paste0(form_chr, "-1")
+    }
+    form <- as.formula(form_chr)
     terms <- model.frame(form,
                          data = training,
-                         xlev = x$levels[[i]])
+                         xlev = x$levels[[i]],
+                         na.action = na.pass)
     levels[[i]] <- attr(terms, "terms")
-    
+
     ## About factor levels here: once dummy variables are made,
     ## the `stringsAsFactors` info saved in the recipe (under
     ## recipe$levels will remove the original record of the
@@ -158,57 +190,85 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     attr(levels[[i]], "values") <-
       levels(getElement(training, col_names[i]))
   }
-  
+
   step_dummy_new(
     terms = x$terms,
     role = x$role,
     trained = TRUE,
-    contrast = x$contrast,
+    one_hot = x$one_hot,
     naming = x$naming,
     levels = levels,
     skip = x$skip
   )
 }
 
+warn_new_levels <- function(dat, lvl) {
+  ind <- which(!(dat %in% lvl))
+  if (length(ind) > 0) {
+    lvl2 <- unique(dat[ind])
+    warning("There are new levels in a factor: ",
+            paste0(lvl2, collapse = ", "), 
+            call. = FALSE)
+  }
+  invisible(NULL)
+}
+
 #' @export
 bake.step_dummy <- function(object, newdata, ...) {
   ## Maybe do this in C?
   col_names <- names(object$levels)
-  
+
   ## `na.action` cannot be passed to `model.matrix` but we
   ## can change it globally for a bit
   old_opt <- options()$na.action
   options(na.action = "na.pass")
   on.exit(options(na.action = old_opt))
-  
+
   for (i in seq_along(object$levels)) {
     # Make sure that the incoming data has levels consistent with
     # the original (see the note above)
     orig_var <- names(object$levels)[i]
     fac_type <- attr(object$levels[[i]], "dataClasses")
-    
+
     if(!any(names(attributes(object$levels[[i]])) == "values"))
       stop("Factor level values not recorded", call. = FALSE)
+    
+    warn_new_levels(
+      newdata[[orig_var]],
+      attr(object$levels[[i]], "values")
+    )
     
     newdata[, orig_var] <-
       factor(getElement(newdata, orig_var),
              levels = attr(object$levels[[i]], "values"),
              ordered = fac_type == "ordered")
     
+    indicators <- 
+      model.frame(
+        as.formula(paste0("~", orig_var)),
+        data = newdata[, orig_var],
+        xlev = attr(object$levels[[i]], "values"),
+        na.action = na.pass
+      )
+
     indicators <-
       model.matrix(
         object = object$levels[[i]],
-        data = newdata
+        data = indicators
       )
-    
+    indicators <- as_tibble(indicators)
+
     options(na.action = old_opt)
     on.exit(expr = NULL)
-    
-    indicators <- indicators[, -1, drop = FALSE]
+
+    if(!object$one_hot) {
+      indicators <- indicators[, colnames(indicators) != "(Intercept)", drop = FALSE]
+    }
+
     ## use backticks for nonstandard factor levels here
     used_lvl <- gsub(paste0("^", col_names[i]), "", colnames(indicators))
     colnames(indicators) <- object$naming(col_names[i], used_lvl, fac_type == "ordered")
-    newdata <- cbind(newdata, as_tibble(indicators))
+    newdata <- bind_cols(newdata, as_tibble(indicators))
     newdata[, col_names[i]] <- NULL
   }
   if (!is_tibble(newdata))
@@ -229,7 +289,7 @@ print.step_dummy <-
       cat(" [trained]\n")
     else
       cat("\n")
-    invisible(x)    
+    invisible(x)
   }
 
 #' @rdname step_dummy

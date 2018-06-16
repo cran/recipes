@@ -6,8 +6,7 @@
 \title{Dummy Variables Creation}
 \usage{
 step_dummy(recipe, ..., role = "predictor", trained = FALSE,
-  contrast = options("contrasts"), naming = dummy_names, levels = NULL,
-  skip = FALSE)
+  one_hot = FALSE, naming = dummy_names, levels = NULL, skip = FALSE)
 
 \method{tidy}{step_dummy}(x, ...)
 }
@@ -29,10 +28,8 @@ variables will be used as predictors in a model.}
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
 
-\item{contrast}{A specification for which type of contrast
-should be used to make a set of full rank dummy variables. See
-\code{\link[stats:contrasts]{stats::contrasts()}} for more details. \strong{not
-currently working}}
+\item{one_hot}{A logical. For C levels, should C dummy variables be created
+rather than C-1?}
 
 \item{naming}{A function that defines the naming convention for
 new dummy columns. See Details below.}
@@ -72,7 +69,7 @@ columns of 0/1 data for two of those three values (and remove
 the original column). For ordered factors, polynomial contrasts
 are used to encode the numeric values.
 
-By default, the missing dummy variable (i.e. the reference
+By default, the excluded dummy variable (i.e. the reference
 cell) will correspond to the first level of the unordered
 factor being converted.
 
@@ -88,6 +85,19 @@ function will also change the names of ordinal dummy variables.
 Instead of values such as "\code{.L}", "\code{.Q}", or "\code{^4}", ordinal
 dummy variables are given simple integer suffixes such as
 "\code{_1}", "\code{_2}", etc.
+
+To change the type of contrast being used, change the global
+contrast option via \code{options}.
+
+When the factor being converted has a missing value, all of the
+corresponding dummy variables are also missing.
+
+When data to be processed contains novel levels (i.e., not
+contained in the training set), a missing value is assigned to
+the results. See \code{\link[=step_other]{step_other()}} for an alternative.
+
+The \href{https://topepo.github.io/recipes/articles/Dummies.html}{package vignette for dummy variables}
+and interactions has more information.
 }
 \examples{
 data(okc)
@@ -102,6 +112,20 @@ dummy_data <- bake(dummies, newdata = okc)
 
 unique(okc$diet)
 grep("^diet", names(dummy_data), value = TRUE)
+
+# Obtain the full set of dummy variables using `one_hot` option
+rec \%>\%
+  step_dummy(diet, one_hot = TRUE) \%>\%
+  prep(training = okc, retain = TRUE) \%>\%
+  juice(starts_with("diet")) \%>\%
+  names() \%>\%
+  length()
+
+length(unique(okc$diet))
+
+# Without one_hot
+length(grep("^diet", names(dummy_data), value = TRUE))
+
 
 tidy(dummies, number = 1)
 }

@@ -97,8 +97,7 @@ step_lincomb_new <-
 #' @export
 prep.step_lincomb <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
-  if (any(info$type[info$variable %in% col_names] != "numeric"))
-    stop("All variables for mean imputation should be numeric")
+  check_type(training[, col_names])
 
   filter <- iter_lc_rm(x = training[, col_names],
                        max_steps = x$max_steps)

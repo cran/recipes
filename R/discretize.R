@@ -33,10 +33,10 @@ discretize.default <- function(x, ...)
 #'  discretization takes place.
 #' @param ... Options to pass to
 #'  [stats::quantile()] that should not include `x`
-#'  or `probs`. 
+#'  or `probs`.
 #' @return `discretize` returns an object of class
 #'  `discretize` and `predict.discretize` returns a factor
-#'  vector. 
+#'  vector.
 #' @keywords datagen
 #' @concept preprocessing discretization factors
 #' @export
@@ -207,7 +207,7 @@ print.discretize <-
 #'  step that will convert numeric data into a factor with
 #'  bins having approximately the same number of data points (based
 #'  on a training set).
-#'  
+#'
 #' @inheritParams step_center
 #' @param role Not used by this step since no new variables are
 #'  created.
@@ -269,17 +269,20 @@ step_discretize_new <-
     )
   }
 
+#' @importFrom rlang invoke
 bin_wrapper <- function(x, args) {
   bin_call <-
     quote(discretize(x, cuts, labels, prefix, keep_na, infs, min_unique, ...))
   args <- sub_args(discretize.numeric, args, "x")
   args$x <- x
-  eval(bin_call, envir = args)
+  rlang::invoke(discretize, .args = args)
 }
 
 #' @export
 prep.step_discretize <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
+
   if (length(col_names) > 1 &
       any(names(x$options) %in% c("prefix", "labels"))) {
     warning("Note that the options `prefix` and `labels`",

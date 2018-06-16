@@ -154,6 +154,7 @@ step_pca_new <- function(terms = NULL,
 #' @export
 prep.step_pca <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
 
   prc_call <-
     expr(prcomp(
@@ -199,7 +200,7 @@ bake.step_pca <- function(object, newdata, ...) {
   comps <- predict(object$res, newdata = newdata[, pca_vars])
   comps <- comps[, 1:object$num, drop = FALSE]
   colnames(comps) <- names0(ncol(comps), object$prefix)
-  newdata <- cbind(newdata, as_tibble(comps))
+  newdata <- bind_cols(newdata, as_tibble(comps))
   newdata <-
     newdata[, !(colnames(newdata) %in% pca_vars), drop = FALSE]
   as_tibble(newdata)

@@ -141,6 +141,7 @@ step_isomap_new <-
 #' @export
 prep.step_isomap <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
 
   x$num <- min(x$num, ncol(training))
   x$options$knn <- min(x$options$knn, nrow(training))
@@ -175,7 +176,7 @@ bake.step_isomap <- function(object, newdata, ...) {
       )@data
   comps <- comps[, 1:object$num, drop = FALSE]
   colnames(comps) <- names0(ncol(comps), object$prefix)
-  newdata <- cbind(newdata, as_tibble(comps))
+  newdata <- bind_cols(newdata, as_tibble(comps))
   newdata <-
     newdata[, !(colnames(newdata) %in% isomap_vars), drop = FALSE]
   if (!is_tibble(newdata))

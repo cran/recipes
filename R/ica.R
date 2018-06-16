@@ -139,6 +139,7 @@ step_ica_new <-
 #' @export
 prep.step_ica <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
 
   x$num <- min(x$num, length(col_names))
 
@@ -170,7 +171,7 @@ bake.step_ica <- function(object, newdata, ...) {
       )@data
   comps <- comps[, 1:object$num, drop = FALSE]
   colnames(comps) <- names0(ncol(comps), object$prefix)
-  newdata <- cbind(newdata, as_tibble(comps))
+  newdata <- bind_cols(newdata, as_tibble(comps))
   newdata <-
     newdata[, !(colnames(newdata) %in% ica_vars), drop = FALSE]
   as_tibble(newdata)

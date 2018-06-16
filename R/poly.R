@@ -111,6 +111,7 @@ poly_wrapper <- function(x, args) {
 #' @export
 prep.step_poly <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
 
   obj <- lapply(training[, col_names], poly_wrapper, x$options)
   for (i in seq(along = col_names))
@@ -147,7 +148,7 @@ bake.step_poly <- function(object, newdata, ...) {
     strt <- max(cols) + 1
     newdata[, orig_var] <- NULL
   }
-  newdata <- cbind(newdata, as_tibble(poly_values))
+  newdata <- bind_cols(newdata, as_tibble(poly_values))
   if (!is_tibble(newdata))
     newdata <- as_tibble(newdata)
   newdata

@@ -36,19 +36,6 @@ get_types <- function(x) {
   tibble(variable = names(res), type = unname(res))
 }
 
-type_by_var <- function(classes, dat) {
-  res <- sapply(dat, is_one_of, what = classes)
-  names(res)[res]
-}
-
-is_one_of <- function(x, what) {
-  res <- sapply(as.list(what),
-                function(class, obj)
-                  inherits(obj, what = class),
-                obj = x)
-  any(res)
-}
-
 ## get variables from formulas
 is_formula <- function(x)
   isTRUE(inherits(x, "formula"))
@@ -88,21 +75,6 @@ get_lhs_terms <- function(x) x
 get_rhs_terms <- function(x) x
 
 ## ancillary step functions
-
-
-
-
-var_by_role <-
-  function(rec,
-           role = "predictor",
-           returnform = TRUE) {
-    res <- rec$var_info$variable[rec$var_info$role == role]
-    if (returnform)
-      res <- as.formula(paste("~",
-                              paste(res, collapse = "+")))
-    res
-  }
-
 
 ## then 9 is to keep space for "[trained]"
 format_ch_vec <-
@@ -266,11 +238,6 @@ train_info <- function(x) {
              ncomplete = sum(complete.cases(x)))
 }
 
-# Per LH and HW, brought in from the `dplyr` package
-is_negated <- function(x) {
-  is_lang(x, "-", n = 1)
-}
-
 ## `merge_term_info` takes the information on the current variable
 ## list and the information on the new set of variables (after each step)
 ## and merges them. Special attention is paid to cases where the
@@ -294,7 +261,15 @@ merge_term_info <- function(.new, .old) {
   left_join(.new, .old, by = c("variable", "type"))
 }
 
+
+#' Check for Empty Ellipses
+#'
+#' @param ... Arguments pass in from a call to `step`
+#' @return If not empty, a list of quosures. If empty, an error is thrown.
 #' @importFrom rlang quos is_empty
+#' @export
+#' @keywords internal
+#' @rdname recipes-internal
 ellipse_check <- function(...) {
   terms <- quos(...)
   if (is_empty(terms))
@@ -308,6 +283,22 @@ ellipse_check <- function(...) {
 #' @export
 magrittr::`%>%`
 
+
+#' Printing Workhorse Function
+#'
+#' This internal function is used for printing steps.
+#'
+#' @param tr_obj A character vector of names that have been
+#'  resolved during preparing the recipe (e.g. the `columns` object
+#'  of [step_log()]).
+#' @param untr_obj An oject of selectors prior to prepping the
+#'  recipe (e.g. `terms` in most steps).
+#' @param trained A logical for whether the step has been trained.
+#' @param width An integer denoting where the output should be wrapped.
+#' @return `NULL``, invisibly.
+#' @keywords internal
+#' @export
+#' @rdname recipes-internal
 printer <- function(tr_obj = NULL,
                     untr_obj = NULL,
                     trained = FALSE,
@@ -335,6 +326,20 @@ prepare   <- function(x, ...)
        "instead of `prepare`", call. = FALSE)
 
 
+#' Check to see if a recipe is trained/prepared
+#'
+#' @param x A recipe
+#' @return A logical which is true if all of the recipe steps have been run
+#'  through `prep`. If no steps have been added to the recipe, `TRUE` is
+#'  returned.
+#' @export
+#' @examples
+#' rec <- recipe(Species ~ ., data = iris) %>%
+#'   step_center(all_numeric())
+#'
+#' rec %>% fully_trained
+#'
+#' rec %>% prep(training = iris) %>% fully_trained
 fully_trained <- function(x) {
   if (is.null(x$steps))
     return(TRUE)
@@ -342,6 +347,26 @@ fully_trained <- function(x) {
   all(is_tr)
 }
 
+#' Detect if a particular step or check is used in a recipe
+#'
+#' @param recipe A recipe to check.
+#' @param name Character name of a step or check, omitted the prefix. That is,
+#'   to check if `step_intercept` is present, use `name = intercept`.
+#' @return Logical indicating if recipes contains given step.
+#' @export
+#'
+#' @examples
+#' rec <- recipe(Species ~ ., data = iris) %>%
+#'   step_intercept()
+#'
+#' detect_step(rec, "step_intercept")
+detect_step <- function(recipe, name) {
+  exports <- getNamespaceExports("recipes")
+  if (!any(grepl(paste0(".*", name, ".*"), exports)))
+    stop("Please provide the name of valid step or check (ex: `center`).",
+         call. = FALSE)
+  name %in% tidy(recipe)$type
+}
 
 # to be used in a recipe
 is_skipable <- function(x) {
@@ -358,3 +383,68 @@ skip_me <- function(x) {
   else
     return(x$skip)
 }
+
+is_qual <- function(x)
+  is.factor(x) | is.character(x)
+
+#' @export
+#' @keywords internal
+#' @rdname recipes-internal
+check_type <- function(dat, quant = TRUE) {
+  if (quant) {
+    all_good <- vapply(dat, is.numeric, logical(1))
+    label <- "numeric"
+  } else {
+    all_good <- vapply(dat, is_qual, logical(1))
+    label <- "factor or character"
+  }
+  if (!all(all_good))
+    stop("All columns selected for the step",
+         " should be ", label, call. = FALSE)
+  invisible(all_good)
+}
+
+
+
+## Support functions
+
+#' Check to see if a step or check as been trained
+#' @param x a step object.
+#' @return A logical
+#' @export
+#' @keywords internal
+#' @rdname recipes-internal
+is_trained <- function(x)
+  x$trained
+
+
+#' Convert Selectors to Character
+#'
+#' This internal function takes a list of selectors (e.g. `terms`
+#'  in most steps) and returns a character vector version for
+#'  printing.
+#' @param x A list of selectors
+#' @return A character vector
+#' @export
+#' @keywords internal
+#' @rdname recipes-internal
+sel2char <- function(x) {
+  term_names <- lapply(x, as.character)
+  term_names <-
+    vapply(term_names,
+           function(x) x[-1],
+           character(1))
+  term_names
+}
+
+
+simple_terms <- function(x, ...) {
+  if (is_trained(x)) {
+    res <- tibble(terms = x$columns)
+  } else {
+    term_names <- sel2char(x$terms)
+    res <- tibble(terms = term_names)
+  }
+  res
+}
+

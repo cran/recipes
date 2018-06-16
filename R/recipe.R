@@ -172,8 +172,7 @@ recipe.data.frame <-
 
     if (!is_tibble(x))
       x <- as_tibble(x)
-    if (is.null(vars))
-      vars <- colnames(x)
+
     if (any(table(vars) > 1))
       stop("`vars` should have unique members", call. = FALSE)
     if (any(!(vars %in% colnames(x))))
@@ -220,6 +219,7 @@ recipe.formula <- function(formula, data, ...) {
     vars = args$vars,
     roles = args$roles
   )
+  obj
 }
 
 #' @rdname recipe
@@ -329,18 +329,42 @@ prep.recipe <-
            retain = FALSE,
            stringsAsFactors = TRUE,
            ...) {
+    
     if (is.null(training)) {
       if (fresh)
         stop("A training set must be supplied to the `training` argument ",
              "when `fresh = TRUE`", call. = FALSE)
       training <- x$template
-      tr_data <- train_info(training)
     } else {
+      if (!all(x$var_info$variable %in% colnames(training))) {
+        stop("Not all variables in the recipe are present in the supplied ",
+             "training set", call. = FALSE)
+      }
       training <- if (!is_tibble(training))
         as_tibble(training[, x$var_info$variable, drop = FALSE])
       else
         training[, x$var_info$variable]
     }
+    
+    steps_trained <- vapply(x$steps, is_trained, logical(1))
+    if (any(steps_trained) & !fresh) {
+      if(!x$retained)
+        stop(
+          "To prep new steps after prepping the original ",
+          "recipe, `retain = TRUE` must be set each time that ",
+          "the recipe is trained.",
+          call. = FALSE
+        )
+      if (!is.null(x$training))
+        warning(
+          "The previous data will be used by `prep`; ",
+          "the data passed using `training` will be ",
+          "ignored.",
+          call. = FALSE
+        )
+      training <- x$template
+    }
+    
     tr_data <- train_info(training)
     if (stringsAsFactors) {
       lvls <- lapply(training, get_levels)
@@ -424,12 +448,12 @@ bake <- function(object, ...)
 #'   returned by the function. See [selections()] for more details.
 #'   If no selectors are given, the default is to use
 #'   [everything()].
-#' @param composition Either "tibble", "matrix", or "dgCMatrix" for the
-#'  format of the processed data set. Note that all computations
-#'  during the baking process are done in a non-sparse format. Also,
-#'  note that this argument should be called **after** any selectors
-#'  and the selectors should only resolve to numeric columns
-#'  (otherwise an error is thrown).
+#' @param composition Either "tibble", "matrix", "data.frame", or
+#'  "dgCMatrix" for the format of the processed data set. Note that
+#'  all computations during the baking process are done in a
+#'  non-sparse format. Also, note that this argument should be
+#'  called **after** any selectors and the selectors should only
+#'  resolve to numeric columns (otherwise an error is thrown).
 #' @return A tibble, matrix, or sparse matrix that may have different
 #'  columns than the original columns in `newdata`.
 #' @details [bake()] takes a trained recipe and applies the
@@ -451,6 +475,10 @@ bake <- function(object, ...)
 #' @importFrom tidyselect everything
 #' @export
 bake.recipe <- function(object, newdata, ..., composition = "tibble") {
+  if (!fully_trained(object))
+    stop("At least one step has not been training. Please ",
+         "run `prep`.",
+         call. = FALSE)
 
   if (!any(composition == formats))
     stop("`composition` should be one of: ",
@@ -492,6 +520,8 @@ bake.recipe <- function(object, newdata, ..., composition = "tibble") {
     newdata <- convert_matrix(newdata, sparse = TRUE)
   } else if (composition == "matrix") {
     newdata <- convert_matrix(newdata, sparse = FALSE)
+  } else if (composition == "data.frame") {
+    newdata <- base::as.data.frame(newdata)
   }
 
   newdata
@@ -616,12 +646,13 @@ summary.recipe <- function(object, original = FALSE, ...) {
 #' @export
 #' @seealso [recipe()] [prep.recipe()] [bake.recipe()]
 juice <- function(object, ..., composition = "tibble") {
+  if (!fully_trained(object))
+    stop("At least one step has not been training. Please ",
+         "run `prep`.",
+         call. = FALSE)
+
   if(!isTRUE(object$retained))
     stop("Use `retain = TRUE` in `prep` to be able to extract the training set",
-         call. = FALSE)
-  tr_steps <- vapply(object$steps, function(x) x$trained, c(logic = TRUE))
-  if(!all(tr_steps))
-    stop("At least one step has not be prepared; cannot extract.",
          call. = FALSE)
 
   if (!any(composition == formats))
@@ -652,11 +683,13 @@ juice <- function(object, ..., composition = "tibble") {
     newdata <- convert_matrix(newdata, sparse = TRUE)
   } else if (composition == "matrix") {
     newdata <- convert_matrix(newdata, sparse = FALSE)
+  } else if (composition == "data.frame") {
+    newdata <- base::as.data.frame(newdata)
   }
 
   newdata
 }
 
-formats <- c("tibble", "dgCMatrix", "matrix")
+formats <- c("tibble", "dgCMatrix", "matrix", "data.frame")
 
 

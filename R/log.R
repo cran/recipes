@@ -11,8 +11,13 @@
 #' @param role Not used by this step since no new variables are
 #'  created.
 #' @param base A numeric value for the base.
+#' @param offset An optional value to add to the data prior to
+#'  logging (to avoid `log(0)`).
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
+#' @param signed A logical indicating wether to take the signed log.
+#'  This is sign(x) * abs(x) when abs(x) => 1 or 0 if abs(x) < 1.
+#'  If `TRUE` the `offset` argument will be ignored.
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
 #'  `tidy` method, a tibble with columns `terms` (the
@@ -37,6 +42,22 @@
 #'
 #' tidy(log_trans, number = 1)
 #' tidy(log_obj, number = 1)
+#'
+#' # using the signed argument with negative values
+#'
+#' examples2 <- matrix(rnorm(40, sd = 5), ncol = 2)
+#' examples2 <- as.data.frame(examples2)
+#'
+#' recipe(~ V1 + V2, data = examples2) %>%
+#'   step_log(all_predictors()) %>%
+#'   prep(training = examples2) %>%
+#'   bake(examples2)
+#'
+#' recipe(~ V1 + V2, data = examples2) %>%
+#'   step_log(all_predictors(), signed = TRUE) %>%
+#'   prep(training = examples2) %>%
+#'   bake(examples2)
+#'
 #' @seealso [step_logit()] [step_invlogit()]
 #'   [step_hyperbolic()]  [step_sqrt()]
 #'   [recipe()] [prep.recipe()]
@@ -48,8 +69,11 @@ step_log <-
            role = NA,
            trained = FALSE,
            base = exp(1),
+           offset = 0,
            columns = NULL,
-           skip = FALSE) {
+           skip = FALSE,
+           signed = FALSE
+           ) {
     add_step(
       recipe,
       step_log_new(
@@ -57,8 +81,10 @@ step_log <-
         role = role,
         trained = trained,
         base = base,
+        offset = offset,
         columns = columns,
-        skip = skip
+        skip = skip,
+        signed = signed
       )
     )
   }
@@ -68,44 +94,68 @@ step_log_new <-
            role = NA,
            trained = FALSE,
            base = NULL,
+           offset = NULL,
            columns = NULL,
-           skip = FALSE) {
+           skip = FALSE,
+           signed = FALSE) {
     step(
       subclass = "log",
       terms = terms,
       role = role,
       trained = trained,
       base = base,
+      offset = offset,
       columns = columns,
-      skip = skip
+      skip = skip,
+      signed = signed
     )
   }
 
 #' @export
 prep.step_log <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
+
   step_log_new(
     terms = x$terms,
     role = x$role,
     trained = TRUE,
     base = x$base,
+    offset = x$offset,
     columns = col_names,
-    skip = x$skip
+    skip = x$skip,
+    signed = x$signed
   )
 }
 
 #' @export
 bake.step_log <- function(object, newdata, ...) {
   col_names <- object$columns
-  for (i in seq_along(col_names))
-    newdata[, col_names[i]] <-
-      log(getElement(newdata, col_names[i]), base = object$base)
+  # for backward compat
+  if(all(names(object) != "offset"))
+    object$offset <- 0
+
+  if (!object$signed){
+    for (i in seq_along(col_names))
+      newdata[, col_names[i]] <-
+        log(newdata[[ col_names[i] ]] + object$offset, base = object$base)
+  } else {
+    if (object$offset != 0)
+      warning("When signed is TRUE, offset will be ignored")
+     for (i in seq_along(col_names))
+       newdata[, col_names[i]] <-
+         ifelse(abs(newdata[[ col_names[i] ]]) < 1,
+                0,
+                sign(newdata[[ col_names[i] ]]) *
+                  log(abs(newdata[[ col_names[i] ]]), base = object$base ))
+  }
   as_tibble(newdata)
 }
 
 print.step_log <-
   function(x, width = max(20, options()$width - 31), ...) {
-    cat("Log transformation on ", sep = "")
+    msg <- ifelse(x$signed, "Signed log ", "Log ")
+    cat(msg, "transformation on ", sep = "")
     printer(x$columns, x$terms, x$trained, width = width)
     invisible(x)
   }

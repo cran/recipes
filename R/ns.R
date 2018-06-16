@@ -106,6 +106,8 @@ ns_wrapper <- function(x, args) {
 #' @export
 prep.step_ns <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
+  check_type(training[, col_names])
+
   obj <- lapply(training[, col_names], ns_wrapper, x$options)
   for (i in seq(along = col_names))
     attr(obj[[i]], "var") <- col_names[i]
@@ -140,7 +142,7 @@ bake.step_ns <- function(object, newdata, ...) {
     strt <- max(cols) + 1
     newdata[, orig_var] <- NULL
   }
-  newdata <- cbind(newdata, as_tibble(ns_values))
+  newdata <- bind_cols(newdata, as_tibble(ns_values))
   if (!is_tibble(newdata))
     newdata <- as_tibble(newdata)
   newdata
