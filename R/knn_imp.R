@@ -29,7 +29,7 @@
 #' @param columns The column names that will be imputed and used
 #'  for imputation. This is `NULL` until the step is trained by
 #'  [prep.recipe()].
-#' @param K The number of neighbors (this will be deprecated in factor of 
+#' @param K The number of neighbors (this will be deprecated in favor of 
 #'  `neighbors` in version 0.1.5). `neighbors` will override this option. 
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
@@ -206,7 +206,7 @@ bake.step_knnimpute <- function(object, new_data, ...) {
         imp_var_complete <- !is.na(object$ref_data[[imp_var]])
         nn_ind <- nn_index(object$ref_data[imp_var_complete,],
                            imp_data, preds,
-                           object$neighbors)
+                           ifelse(!is.null(object$K), object$K, object$neighbors))
         pred_vals <-
           apply(nn_ind, 2, nn_pred, dat = object$ref_data[imp_var_complete, imp_var])
         new_data[missing_rows, imp_var] <- pred_vals

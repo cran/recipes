@@ -410,20 +410,27 @@ prep.recipe <-
         x$term_info <-
           merge_term_info(get_types(training), x$term_info)
 
-        ## Update the roles and the term source
-        ## These next two steps needs to be smarter to find diffs
-        if (!is.na(x$steps[[i]]$role))
-          x$term_info$role[is.na(x$term_info$role)] <-
-          x$steps[[i]]$role
+        # Update the roles and the term source
+        if (!is.na(x$steps[[i]]$role)) {
 
-        x$term_info$source[is.na(x$term_info$source)] <- "derived"
+          new_vars <- setdiff(x$term_info$variable, running_info$variable)
+          pos_new_var <- x$term_info$variable %in% new_vars
+          pos_new_and_na_role <- pos_new_var & is.na(x$term_info$role)
+          pos_new_and_na_source <- pos_new_var  & is.na(x$term_info$source)
 
-        running_info <-
-          rbind(running_info,
-                x$term_info %>% mutate(number = i, skip = x$steps[[i]]$skip))
-      } else {
-        if (verbose)
-          cat(note, "[pre-trained]\n")
+          x$term_info$role[pos_new_and_na_role] <- x$steps[[i]]$role
+          x$term_info$source[pos_new_and_na_source] <- "derived"
+
+        }
+
+        running_info <- rbind(
+          running_info,
+          mutate(x$term_info, number = i, skip = x$steps[[i]]$skip)
+        )
+
+      }
+      else {
+        if (verbose) cat(note, "[pre-trained]\n")
       }
     }
 
@@ -526,7 +533,7 @@ bake.recipe <- function(object, new_data = NULL, ..., composition = "tibble") {
   if (is.null(new_data) || is.null(ncol(new_data))) {
     if (any(names(terms) == "newdata")) {
       warning("Please use `new_data` instead of `newdata` with `bake`. \nIn ",
-              "recipes versions >= 0.1.4, this will cause an error.",
+              "recipes versions >= 0.1.5, this will cause an error.",
               call. = FALSE)
       # If a single selector is passed in, it is now in `new_data`.
       if (!is.null(match.call()$new_data)) {

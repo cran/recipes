@@ -27,7 +27,8 @@
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
 #'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected).
+#'  selectors or original variables selected) and `columns` (the
+#'  list of corresponding binary columns).
 #' @keywords datagen
 #' @concept preprocessing dummy_variables model_specification
 #'  dummy_variables variable_encodings
@@ -190,6 +191,7 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     ## in `bake.step_dummy` just prior to calling `model.matrix`
     attr(levels[[i]], "values") <-
       levels(getElement(training, col_names[i]))
+    attr(levels[[i]], ".Environment") <- NULL
   }
 
   step_dummy_new(
@@ -294,14 +296,21 @@ print.step_dummy <-
     invisible(x)
   }
 
+
+get_dummy_columns <- function(x) {
+  tibble(columns = attr(x, "values"))
+}
+
+
+#' @importFrom purrr map_dfr
 #' @rdname step_dummy
 #' @param x A `step_dummy` object.
 #' @export
 tidy.step_dummy <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = names(x$levels))
+    res <- purrr::map_dfr(x$levels, get_dummy_columns, .id = "terms")
   } else {
-    res <- tibble(terms = sel2char(x$terms))
+    res <- tibble(terms = sel2char(x$terms), columns = rlang::na_chr)
   }
   res$id <- x$id
   res
