@@ -76,6 +76,9 @@ If the retained categories include the value of \code{other}, an error is
 thrown. If \code{other} is in the list of discarded levels, no error
 occurs.
 
+If no pooling is done, novel factor levels are converted to missing. If
+pooling is needed, they will be placed into the other category.
+
 When data to be processed contains novel levels (i.e., not
 contained in the training set), the other category is assigned.
 }
@@ -110,5 +113,6 @@ bake(rec, tahiti)
 \code{\link[=dummy_names]{dummy_names()}}, \code{\link[=step_regex]{step_regex()}}, \code{\link[=step_count]{step_count()}},
 \code{\link[=step_ordinalscore]{step_ordinalscore()}}, \code{\link[=step_unorder]{step_unorder()}}, \code{\link[=step_novel]{step_novel()}}
 }
-\concept{preprocessing factors}
+\concept{factors}
+\concept{preprocessing}
 \keyword{datagen}

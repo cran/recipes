@@ -1,4 +1,4 @@
-#' Centering Numeric Data
+#' Centering numeric data
 #'
 #' `step_center` creates a *specification* of a recipe
 #'  step that will normalize numeric data to have a mean of zero.
@@ -30,7 +30,8 @@
 #'  selectors or variables selected) and `value` (the means).
 #'
 #' @keywords datagen
-#' @concept preprocessing normalization_methods
+#' @concept preprocessing
+#' @concept normalization_methods
 #' @export
 #' @details Centering data means that the average of a variable is
 #'  subtracted from the data. `step_center` estimates the

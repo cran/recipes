@@ -38,7 +38,9 @@ discretize.default <- function(x, ...)
 #'  `discretize` and `predict.discretize` returns a factor
 #'  vector.
 #' @keywords datagen
-#' @concept preprocessing discretization factors
+#' @concept preprocessing
+#' @concept discretization
+#' @concept factors
 #' @export
 #' @details `discretize` estimates the cut points from
 #'  `x` using percentiles. For example, if `cuts = 3`, the
@@ -267,13 +269,13 @@ step_discretize_new <-
     )
   }
 
-#' @importFrom rlang invoke
+#' @importFrom rlang exec
 bin_wrapper <- function(x, args) {
   bin_call <-
     quote(discretize(x, cuts, labels, prefix, keep_na, infs, min_unique, ...))
   args <- sub_args(discretize.numeric, args, "x")
   args$x <- x
-  rlang::invoke(discretize, .args = args)
+  rlang::exec(discretize, !!!args)
 }
 
 #' @export

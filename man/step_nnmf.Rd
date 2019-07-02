@@ -37,11 +37,11 @@ used.}
 \item{num_run}{A positive integer for the number of computations runs used
 to obtain a consensus projection.}
 
-\item{options}{A list of options to \code{\link[NMF:nmf]{NMF::nmf()}} by way of
-\code{\link[dimRed:NNMF]{dimRed::NNMF()}}. \strong{Note} that the arguments
+\item{options}{A list of options to \code{nmf()} in the NMF package by way of the
+\code{NNMF()} function in the \code{dimRed} package. \strong{Note} that the arguments
 \code{data} and \code{ndim} should not be passed here.}
 
-\item{res}{The \code{\link[dimRed:NNMF]{dimRed::NNMF()}} object is stored
+\item{res}{The \code{NNMF()} object is stored
 here once this preprocessing step has be trained by
 \code{\link[=prep.recipe]{prep.recipe()}}.}
 
@@ -88,27 +88,27 @@ If \code{num = 101}, the names would be \code{NNMF001} -
 \code{NNMF101}.
 }
 \examples{
-\donttest{
+
 data(biomass)
 
-if (require(dimRed) & require(NMF)) {
-  rec <- recipe(HHV ~ ., data = biomass) \%>\%
-    update_role(sample, new_role = "id var") \%>\%
-    update_role(dataset, new_role = "split variable") \%>\%
-    step_nnmf(all_predictors(), num_comp = 2, seed = 473, num_run = 2) \%>\%
-    prep(training = biomass, retain = TRUE)
+# rec <- recipe(HHV ~ ., data = biomass) \%>\%
+#   update_role(sample, new_role = "id var") \%>\%
+#   update_role(dataset, new_role = "split variable") \%>\%
+#   step_nnmf(all_predictors(), num_comp = 2, seed = 473, num_run = 2) \%>\%
+#   prep(training = biomass, retain = TRUE)
+#
+# juice(rec)
+#
+# library(ggplot2)
+# ggplot(juice(rec), aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
 
-  juice(rec)
-
-  library(ggplot2)
-  ggplot(juice(rec), aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
-}
-}
 }
 \seealso{
 \code{\link[=step_pca]{step_pca()}}, \code{\link[=step_ica]{step_ica()}}, \code{\link[=step_kpca]{step_kpca()}},
 \code{\link[=step_isomap]{step_isomap()}}, \code{\link[=recipe]{recipe()}}, \code{\link[=prep.recipe]{prep.recipe()}},
 \code{\link[=bake.recipe]{bake.recipe()}}
 }
-\concept{preprocessing nnmf projection_methods}
+\concept{nnmf}
+\concept{preprocessing}
+\concept{projection_methods}
 \keyword{datagen}

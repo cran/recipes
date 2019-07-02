@@ -3,7 +3,7 @@
 \name{step_center}
 \alias{step_center}
 \alias{tidy.step_center}
-\title{Centering Numeric Data}
+\title{Centering numeric data}
 \usage{
 step_center(recipe, ..., role = NA, trained = FALSE, means = NULL,
   na_rm = TRUE, skip = FALSE, id = rand_id("center"))
@@ -85,5 +85,6 @@ tidy(center_obj, number = 1)
 \code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
 \code{\link[=bake.recipe]{bake.recipe()}}
 }
-\concept{preprocessing normalization_methods}
+\concept{normalization_methods}
+\concept{preprocessing}
 \keyword{datagen}

@@ -13,7 +13,7 @@
 #'  role should they be assigned?. By default, the function assumes
 #'  that the new columns created from the original variables will be
 #'  used as predictors in a model.
-#' @param deg_free The degrees of freedom. 
+#' @param deg_free The degrees of freedom.
 #' @param objects A list of [splines::ns()] objects
 #'  created once the step has been trained.
 #' @param options A list of options for [splines::ns()]
@@ -23,7 +23,8 @@
 #'  `tidy` method, a tibble with columns `terms` which is
 #'  the columns that will be affected and `holiday`.
 #' @keywords datagen
-#' @concept preprocessing basis_expansion
+#' @concept preprocessing
+#' @concept basis_expansion
 #' @export
 #' @details `step_ns` can new features from a single variable
 #'  that enable fitting routines to model this variable in a
@@ -166,10 +167,12 @@ print.step_ns <-
 #' @param x A `step_ns` object.
 #' @export
 tidy.step_ns <- function(x, ...) {
-  res <- simple_terms(x, ...)
-  res <- expand.grid(terms = res$terms,
-                     degree = x$degree,
-                     stringsAsFactors = FALSE)
+  if (is_trained(x)) {
+    cols <- tibble(terms = names(x$objects))
+  } else {
+    cols <- sel2char(x$terms)
+  }
+  res <- expand.grid(terms = cols, stringsAsFactors = FALSE)
   res$id <- x$id
   as_tibble(res)
 }
