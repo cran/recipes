@@ -160,7 +160,7 @@ print.step_corr <-
         cat("Correlation filter removed no terms")
     } else {
       cat("Correlation filter on ", sep = "")
-      cat(format_selectors(x$terms, wdth = width))
+      cat(format_selectors(x$terms, width = width))
     }
     if (x$trained)
       cat(" [trained]\n")
@@ -170,7 +170,6 @@ print.step_corr <-
   }
 
 
-#' @importFrom stats cor
 corr_filter <-
   function(x,
            cutoff = .90,
@@ -236,3 +235,21 @@ tidy_filter <- function(x, ...) {
 #' @param x A `step_corr` object.
 #' @export
 tidy.step_corr <- tidy_filter
+
+
+
+
+#' @rdname tunable.step
+#' @export
+tunable.step_corr <- function(x, ...) {
+  tibble::tibble(
+    name = "threshold",
+    call_info = list(
+      list(pkg = "dials", fun = "threshold")
+    ),
+    source = "recipe",
+    component = "step_corr",
+    component_id = x$id
+  )
+}
+

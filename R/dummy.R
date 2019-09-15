@@ -163,8 +163,6 @@ passover <- function(cmd) {
   #     "No dummy variables will be created.\n")
 } # figure out how to return a warning without exiting
 
-#' @importFrom stats as.formula model.frame na.pass
-#' @importFrom dplyr bind_cols
 #' @export
 prep.step_dummy <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info, empty_fun = passover)
@@ -320,7 +318,7 @@ print.step_dummy <-
       }
     } else {
       cat("Dummy variables from ", sep = "")
-      cat(format_selectors(x$terms, wdth = width))
+      cat(format_selectors(x$terms, width = width))
     }
     if (x$trained)
       cat(" [trained]\n")
@@ -335,7 +333,6 @@ get_dummy_columns <- function(x) {
 }
 
 
-#' @importFrom purrr map_dfr
 #' @rdname step_dummy
 #' @param x A `step_dummy` object.
 #' @export

@@ -123,7 +123,6 @@ get_unique_values <- function(x, zero = FALSE) {
   tibble(value = res, integer = ints)
 }
 
-#' @importFrom purrr map
 #' @export
 prep.step_integer <- function(x, training, info = NULL, ...) {
   col_names <- terms_select(x$terms, info = info)
@@ -140,8 +139,6 @@ prep.step_integer <- function(x, training, info = NULL, ...) {
   )
 }
 
-
-#' @importFrom dplyr full_join arrange filter
 map_key_to_int <- function(dat, key, strict = FALSE, zero = FALSE) {
   if (is.factor(dat))
     dat <- as.character(dat)
@@ -179,7 +176,7 @@ print.step_integer <-
       cat(format_ch_vec(names(x$key), width = width))
     } else {
       cat("Integer encoding for ", sep = "")
-      cat(format_selectors(x$terms, wdth = width))
+      cat(format_selectors(x$terms, width = width))
     }
     if (x$trained)
       cat(" [trained]\n")
@@ -201,6 +198,3 @@ tidy.step_integer <- function(x, ...) {
   res$id <- x$id
   res
 }
-
-#' @importFrom utils globalVariables
-utils::globalVariables(c(".row"))

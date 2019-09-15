@@ -76,14 +76,24 @@ step_relu <-
            columns = NULL,
            skip = FALSE,
            id = rand_id("relu")) {
-    if (!is.numeric(shift))
-      stop("Shift argument must be a numeric value.", call. = FALSE)
-    if (!is.logical(reverse))
-      stop("Reverse argument must be a logical value.", call. = FALSE)
-    if (!is.logical(smooth))
-      stop("Smooth argument must be logical value.", call. = FALSE)
-    if (reverse & prefix == "right_relu_")
+    if (!is_tune(shift) & !is_varying(shift)) {
+      if (!is.numeric(shift)) {
+        stop("Shift argument must be a numeric value.", call. = FALSE)
+      }
+    }
+    if (!is_tune(reverse) & !is_varying(reverse)) {
+      if (!is.logical(reverse)) {
+        stop("Reverse argument must be a logical value.", call. = FALSE)
+      }
+    }
+    if (!is_tune(smooth) & !is_varying(smooth)) {
+      if (!is.logical(smooth)) {
+        stop("Smooth argument must be logical value.", call. = FALSE)
+      }
+    }
+    if (reverse & prefix == "right_relu_") {
       prefix <- "left_relu_"
+    }
     add_step(
       recipe,
       step_relu_new(
@@ -137,8 +147,6 @@ prep.step_relu <- function(x, training, info = NULL, ...) {
   )
 }
 
-#' @importFrom dplyr select_vars tbl_vars
-#' @importFrom rlang call2 sym
 #' @export
 bake.step_relu <- function(object, new_data, ...) {
   make_relu_call <- function(col) {
@@ -154,7 +162,7 @@ bake.step_relu <- function(object, new_data, ...) {
 print.step_relu <-
   function(x, width = max(20, options()$width - 30), ...) {
     cat("Adding relu transform for ", sep = "")
-    cat(format_selectors(x$terms, wdth = width))
+    cat(format_selectors(x$terms, width = width))
     if (x$trained)
       cat(" [trained]\n")
     else
