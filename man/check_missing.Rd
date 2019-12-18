@@ -5,8 +5,15 @@
 \alias{tidy.check_missing}
 \title{Check for Missing Values}
 \usage{
-check_missing(recipe, ..., role = NA, trained = FALSE,
-  columns = NULL, skip = FALSE, id = rand_id("missing"))
+check_missing(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  columns = NULL,
+  skip = FALSE,
+  id = rand_id("missing")
+)
 
 \method{tidy}{check_missing}(x, ...)
 }
@@ -55,6 +62,7 @@ columns does contain \code{NA} values. If the check passes, nothing is changed
 to the data.
 }
 \examples{
+library(modeldata)
 data(credit_data)
 is.na(credit_data) \%>\% colSums()
 

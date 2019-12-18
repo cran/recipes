@@ -5,9 +5,18 @@
 \alias{tidy.step_regex}
 \title{Create Dummy Variables using Regular Expressions}
 \usage{
-step_regex(recipe, ..., role = "predictor", trained = FALSE,
-  pattern = ".", options = list(), result = make.names(pattern),
-  input = NULL, skip = FALSE, id = rand_id("regex"))
+step_regex(
+  recipe,
+  ...,
+  role = "predictor",
+  trained = FALSE,
+  pattern = ".",
+  options = list(),
+  result = make.names(pattern),
+  input = NULL,
+  skip = FALSE,
+  id = rand_id("regex")
+)
 
 \method{tidy}{step_regex}(x, ...)
 }
@@ -67,6 +76,7 @@ new column name).
 create a new dummy variable based on a regular expression.
 }
 \examples{
+library(modeldata)
 data(covers)
 
 rec <- recipe(~ description, covers) \%>\%

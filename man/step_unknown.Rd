@@ -5,9 +5,16 @@
 \alias{tidy.step_unknown}
 \title{Assign missing categories to "unknown"}
 \usage{
-step_unknown(recipe, ..., role = NA, trained = FALSE,
-  new_level = "unknown", objects = NULL, skip = FALSE,
-  id = rand_id("unknown"))
+step_unknown(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  new_level = "unknown",
+  objects = NULL,
+  skip = FALSE,
+  id = rand_id("unknown")
+)
 
 \method{tidy}{step_unknown}(x, ...)
 }
@@ -66,6 +73,7 @@ If \code{new_level} is already in the data given to \code{prep}, an error
 is thrown.
 }
 \examples{
+library(modeldata)
 data(okc)
 
 rec <-

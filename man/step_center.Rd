@@ -5,8 +5,16 @@
 \alias{tidy.step_center}
 \title{Centering numeric data}
 \usage{
-step_center(recipe, ..., role = NA, trained = FALSE, means = NULL,
-  na_rm = TRUE, skip = FALSE, id = rand_id("center"))
+step_center(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  means = NULL,
+  na_rm = TRUE,
+  skip = FALSE,
+  id = rand_id("center")
+)
 
 \method{tidy}{step_center}(x, ...)
 }
@@ -60,6 +68,7 @@ argument of \code{prep.recipe}. \code{bake.recipe} then applies
 the centering to new data sets using these means.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]

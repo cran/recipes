@@ -54,13 +54,14 @@
 #'
 #' @examples
 #'
+#' library(modeldata)
 #' data(biomass)
 #'
 #' # rec <- recipe(HHV ~ ., data = biomass) %>%
 #' #   update_role(sample, new_role = "id var") %>%
 #' #   update_role(dataset, new_role = "split variable") %>%
 #' #   step_nnmf(all_predictors(), num_comp = 2, seed = 473, num_run = 2) %>%
-#' #   prep(training = biomass, retain = TRUE)
+#' #   prep(training = biomass)
 #' #
 #' # juice(rec)
 #' #

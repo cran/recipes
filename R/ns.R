@@ -34,6 +34,7 @@
 #'  from the data and new columns are added. The naming convention
 #'  for the new variables is `varname_ns_1` and so on.
 #' @examples
+#' library(modeldata)
 #' data(biomass)
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training",]
@@ -183,7 +184,7 @@ tunable.step_ns <- function(x, ...) {
   tibble::tibble(
     name = c("deg_free"),
     call_info = list(
-      list(pkg = "dials", fun = "deg_free", range = c(3, 15))
+      list(pkg = "dials", fun = "spline_degree", range = c(1L, 15L))
     ),
     source = "recipe",
     component = "step_ns",

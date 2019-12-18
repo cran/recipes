@@ -5,8 +5,15 @@
 \alias{tidy.step_invlogit}
 \title{Inverse Logit Transformation}
 \usage{
-step_invlogit(recipe, ..., role = NA, trained = FALSE,
-  columns = NULL, skip = FALSE, id = rand_id("invlogit"))
+step_invlogit(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  columns = NULL,
+  skip = FALSE,
+  id = rand_id("invlogit")
+)
 
 \method{tidy}{step_invlogit}(x, ...)
 }
@@ -56,6 +63,7 @@ real line and translates them to be between zero and one using
 the function \code{f(x) = 1/(1+exp(-x))}.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]

@@ -50,6 +50,7 @@
 #'  [step_ordinalscore()], [step_unorder()], [step_other()]
 #'  [step_novel()], [step_dummy()]
 #' @examples
+#' library(modeldata)
 #' data(okc)
 #'
 #' okc$location <- factor(okc$location)
@@ -64,7 +65,7 @@
 #'
 #' rec <- recipe(Class ~ ., data = okc_tr) %>%
 #'   step_integer(all_predictors()) %>%
-#'   prep(training = okc_tr, retain = TRUE)
+#'   prep(training = okc_tr)
 #'
 #' bake(rec, okc_te, all_predictors())
 #' tidy(rec, number = 1)

@@ -5,8 +5,16 @@
 \alias{tidy.step_lincomb}
 \title{Linear Combination Filter}
 \usage{
-step_lincomb(recipe, ..., role = NA, trained = FALSE, max_steps = 5,
-  removals = NULL, skip = FALSE, id = rand_id("lincomp"))
+step_lincomb(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  max_steps = 5,
+  removals = NULL,
+  skip = FALSE,
+  id = rand_id("lincomp")
+)
 
 \method{tidy}{step_lincomb}(x, ...)
 }
@@ -60,6 +68,7 @@ removed to resolve the issue. This algorithm may need to be
 applied multiple times (as defined by \code{max_steps}).
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass$new_1 <- with(biomass,

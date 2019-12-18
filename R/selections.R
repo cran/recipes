@@ -28,7 +28,7 @@
 #'   \item These arguments are not evaluated until the `prep`
 #'    function for the step is executed.
 
-#'   \item The `dplyr`-like syntax allows for negative sings to
+#'   \item The `dplyr`-like syntax allows for negative signs to
 #'    exclude variables (e.g. `-Murder`) and the set of selectors will
 #'    processed in order.
 
@@ -173,6 +173,7 @@ element_check <- function(x, allowed = selectors) {
 #' @export
 #' @examples
 #' library(rlang)
+#' library(modeldata)
 #' data(okc)
 #' rec <- recipe(~ ., data = okc)
 #' info <- summary(rec)
@@ -249,6 +250,7 @@ abort_selection <- exiting(function(cnd) {
 #'
 #' @keywords datagen
 #' @examples
+#' library(modeldata)
 #' data(biomass)
 #'
 #' rec <- recipe(biomass) %>%
@@ -266,7 +268,7 @@ abort_selection <- exiting(function(cnd) {
 #' # Centering on all predictors except carbon
 #' rec %>%
 #'   step_center(all_predictors(), -carbon) %>%
-#'   prep(training = biomass, retain = TRUE) %>%
+#'   prep(training = biomass) %>%
 #'   juice()
 #'
 #' @export
@@ -278,21 +280,18 @@ has_role <- function(match = "predictor") {
 
 #' @export
 #' @rdname has_role
-#' @inheritParams has_role
 all_predictors <- function() {
   has_role("predictor")
 }
 
 #' @export
 #' @rdname has_role
-#' @inheritParams has_role
 all_outcomes <- function() {
   has_role("outcome")
 }
 
 #' @export
 #' @rdname has_role
-#' @inheritParams has_role
 has_type <- function(match = "numeric") {
   types <- peek_types()
   lgl_matches <- purrr::map_lgl(types, ~any(.x %in% match))
@@ -301,14 +300,12 @@ has_type <- function(match = "numeric") {
 
 #' @export
 #' @rdname has_role
-#' @inheritParams has_role
 all_numeric <- function() {
   has_type("numeric")
 }
 
 #' @export
 #' @rdname has_role
-#' @inheritParams has_role
 all_nominal <- function() {
   has_type("nominal")
 }

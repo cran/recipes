@@ -5,9 +5,18 @@
 \alias{tidy.step_bs}
 \title{B-Spline Basis Functions}
 \usage{
-step_bs(recipe, ..., role = "predictor", trained = FALSE,
-  deg_free = NULL, degree = 3, objects = NULL, options = list(),
-  skip = FALSE, id = rand_id("bs"))
+step_bs(
+  recipe,
+  ...,
+  role = "predictor",
+  trained = FALSE,
+  deg_free = NULL,
+  degree = 3,
+  objects = NULL,
+  options = list(),
+  skip = FALSE,
+  id = rand_id("bs")
+)
 
 \method{tidy}{step_bs}(x, ...)
 }
@@ -70,6 +79,7 @@ from the data and new columns are added. The naming convention
 for the new variables is \code{varname_bs_1} and so on.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]

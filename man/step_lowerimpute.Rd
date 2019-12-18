@@ -5,8 +5,15 @@
 \alias{tidy.step_lowerimpute}
 \title{Impute Numeric Data Below the Threshold of Measurement}
 \usage{
-step_lowerimpute(recipe, ..., role = NA, trained = FALSE,
-  threshold = NULL, skip = FALSE, id = rand_id("lowerimpute"))
+step_lowerimpute(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  threshold = NULL,
+  skip = FALSE,
+  id = rand_id("lowerimpute")
+)
 
 \method{tidy}{step_lowerimpute}(x, ...)
 }
@@ -61,6 +68,7 @@ with a random uniform value between zero and the minimum.
 }
 \examples{
 library(recipes)
+library(modeldata)
 data(biomass)
 
 ## Truncate some values to emulate what a lower limit of

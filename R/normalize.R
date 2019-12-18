@@ -33,6 +33,7 @@
 #'  `prep.recipe`. `bake.recipe` then applies the scaling to new data sets using
 #'  these estimates.
 #' @examples
+#' library(modeldata)
 #' data(biomass)
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training",]
@@ -116,8 +117,7 @@ prep.step_normalize <- function(x, training, info = NULL, ...) {
 bake.step_normalize <- function(object, new_data, ...) {
   res <- sweep(as.matrix(new_data[, names(object$means)]), 2, object$means, "-")
   res <- sweep(res, 2, object$sds, "/")
-  if (is.matrix(res) && ncol(res) == 1)
-    res <- res[, 1]
+  res <- tibble::as_tibble(res)
   new_data[, names(object$sds)] <- res
   as_tibble(new_data)
 }

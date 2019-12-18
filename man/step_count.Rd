@@ -5,10 +5,19 @@
 \alias{tidy.step_count}
 \title{Create Counts of Patterns using Regular Expressions}
 \usage{
-step_count(recipe, ..., role = "predictor", trained = FALSE,
-  pattern = ".", normalize = FALSE, options = list(),
-  result = make.names(pattern), input = NULL, skip = FALSE,
-  id = rand_id("count"))
+step_count(
+  recipe,
+  ...,
+  role = "predictor",
+  trained = FALSE,
+  pattern = ".",
+  normalize = FALSE,
+  options = list(),
+  result = make.names(pattern),
+  input = NULL,
+  skip = FALSE,
+  id = rand_id("count")
+)
 
 \method{tidy}{step_count}(x, ...)
 }
@@ -72,6 +81,7 @@ step that will create a variable that counts instances of a
 regular expression pattern in text.
 }
 \examples{
+library(modeldata)
 data(covers)
 
 rec <- recipe(~ description, covers) \%>\%

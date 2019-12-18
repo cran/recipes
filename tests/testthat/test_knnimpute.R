@@ -2,7 +2,8 @@ library(testthat)
 library(gower)
 library(recipes)
 library(dplyr)
-data("biomass")
+library(modeldata)
+data(biomass)
 
 context("K-nn imputation")
 
@@ -37,8 +38,7 @@ test_that('imputation values', {
     neighbors = rep(3, 2),
     id = ""
   )
-  expect_equal(imp_exp_un, tidy(impute_rec, number = 2))
-
+  expect_equivalent(as.data.frame(tidy(impute_rec, number = 2)), as.data.frame(imp_exp_un))
   discr_rec <- prep(discr_rec, training = biomass_tr, verbose = FALSE)
   tr_data <- bake(discr_rec, new_data = biomass_tr)
   te_data <- bake(discr_rec, new_data = biomass_te) %>%

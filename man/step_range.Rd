@@ -5,8 +5,17 @@
 \alias{tidy.step_range}
 \title{Scaling Numeric Data to a Specific Range}
 \usage{
-step_range(recipe, ..., role = NA, trained = FALSE, min = 0,
-  max = 1, ranges = NULL, skip = FALSE, id = rand_id("range"))
+step_range(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  min = 0,
+  max = 1,
+  ranges = NULL,
+  skip = FALSE,
+  id = rand_id("range")
+)
 
 \method{tidy}{step_range}(x, ...)
 }
@@ -64,6 +73,7 @@ the training set, the new values are truncated at \code{min} or
 \code{max}.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]

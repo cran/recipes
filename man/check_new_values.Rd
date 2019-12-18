@@ -2,11 +2,19 @@
 % Please edit documentation in R/newvalues.R
 \name{check_new_values}
 \alias{check_new_values}
-\title{Check for Missing Values}
+\title{Check for New Values}
 \usage{
-check_new_values(recipe, ..., role = NA, trained = FALSE,
-  columns = NULL, ignore_NA = TRUE, values = NULL, skip = FALSE,
-  id = rand_id("new_values"))
+check_new_values(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  columns = NULL,
+  ignore_NA = TRUE,
+  values = NULL,
+  skip = FALSE,
+  id = rand_id("new_values")
+)
 }
 \arguments{
 \item{recipe}{A recipe object. The check will be added to the
@@ -57,6 +65,7 @@ columns does contain values it did not contain when \code{prep} was called
 on the recipe. If the check passes, nothing is changed to the data.
 }
 \examples{
+library(modeldata)
 data(credit_data)
 
 # If the test passes, `new_data` is returned unaltered

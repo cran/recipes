@@ -5,8 +5,15 @@
 \alias{tidy.step_rm}
 \title{General Variable Filter}
 \usage{
-step_rm(recipe, ..., role = NA, trained = FALSE, removals = NULL,
-  skip = FALSE, id = rand_id("rm"))
+step_rm(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  removals = NULL,
+  skip = FALSE,
+  id = rand_id("rm")
+)
 
 \method{tidy}{step_rm}(x, ...)
 }
@@ -51,6 +58,7 @@ is the columns that will be removed.
 that will remove variables based on their name, type, or role.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]

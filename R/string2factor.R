@@ -37,6 +37,7 @@
 #' @seealso [step_factor2string()] [step_dummy()] [step_other()]
 #'  [step_novel()]
 #' @examples
+#' library(modeldata)
 #' data(okc)
 #'
 #' rec <- recipe(~ diet + location, data = okc)
@@ -45,8 +46,7 @@
 #'   step_string2factor(diet)
 #' make_factor <- prep(make_factor,
 #'                     training = okc,
-#'                     strings_as_factors = FALSE,
-#'                     retain = TRUE)
+#'                     strings_as_factors = FALSE)
 #'
 #' # note that `diet` is a factor
 #' juice(make_factor) %>% head

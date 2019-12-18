@@ -5,8 +5,15 @@
 \alias{tidy.step_zv}
 \title{Zero Variance Filter}
 \usage{
-step_zv(recipe, ..., role = NA, trained = FALSE, removals = NULL,
-  skip = FALSE, id = rand_id("zv"))
+step_zv(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  removals = NULL,
+  skip = FALSE,
+  id = rand_id("zv")
+)
 
 \method{tidy}{step_zv}(x, ...)
 }
@@ -51,6 +58,7 @@ is the columns that will be removed.
 that will remove variables that contain only a single value.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass$one_value <- 1

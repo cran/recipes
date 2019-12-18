@@ -6,10 +6,17 @@
 \alias{tidy.step_ratio}
 \title{Ratio Variable Creation}
 \usage{
-step_ratio(recipe, ..., role = "predictor", trained = FALSE,
-  denom = denom_vars(), naming = function(numer, denom)
-  make.names(paste(numer, denom, sep = "_o_")), columns = NULL,
-  skip = FALSE, id = rand_id("ratio"))
+step_ratio(
+  recipe,
+  ...,
+  role = "predictor",
+  trained = FALSE,
+  denom = denom_vars(),
+  naming = function(numer, denom) make.names(paste(numer, denom, sep = "_o_")),
+  columns = NULL,
+  skip = FALSE,
+  id = rand_id("ratio")
+)
 
 denom_vars(...)
 
@@ -72,6 +79,7 @@ variables.
 }
 \examples{
 library(recipes)
+library(modeldata)
 data(biomass)
 
 biomass$total <- apply(biomass[, 3:7], 1, sum)

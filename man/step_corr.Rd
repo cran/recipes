@@ -5,9 +5,18 @@
 \alias{tidy.step_corr}
 \title{High Correlation Filter}
 \usage{
-step_corr(recipe, ..., role = NA, trained = FALSE, threshold = 0.9,
-  use = "pairwise.complete.obs", method = "pearson", removals = NULL,
-  skip = FALSE, id = rand_id("corr"))
+step_corr(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  threshold = 0.9,
+  use = "pairwise.complete.obs",
+  method = "pearson",
+  removals = NULL,
+  skip = FALSE,
+  id = rand_id("corr")
+)
 
 \method{tidy}{step_corr}(x, ...)
 }
@@ -74,6 +83,7 @@ has sporadic missing values (and an inappropriate value of \code{use}
 is chosen), some columns will also be excluded from the filter.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 set.seed(3535)

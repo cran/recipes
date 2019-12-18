@@ -47,6 +47,7 @@ All of these functions have have limited utility
 outside of column selection in step functions.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 rec <- recipe(biomass) \%>\%
@@ -64,7 +65,7 @@ recipe_info
 # Centering on all predictors except carbon
 rec \%>\%
   step_center(all_predictors(), -carbon) \%>\%
-  prep(training = biomass, retain = TRUE) \%>\%
+  prep(training = biomass) \%>\%
   juice()
 
 }

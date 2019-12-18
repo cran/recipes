@@ -27,10 +27,10 @@ recipe.default <- function(x, ...)
 #' @param ... Further arguments passed to or from other methods (not currently
 #'   used).
 #' @param formula A model formula. No in-line functions should be used here
-#'   (e.g. `log(x)`, `x:y`, etc.). These types of transformations
-#'   should be enacted using `step` functions in this package. Dots are
-#'   allowed as are simple multivariate outcome terms (i.e. no need for
-#'   `cbind`; see Examples).
+#'  (e.g. `log(x)`, `x:y`, etc.) and minus signs are not allowed. These types of
+#'  transformations should be enacted using `step` functions in this package.
+#'  Dots are allowed as are simple multivariate outcome terms (i.e. no need for
+#'  `cbind`; see Examples).
 #' @param x,data A data frame or tibble of the *template* data set
 #'   (see below).
 #' @return An object of class `recipe` with sub-objects:
@@ -90,6 +90,7 @@ recipe.default <- function(x, ...)
 #'
 #' ###############################################
 #' # simple example:
+#' library(modeldata)
 #' data(biomass)
 #'
 #' # split data
@@ -207,6 +208,13 @@ recipe.data.frame <-
 #' @rdname recipe
 #' @export
 recipe.formula <- function(formula, data, ...) {
+  # check for minus:
+  f_funcs <- fun_calls(formula)
+  if (any(f_funcs == "-")) {
+    rlang::abort("`-` is not allowed in a recipe formula. Use `step_rm()` instead.")
+  }
+
+  # Check for other in-line functions
   args <- form2args(formula, data, ...)
   obj <- recipe.data.frame(
     x = args$x,
@@ -566,6 +574,9 @@ bake.recipe <- function(object, new_data = NULL, ..., composition = "tibble") {
     }
 
     new_data <- new_data[, names(new_data) %in% keepers]
+    columns_sorted <- match(keepers, names(new_data))
+    columns_sorted <- columns_sorted[!is.na(columns_sorted)]
+    new_data <- new_data[, columns_sorted]
     ## The levels are not null when no nominal data are present or
     ## if strings_as_factors = FALSE in `prep`
     if (!is.null(object$levels)) {
@@ -579,7 +590,7 @@ bake.recipe <- function(object, new_data = NULL, ..., composition = "tibble") {
         new_data <- strings2factors(new_data, var_levels)
     }
   } else {
-    new_data <- tibble()
+    new_data <- tibble(.rows = nrow(new_data))
   }
 
   if (composition == "dgCMatrix") {
@@ -696,6 +707,7 @@ summary.recipe <- function(object, original = FALSE, ...) {
 #'  the step's `skip` argument.
 #'
 #' @examples
+#' library(modeldata)
 #' data(biomass)
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training",]
@@ -708,7 +720,7 @@ summary.recipe <- function(object, original = FALSE, ...) {
 #'   step_normalize(all_predictors()) %>%
 #'   step_spatialsign(all_predictors())
 #'
-#' sp_signed_trained <- prep(sp_signed, training = biomass_tr, retain = TRUE)
+#' sp_signed_trained <- prep(sp_signed, training = biomass_tr)
 #'
 #' tr_values <- bake(sp_signed_trained, new_data = biomass_tr, all_predictors())
 #' og_values <- juice(sp_signed_trained, all_predictors())
@@ -758,7 +770,7 @@ juice <- function(object, ..., composition = "tibble") {
         new_data <- strings2factors(new_data, var_levels)
     }
   } else {
-    new_data <- tibble()
+    new_data <- tibble(.rows = nrow(object$template))
   }
 
   if (composition == "dgCMatrix") {

@@ -5,9 +5,16 @@
 \alias{tidy.step_novel}
 \title{Simple Value Assignments for Novel Factor Levels}
 \usage{
-step_novel(recipe, ..., role = NA, trained = FALSE,
-  new_level = "new", objects = NULL, skip = FALSE,
-  id = rand_id("novel"))
+step_novel(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  new_level = "new",
+  objects = NULL,
+  skip = FALSE,
+  id = rand_id("novel")
+)
 
 \method{tidy}{step_novel}(x, ...)
 }
@@ -71,6 +78,7 @@ If \code{new_level} is already in the data given to \code{prep}, an error
 is thrown.
 }
 \examples{
+library(modeldata)
 data(okc)
 
 okc_tr <- okc[1:30000,]

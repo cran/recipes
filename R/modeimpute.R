@@ -28,6 +28,7 @@
 #'  values to new data sets using these values. If the training set
 #'  data has more than one mode, one is selected at random.
 #' @examples
+#' library(modeldata)
 #' data("credit_data")
 #'
 #' ## missing data per column
@@ -104,8 +105,10 @@ prep.step_modeimpute <- function(x, training, info = NULL, ...) {
 #' @export
 bake.step_modeimpute <- function(object, new_data, ...) {
   for (i in names(object$modes)) {
-    if (any(is.na(new_data[, i])))
-      new_data[is.na(new_data[, i]), i] <- object$modes[i]
+    if (any(is.na(new_data[, i]))) {
+      mode_val <- cast(object$modes[[i]], new_data[[i]])
+      new_data[is.na(new_data[[i]]), i] <- mode_val
+    }
   }
   as_tibble(new_data)
 }

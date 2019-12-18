@@ -54,6 +54,7 @@
 #'  names would be `PLS001` - `PLS101`.
 #'
 #' @examples
+#' library(modeldata)
 #' data(biomass)
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training",]
@@ -68,7 +69,7 @@
 #'   step_normalize(all_outcomes(), skip = TRUE) %>%
 #'   step_pls(all_predictors(), outcome = "HHV")
 #'
-#' pls_rec <- prep(pls_rec, training = biomass_tr, retain = TRUE)
+#' pls_rec <- prep(pls_rec, training = biomass_tr)
 #'
 #' pls_test_scores <- bake(pls_rec, new_data = biomass_te[, -8])
 #'

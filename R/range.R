@@ -31,6 +31,7 @@
 #'  the training set, the new values are truncated at `min` or
 #'  `max`.
 #' @examples
+#' library(modeldata)
 #' data(biomass)
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training",]
@@ -124,8 +125,7 @@ bake.step_range <- function(object, new_data, ...) {
   tmp[tmp < object$min] <- object$min
   tmp[tmp > object$max] <- object$max
 
-  if (is.matrix(tmp) && ncol(tmp) == 1)
-    tmp <- tmp[, 1]
+  tmp <- tibble::as_tibble(tmp)
   new_data[, colnames(object$ranges)] <- tmp
   as_tibble(new_data)
 }

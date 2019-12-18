@@ -5,8 +5,15 @@
 \alias{tidy.step_modeimpute}
 \title{Impute Nominal Data Using the Most Common Value}
 \usage{
-step_modeimpute(recipe, ..., role = NA, trained = FALSE,
-  modes = NULL, skip = FALSE, id = rand_id("modeimpute"))
+step_modeimpute(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  modes = NULL,
+  skip = FALSE,
+  id = rand_id("modeimpute")
+)
 
 \method{tidy}{step_modeimpute}(x, ...)
 }
@@ -59,6 +66,7 @@ values to new data sets using these values. If the training set
 data has more than one mode, one is selected at random.
 }
 \examples{
+library(modeldata)
 data("credit_data")
 
 ## missing data per column

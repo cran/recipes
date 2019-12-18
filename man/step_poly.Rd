@@ -5,9 +5,17 @@
 \alias{tidy.step_poly}
 \title{Orthogonal Polynomial Basis Functions}
 \usage{
-step_poly(recipe, ..., role = "predictor", trained = FALSE,
-  objects = NULL, degree = 2, options = list(), skip = FALSE,
-  id = rand_id("poly"))
+step_poly(
+  recipe,
+  ...,
+  role = "predictor",
+  trained = FALSE,
+  objects = NULL,
+  degree = 2,
+  options = list(),
+  skip = FALSE,
+  id = rand_id("poly")
+)
 
 \method{tidy}{step_poly}(x, ...)
 }
@@ -70,6 +78,7 @@ from the data and new columns are added. The naming convention
 for the new variables is \code{varname_poly_1} and so on.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]

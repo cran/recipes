@@ -5,9 +5,18 @@
 \alias{tidy.step_nzv}
 \title{Near-Zero Variance Filter}
 \usage{
-step_nzv(recipe, ..., role = NA, trained = FALSE, freq_cut = 95/5,
-  unique_cut = 10, options = list(freq_cut = 95/5, unique_cut = 10),
-  removals = NULL, skip = FALSE, id = rand_id("nzv"))
+step_nzv(
+  recipe,
+  ...,
+  role = NA,
+  trained = FALSE,
+  freq_cut = 95/5,
+  unique_cut = 10,
+  options = list(freq_cut = 95/5, unique_cut = 10),
+  removals = NULL,
+  skip = FALSE,
+  id = rand_id("nzv")
+)
 
 \method{tidy}{step_nzv}(x, ...)
 }
@@ -84,6 +93,7 @@ In the above example, the frequency ratio is 999 and the unique
 value percentage is 0.0001.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass$sparse <- c(1, rep(0, nrow(biomass) - 1))

@@ -4,9 +4,16 @@
 \alias{step_intercept}
 \title{Add intercept (or constant) column}
 \usage{
-step_intercept(recipe, ..., role = "predictor", trained = FALSE,
-  name = "intercept", value = 1, skip = FALSE,
-  id = rand_id("intercept"))
+step_intercept(
+  recipe,
+  ...,
+  role = "predictor",
+  trained = FALSE,
+  name = "intercept",
+  value = 1,
+  skip = FALSE,
+  id = rand_id("intercept")
+)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the sequence of
@@ -49,6 +56,7 @@ unintentional transformations when calling steps with
 \code{all_predictors}.
 }
 \examples{
+library(modeldata)
 data(biomass)
 
 biomass_tr <- biomass[biomass$dataset == "Training",]
