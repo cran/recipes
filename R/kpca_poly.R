@@ -11,7 +11,7 @@
 #'  [selections()] for more details. For the `tidy`
 #'  method, these are not currently used.
 #' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
+#'  role should they be assigned? By default, the function assumes
 #'  that the new principal component columns created by the original
 #'  variables will be used as predictors in a model.
 #' @param num_comp The number of PCA components to retain as new
@@ -177,7 +177,8 @@ prep.step_kpca_poly <- function(x, training, info = NULL, ...) {
         silent = TRUE
       )
     if (inherits(kprc, "try-error")) {
-      stop("`step_kpca_poly` failed with error:\n", as.character(kprc), call. = FALSE)
+      rlang::abort(paste0("`step_kpca_poly` failed with error:\n",
+                          as.character(kprc)))
     }
   } else {
     kprc <- list(x_vars = col_names)
