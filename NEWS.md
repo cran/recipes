@@ -1,3 +1,9 @@
+# recipes 0.1.11
+
+## Other Changes
+
+* While `recipes` does not directly depend on `dials`, it has several S3 methods for generics in `dials`. Version 0.0.5 of `dials` added stricter validation for these methods, so changes were required for `recipes`.  
+
 # recipes 0.1.10
 
 ## Breaking Changes
@@ -11,6 +17,8 @@
 * Small changes for base R's `stringsAsFactors` change. 
 
 # recipes 0.1.9
+
+* `step_cut()` enables you to create a factor from a numeric based on provided break (contributed by Edwin Thoen)
 
  * Delayed S3 method registration for `tune::tunable()` methods that live in recipes will now work correctly on R >=4.0.0 ([#439](https://github.com/tidymodels/recipes/issues/439), [tidymodels/tune#146](https://github.com/tidymodels/tune/issues/146)).
  
