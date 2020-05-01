@@ -1,6 +1,6 @@
-bdd1d70def611ba24ea921f48aebe878 *DESCRIPTION
+777990bfd67588ad73f5a0552c30a676 *DESCRIPTION
 40562b4da786c5df9a134b9967465f85 *NAMESPACE
-f445a3e65ff824b8599ec20bbf577601 *NEWS.md
+d4afa0b58cc076c80e0a421f456e3b5c *NEWS.md
 bae7a02ae2249b02a54980fc5f91abd5 *R/0_imports.R
 f9cd563439254e9d4a136e89eee65cd4 *R/BoxCox.R
 606f783efcedd2c44fdd24d5494ab395 *R/YeoJohnson.R
@@ -45,7 +45,7 @@ eb1aa25f545cff23c615d617b4ffe693 *R/kpca_poly.R
 abf0d8dfea78db4760254326aa8f1b73 *R/lowerimpute.R
 31ca0ee40f2d28f6fefe15a9d98357c8 *R/meanimpute.R
 548db8a26297181f954b7b52af645b6f *R/medianimpute.R
-69752676293d134cc44b07352a01edf8 *R/misc.R
+6285bf7edefe194499667739905c4e7d *R/misc.R
 5563cc678be83bdead005540ca01574d *R/missing.r
 b00f3fdad18c8ae18904a7574f6cb367 *R/modeimpute.R
 6a8520fc685556d6e073d083cbf70a4f *R/mutate.R
@@ -99,7 +99,7 @@ f753f9fd8231e15a712927a98211fd6b *R/unorder.R
 2eb5ed296acfed28d45ce4136455fa20 *R/upsample.R
 cf877f90dc444ab8b79673f1a5a567a2 *R/window.R
 4614ed62791f53dd39d45484e38d4f55 *R/zv.R
-329cd124463e1f09f6b6ce4334e7963d *R/zzz.R
+193e20e0d977be00a62d0d17c802f116 *R/zzz.R
 252f67f6b952432317f47ba98073e0ae *build/vignette.rds
 04aa726998be6a8d8d610b33a41b133d *inst/boilerplate.R
 a59fdec8ff0d0b66627ee0a19965ee98 *inst/doc/Custom_Steps.Rmd
