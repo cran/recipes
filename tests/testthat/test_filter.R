@@ -12,10 +12,38 @@ iris_rec <- recipe( ~ ., data = iris)
 
 # ------------------------------------------------------------------------------
 
-test_that('basic usage', {
+test_that('basic usage - skip = FALSE', {
   rec <-
     iris_rec %>%
-    step_filter(Sepal.Length > 4.5, Species == "setosa")
+    step_filter(Sepal.Length > 4.5, Species == "setosa", skip = FALSE)
+
+  prepped <- prep(rec, training = iris %>% slice(1:75))
+
+  dplyr_train <-
+    iris %>%
+    as_tibble() %>%
+    slice(1:75) %>%
+    dplyr::filter(Sepal.Length > 4.5, Species == "setosa")
+
+  rec_train <- juice(prepped)
+  expect_equal(dplyr_train, rec_train)
+
+  dplyr_test <-
+    iris %>%
+    as_tibble() %>%
+    slice(76:150) %>%
+    dplyr::filter(Sepal.Length > 4.5, Species == "setosa")
+  dplyr_test <- dplyr_test[, names(rec_train)]
+
+  rec_test <- bake(prepped, iris %>% slice(76:150))
+  expect_equal(dplyr_test, rec_test)
+})
+
+
+test_that('skip = FALSE', {
+  rec <-
+    iris_rec %>%
+    step_filter(Sepal.Length > 4.5, Species == "setosa", skip = FALSE)
 
   prepped <- prep(rec, training = iris %>% slice(1:75))
 

@@ -12,7 +12,7 @@ step_sample(
   trained = FALSE,
   size = NULL,
   replace = FALSE,
-  skip = FALSE,
+  skip = TRUE,
   id = rand_id("sample")
 )
 
@@ -33,7 +33,7 @@ created.}
 preprocessing have been estimated.}
 
 \item{size}{An integer or fraction. If the value is within (0, 1),
-\code{\link[dplyr:sample_frac]{dplyr::sample_frac()}} is applied to the data. If an integer
+\code{\link[dplyr:sample_n]{dplyr::sample_frac()}} is applied to the data. If an integer
 value of 1 or greater is used, \code{\link[dplyr:sample_n]{dplyr::sample_n()}} is applied.
 The default of \code{NULL} uses \code{\link[dplyr:sample_n]{dplyr::sample_n()}} with the size
 of the training set (or smaller for smaller \code{new_data}).}
@@ -44,8 +44,9 @@ of the training set (or smaller for smaller \code{new_data}).}
 recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
-Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+Care should be taken when using \code{skip = FALSE}; in most instances that
+affect the rows of the data being predicted, this step probably should not
+be applied.}
 
 \item{id}{A character string that is unique to this step to identify it.}
 
@@ -60,7 +61,7 @@ and \code{id}.
 \description{
 \code{step_sample} creates a \emph{specification} of a recipe step
 that will sample rows using \code{\link[dplyr:sample_n]{dplyr::sample_n()}} or
-\code{\link[dplyr:sample_frac]{dplyr::sample_frac()}}.
+\code{\link[dplyr:sample_n]{dplyr::sample_frac()}}.
 }
 \examples{
 
