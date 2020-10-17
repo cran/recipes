@@ -52,7 +52,7 @@ to obtain a consensus projection.}
 \code{data} and \code{ndim} should not be passed here.}
 
 \item{res}{The \code{NNMF()} object is stored
-here once this preprocessing step has be trained by
+here once this preprocessing step has been trained by
 \code{\link[=prep.recipe]{prep.recipe()}}.}
 
 \item{prefix}{A character string that will be the prefix to the
@@ -108,10 +108,11 @@ data(biomass)
 #   step_nnmf(all_predictors(), num_comp = 2, seed = 473, num_run = 2) \%>\%
 #   prep(training = biomass)
 #
-# juice(rec)
+# bake(rec, new_data = NULL)
 #
 # library(ggplot2)
-# ggplot(juice(rec), aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
+# bake(rec, new_data = NULL) \%>\%
+#  ggplot(aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
 
 }
 \seealso{

@@ -71,7 +71,7 @@ selectors or original variables selected) and \code{columns} (the
 list of corresponding binary columns).
 }
 \description{
-\code{step_dummy} creates a a \emph{specification} of a recipe
+\code{step_dummy} creates a \emph{specification} of a recipe
 step that will convert nominal data (e.g. character or factors)
 into one or more numeric binary model terms for the levels of
 the original data.
@@ -112,11 +112,10 @@ When data to be processed contains novel levels (i.e., not
 contained in the training set), a missing value is assigned to
 the results. See \code{\link[=step_other]{step_other()}} for an alternative.
 
-If no columns are selected (perhaps due to an earlier \code{step_zv()}), the
-\code{bake()} and \code{juice()} functions will return the data as-is (e.g. with no
-dummy variables).
+If no columns are selected (perhaps due to an earlier \code{step_zv()}),
+\code{bake()} will return the data as-is (e.g. with no dummy variables).
 
-The \href{https://tidymodels.github.io/recipes/articles/Dummies.html}{package vignette for dummy variables}
+The \href{https://recipes.tidymodels.org/articles/Dummies.html}{package vignette for dummy variables}
 and interactions has more information.
 }
 \examples{
@@ -138,7 +137,7 @@ grep("^diet", names(dummy_data), value = TRUE)
 rec \%>\%
   step_dummy(diet, one_hot = TRUE) \%>\%
   prep(training = okc) \%>\%
-  juice(starts_with("diet")) \%>\%
+  bake(new_data = NULL, starts_with("diet")) \%>\%
   names() \%>\%
   length()
 

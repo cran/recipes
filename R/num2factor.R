@@ -6,7 +6,7 @@
 #'
 #' @inheritParams step_center
 #' @inherit step_center return
-#' @param ... One or more selector functions to choose which variables will
+#' @param ... One or more selector functions to choose which variables will be
 #'  converted to factors. See [selections()] for more details. For the `tidy`
 #'  method, these are not currently used.
 #' @param role Not used by this step since no new variables are created.
@@ -47,7 +47,7 @@
 #'     levels = amnt
 #'   )
 #'
-#' encoded <- rec %>% prep() %>% juice()
+#' encoded <- rec %>% prep() %>% bake(new_data = NULL)
 #'
 #' table(encoded$StockOptionLevel, attrition$StockOptionLevel)
 #'
@@ -72,7 +72,7 @@
 #'   ) %>%
 #'   prep()
 #'
-#' encoded <- juice(rec)
+#' encoded <- bake(rec, new_data = NULL)
 #'
 #' table(encoded$MonthlyIncome, binner(attrition$MonthlyIncome))
 #'

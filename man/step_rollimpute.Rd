@@ -66,7 +66,7 @@ selectors or variables selected) and \code{window} (the window size).
 \description{
 \code{step_rollimpute} creates a \emph{specification} of a
 recipe step that will substitute missing values of numeric
-variables by the a measure of location (e.g. median) within a moving window.
+variables by the measure of location (e.g. median) within a moving window.
 }
 \details{
 On the tails, the window is shifted towards the ends.
@@ -104,7 +104,8 @@ seven_pt <- recipe(~ . , data = example_data) \%>\%
   step_rollimpute(all_predictors(), window = 7) \%>\%
   prep(training = example_data)
 
-juice(seven_pt)
+# The training set:
+bake(seven_pt, new_data = NULL)
 }
 \concept{imputation}
 \concept{preprocessing}

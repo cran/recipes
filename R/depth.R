@@ -1,6 +1,6 @@
 #' Data Depths
 #'
-#' `step_depth` creates a a *specification* of a recipe
+#' `step_depth` creates a *specification* of a recipe
 #'  step that will convert numeric data into measurement of
 #'  *data depth*. This is done for each value of a categorical
 #'  class variable.
@@ -102,7 +102,7 @@ step_depth <-
     if (!is.character(class) || length(class) != 1)
       rlang::abort("`class` should be a single character value.")
 
-    recipes_pkg_check("ddalpha")
+    recipes_pkg_check(required_pkgs.step_depth())
 
     add_step(
       recipe,
@@ -221,3 +221,15 @@ tidy.step_depth <- function(x, ...) {
   res
 }
 
+
+
+#' S3 methods for tracking which additional packages are needed for steps.
+#'
+#' @param x A recipe step
+#' @return A character vector
+#' @rdname required_pkgs.step
+#' @keywords internal
+#' @export
+required_pkgs.step_depth <- function(x, ...) {
+  c("ddalpha")
+}

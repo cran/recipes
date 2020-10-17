@@ -72,7 +72,7 @@ method, a tibble with columns echoing the values of \code{lat},
 \code{lon}, \code{ref_lat}, \code{ref_lon}, \code{name}, and \code{id}.
 }
 \description{
-\code{step_geodist} creates a a \emph{specification} of a
+\code{step_geodist} creates a \emph{specification} of a
 recipe step that will calculate the distance between
 points on a map to a reference location.
 }
@@ -91,7 +91,7 @@ near_station <- recipe( ~ ., data = Smithsonian) \%>\%
                ref_lat = 38.8986312, ref_lon = -77.0062457) \%>\%
   prep(training = Smithsonian)
 
-juice(near_station) \%>\%
+bake(near_station, new_data = NULL) \%>\%
   arrange(geo_dist)
 
 tidy(near_station, number = 1)

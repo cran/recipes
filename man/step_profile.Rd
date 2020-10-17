@@ -26,7 +26,7 @@ step_profile(
 sequence of operations for this recipe.}
 
 \item{...}{One or more selector functions to choose which
-variables will fixed to a single value. See \code{\link[=selections]{selections()}} for
+variables will be fixed to a single value. See \code{\link[=selections]{selections()}} for
 more details. For the \code{tidy} method, these are not currently
 used.}
 
@@ -131,12 +131,12 @@ disp_grid <- recipe(~ disp + cyl + hp, data = mtcars) \%>\%
   ) \%>\%
   prep(training = mtcars)
 
-grid_data <- juice(disp_grid)
+grid_data <- bake(disp_grid, new_data = NULL)
 grid_data <- grid_data \%>\%
   mutate(pred = predict(lin_mod, grid_data),
          method = "grid")
 
-pctl_data <- juice(disp_pctl)
+pctl_data <- bake(disp_pctl, new_data = NULL)
 pctl_data <- pctl_data \%>\%
   mutate(pred = predict(lin_mod, pctl_data),
          method = "percentile")

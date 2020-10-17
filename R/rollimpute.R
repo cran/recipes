@@ -2,7 +2,7 @@
 #'
 #' `step_rollimpute` creates a *specification* of a
 #'  recipe step that will substitute missing values of numeric
-#'  variables by the a measure of location (e.g. median) within a moving window.
+#'  variables by the measure of location (e.g. median) within a moving window.
 #'
 #' @inheritParams step_center
 #' @param ... One or more selector functions to choose which
@@ -63,7 +63,8 @@
 #'   step_rollimpute(all_predictors(), window = 7) %>%
 #'   prep(training = example_data)
 #'
-#' juice(seven_pt)
+#' # The training set:
+#' bake(seven_pt, new_data = NULL)
 
 step_rollimpute <-
   function(recipe,

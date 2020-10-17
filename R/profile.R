@@ -9,7 +9,7 @@
 #' @inheritParams step_center
 #' @inherit step_center return
 #' @param ... One or more selector functions to choose which
-#'  variables will fixed to a single value. See [selections()] for
+#'  variables will be fixed to a single value. See [selections()] for
 #'  more details. For the `tidy` method, these are not currently
 #'  used.
 #' @param role Not used by this step since no new variables are
@@ -85,12 +85,12 @@
 #'   ) %>%
 #'   prep(training = mtcars)
 #'
-#' grid_data <- juice(disp_grid)
+#' grid_data <- bake(disp_grid, new_data = NULL)
 #' grid_data <- grid_data %>%
 #'   mutate(pred = predict(lin_mod, grid_data),
 #'          method = "grid")
 #'
-#' pctl_data <- juice(disp_pctl)
+#' pctl_data <- bake(disp_pctl, new_data = NULL)
 #' pctl_data <- pctl_data %>%
 #'   mutate(pred = predict(lin_mod, pctl_data),
 #'          method = "percentile")

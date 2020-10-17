@@ -1,6 +1,6 @@
 #' Dummy Variables Creation
 #'
-#' `step_dummy` creates a a *specification* of a recipe
+#' `step_dummy` creates a *specification* of a recipe
 #'  step that will convert nominal data (e.g. character or factors)
 #'  into one or more numeric binary model terms for the levels of
 #'  the original data.
@@ -73,11 +73,10 @@
 #' contained in the training set), a missing value is assigned to
 #' the results. See [step_other()] for an alternative.
 #'
-#' If no columns are selected (perhaps due to an earlier `step_zv()`), the
-#'  `bake()` and `juice()` functions will return the data as-is (e.g. with no
-#'  dummy variables).
+#' If no columns are selected (perhaps due to an earlier `step_zv()`),
+#'  `bake()` will return the data as-is (e.g. with no dummy variables).
 #'
-#' The [package vignette for dummy variables](https://tidymodels.github.io/recipes/articles/Dummies.html)
+#' The [package vignette for dummy variables](https://recipes.tidymodels.org/articles/Dummies.html)
 #' and interactions has more information.
 #'
 #' @seealso [step_factor2string()], [step_string2factor()],
@@ -103,7 +102,7 @@
 #' rec %>%
 #'   step_dummy(diet, one_hot = TRUE) %>%
 #'   prep(training = okc) %>%
-#'   juice(starts_with("diet")) %>%
+#'   bake(new_data = NULL, starts_with("diet")) %>%
 #'   names() %>%
 #'   length()
 #'

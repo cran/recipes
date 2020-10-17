@@ -36,7 +36,7 @@
 #' @concept basis_expansion
 #' @export
 #' @details Kernel principal component analysis (kPCA) is an
-#'  extension a PCA analysis that conducts the calculations in a
+#'  extension of a PCA analysis that conducts the calculations in a
 #'  broader dimensionality defined by a kernel function. For
 #'  example, if a quadratic kernel function were used, each variable
 #'  would be represented by its original values as well as its
@@ -48,7 +48,7 @@
 #' If not installed, the step will stop with a note about installing
 #' these packages.
 #'
-#' As with ordinary PCA, it is important to standardized the
+#' As with ordinary PCA, it is important to standardize the
 #'  variables prior to running PCA (`step_center` and
 #'  `step_scale` can be used for this purpose).
 #'
@@ -114,7 +114,7 @@ step_kpca_poly <-
            skip = FALSE,
            id = rand_id("kpca_poly")) {
 
-    recipes_pkg_check(c("dimRed", "kernlab"))
+    recipes_pkg_check(required_pkgs.step_kpca_poly())
 
     add_step(
       recipe,
@@ -265,4 +265,11 @@ tunable.step_kpca_poly <- function(x, ...) {
     component = "step_kpca_poly",
     component_id = x$id
   )
+}
+
+
+#' @rdname required_pkgs.step
+#' @export
+required_pkgs.step_kpca_poly <- function(x, ...) {
+  c("dimRed", "kernlab")
 }
