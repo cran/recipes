@@ -61,7 +61,7 @@ get_rhs_vars <- function(formula, data, no_lhs = FALSE) {
   ## or embedded functions like `Sepal.Length + poly(Sepal.Width)`.
   ## or should it? what about Y ~ log(x)?
   ## Answer: when called from `form2args`, the function
-  ## `element_check` stops when in-line functions are used.
+  ## `inline_check` stops when in-line functions are used.
   data_info <- attr(model.frame(formula, data), "terms")
   response_info <- attr(data_info, "response")
   predictor_names <- names(attr(data_info, "dataClasses"))
@@ -343,20 +343,28 @@ prepare   <- function(x, ...)
 #' @param x A recipe
 #' @return A logical which is true if all of the recipe steps have been run
 #'  through `prep`. If no steps have been added to the recipe, `TRUE` is
-#'  returned.
+#'  returned only if the recipe has been prepped.
 #' @export
 #' @examples
 #' rec <- recipe(Species ~ ., data = iris) %>%
 #'   step_center(all_numeric())
 #'
-#' rec %>% fully_trained
+#' rec %>% fully_trained()
 #'
-#' rec %>% prep(training = iris) %>% fully_trained
+#'
+#' rec %>% prep(training = iris) %>% fully_trained()
 fully_trained <- function(x) {
-  if (is.null(x$steps))
-    return(TRUE)
-  is_tr <- vapply(x$steps, function(x) isTRUE(x$trained), logical(1))
-  all(is_tr)
+  if (is.null(x$steps)) {
+    if (any(names(x) == "last_term_info")) {
+      res <- TRUE
+    } else {
+      res <- FALSE
+    }
+  } else {
+    is_tr <- purrr::map_lgl(x$steps, function(x) isTRUE(x$trained))
+    res <- all(is_tr)
+  }
+  res
 }
 
 #' Detect if a particular step or check is used in a recipe

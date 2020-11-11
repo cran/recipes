@@ -19,10 +19,9 @@
 #'  recipe is baked by [bake.recipe()]? While all operations are baked
 #'  when [prep.recipe()] is run, some operations may not be able to be
 #'  conducted on new data (e.g. processing the outcome variable(s)).
-#'  Care should be taken when using `skip = FALSE`; in most instances that
-#'  affect the rows of the data being predicted, this step probably should not
-#'  be applied.
+#'  Care should be taken when using `skip = FALSE`.
 #'
+#' @template row-ops
 #' @rdname step_naomit
 #' @return An updated version of `recipe` with the
 #'   new step added to the sequence of existing steps (if any).
@@ -35,7 +34,7 @@
 #'   prep(airquality, verbose = FALSE) %>%
 #'   bake(new_data = NULL)
 #'
-#' @seealso [recipe()] [prep.recipe()] [bake.recipe()]
+#' @seealso [step_filter()] [step_sample()] [step_slice()]
 step_naomit <- function(recipe, ..., role = NA, trained = FALSE,
                         columns = NULL, skip = FALSE,
                         id = rand_id("naomit")) {
@@ -70,7 +69,7 @@ prep.step_naomit <- function(x, training, info = NULL, ...) {
     terms = x$terms,
     role = x$role,
     trained = TRUE,
-    columns = terms_select(x$terms, info = info),
+    columns = eval_select_recipes(x$terms, training, info),
     skip = x$skip,
     id = x$id
   )
