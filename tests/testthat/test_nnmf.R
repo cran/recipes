@@ -13,9 +13,6 @@ test_that('Correct values', {
   for (i in req)
     skip_if_not_installed(i)
 
-  for (i in req)
-    require(i, character.only = TRUE)
-
   # # make test cases
   # dat <- loadDataSet("Iris")
   # factorization <- embed(dat, "NNMF", seed = 2432, nrun = 3)
@@ -120,3 +117,77 @@ test_that('tunable', {
   )
 })
 
+test_that('keep_original_cols works', {
+  skip_on_cran()
+  skip_if(!(compareVersion(R_ver, "3.6.0") >= 0))
+  for (i in req)
+    skip_if_not_installed(i)
+
+  rec <- recipe(Species ~ ., data = iris) %>%
+    step_nnmf(all_predictors(), seed = 2432, num_run = 3, keep_original_cols = TRUE)
+
+  nnmf_trained <- prep(rec, training = iris, verbose = FALSE)
+
+  nnmf_pred <- bake(nnmf_trained, new_data = iris[1:10,], all_predictors())
+
+  expect_equal(
+    colnames(nnmf_pred),
+    c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width",
+      "NNMF1", "NNMF2")
+  )
+})
+
+test_that('can prep recipes with no keep_original_cols', {
+  skip_on_cran()
+  skip_if(!(compareVersion(R_ver, "3.6.0") >= 0))
+  for (i in req)
+    skip_if_not_installed(i)
+
+  rec <- recipe(Species ~ ., data = iris) %>%
+    step_nnmf(all_predictors(), seed = 2432, num_run = 3)
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_warning(
+    nnmf_trained <- prep(rec, training = iris, verbose = FALSE),
+    "'keep_original_cols' was added to"
+  )
+
+  expect_error(
+    nnmf_pred <- bake(nnmf_trained, new_data = iris, all_predictors()),
+    NA
+  )
+
+})
+
+test_that('tidy method', {
+  skip_on_cran()
+  for (i in req)
+    skip_if_not_installed(i)
+
+  set.seed(1)
+  rec <- recipe(~., data = mtcars) %>%
+    step_nnmf(disp, wt, id = "test", seed = 1)
+  rec_prep <- prep(rec)
+  wts <- rec_prep$steps[[1]]$res@other.data$w
+
+
+  expect_equal(
+    tidy(rec, 1),
+    tibble::tribble(
+      ~terms, ~value, ~component,    ~id,
+      "disp",     NA_real_,          2, "test",
+      "wt",     NA_real_,          2, "test"
+    )
+  )
+
+  expect_equal(
+    tidy(rec_prep, 1),
+    tibble::tibble(
+      terms = rep(c("disp", "wt"), 2),
+      value = unname(c(wts[,1], wts[,2])),
+      component = rep(c("NNMF1", "NNMF2"), each = 2),
+      id = "test"
+    )
+  )
+})

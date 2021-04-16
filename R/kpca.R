@@ -91,9 +91,9 @@
 #'               data = biomass_tr)
 #'
 #' kpca_trans <- rec %>%
-#'   step_YeoJohnson(all_predictors()) %>%
-#'   step_normalize(all_predictors()) %>%
-#'   step_kpca(all_predictors())
+#'   step_YeoJohnson(all_numeric_predictors()) %>%
+#'   step_normalize(all_numeric_predictors()) %>%
+#'   step_kpca(all_numeric_predictors())
 #'
 #' if (require(dimRed) & require(kernlab)) {
 #'   kpca_estimates <- prep(kpca_trans, training = biomass_tr)
@@ -239,7 +239,7 @@ tidy.step_kpca <- function(x, ...) {
     if (x$num_comp > 0) {
       res <- tibble(terms = colnames(x$res@org.data))
     } else {
-      res <- tibble(terms = x$res$x_vars)
+      res <- tibble(terms = unname(x$res$x_vars))
     }
   } else {
     term_names <- sel2char(x$terms)

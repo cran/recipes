@@ -14,6 +14,7 @@ step_ratio(
   denom = denom_vars(),
   naming = function(numer, denom) make.names(paste(numer, denom, sep = "_o_")),
   columns = NULL,
+  keep_original_cols = TRUE,
   skip = FALSE,
   id = rand_id("ratio")
 )
@@ -55,6 +56,9 @@ new ratio columns.}
 argument is not populated until \code{\link[=prep.recipe]{prep.recipe()}} is
 executed.}
 
+\item{keep_original_cols}{A logical to keep the original variables in the
+output. Defaults to \code{TRUE}.}
+
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
@@ -92,7 +96,7 @@ rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen +
 
 ratio_recipe <- rec \%>\%
   # all predictors over total
-  step_ratio(all_predictors(), denom = denom_vars(total)) \%>\%
+  step_ratio(all_numeric_predictors(), denom = denom_vars(total)) \%>\%
   # get rid of the original predictors
   step_rm(all_predictors(), -ends_with("total"))
 

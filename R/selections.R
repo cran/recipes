@@ -35,7 +35,7 @@
 #'   excluded variable(s).
 #'   }
 #'
-#' Also, select helpers from the `tidyselect` package can also be used:
+#' Select helpers from the `tidyselect` package can also be used:
 #'   [tidyselect::starts_with()], [tidyselect::ends_with()],
 #'   [tidyselect::contains()], [tidyselect::matches()],
 #'   [tidyselect::num_range()], [tidyselect::everything()],
@@ -58,13 +58,14 @@
 #' case, using `matches("^PC")` will select all of the columns
 #' whose names start with "PC" *once those columns are created*.
 #'
-#' There are sets of recipes specific functions that can be used to select
+#' There are sets of recipes-specific functions that can be used to select
 #' variables based on their role or type: [has_role()] and
 #' [has_type()]. For convenience, there are also functions that are
-#' more specific: [all_numeric()], [all_nominal()],
-#' [all_predictors()], and [all_outcomes()]. These can be used in
-#' conjunction with the previous functions described for selecting
-#' variables using their names:
+#' more specific. The functions [all_numeric()] and [all_nominal()] select
+#' based on type, with nominal variables including both character and factor;
+#' the functions [all_predictors()] and [all_outcomes()] select based on role.
+#' Any can be used in conjunction with the previous functions described for
+#' selecting variables using their names:
 #'
 #' \preformatted{
 #'   data(biomass)
@@ -93,7 +94,10 @@
 NULL
 
 
-eval_select_recipes <- function(quos, data, info) {
+eval_select_recipes <- function(quos, data, info, ..., allow_rename = FALSE) {
+
+  ellipsis::check_dots_empty()
+
   # Maintain ordering between `data` column names and `info$variable` so
   # `eval_select()` and recipes selectors return compatible positions
   data_info <- tibble(variable = names(data))
@@ -105,30 +109,34 @@ eval_select_recipes <- function(quos, data, info) {
 
   expr <- expr(c(!!!quos))
 
-  # FIXME: Ideally this is `FALSE`, but empty selections incorrectly throw an
+  # FIXME: Ideally this is `FALSE` for strict selection,
+  # but empty selections incorrectly throw an
   # error when this is false due to the following bug:
   # https://github.com/r-lib/tidyselect/issues/221
-  allow_rename <- TRUE
+  # Once it's fixed, remove this and pass allow_rename to
+  # tidyselect::eval_select().
+  allow_rename_compat <- TRUE
 
   sel <- tidyselect::eval_select(
     expr = expr,
     data = data,
-    allow_rename = allow_rename
+    allow_rename = allow_rename_compat
   )
 
   # Return names not positions, as these names are
   # used for both the training and test set and their positions
-  # may have changed. `sel` won't be named because when `allow_rename = FALSE`,
-  # `eval_select()` returns an unnamed vector.
+  # may have changed. If renaming is allowed, add the new names.
   out <- names(data)[sel]
+  names <- names(sel)
 
   # FIXME: Remove this check when the following issue is fixed,
-  # i.e. when we can use `allow_rename = FALSE`
+  # at that point, just pass `allow_rename` to `eval_select()` directly.
   # https://github.com/r-lib/tidyselect/issues/221
-  if (!identical(out, names(sel))) {
+  if (!allow_rename & !identical(out, names)) {
     abort("Can't rename variables in this context.")
   }
 
+  names(out) <- names
   out
 }
 
@@ -147,15 +155,21 @@ nest_current_info <- function(info) {
 #'
 #' `has_role()`, `all_predictors()`, and `all_outcomes()` can be used to
 #'  select variables in a formula that have certain roles.
-#'  Similarly, `has_type()`, `all_numeric()`, and `all_nominal()` are used
-#'  to select columns based on their data type.
 #'
-#'  See `?selections` for more details.
+#' Similarly, `has_type()`, `all_numeric()`, and `all_nominal()` are used to
+#'  select columns based on their data type. Nominal variables include both
+#'  character and factor.
+#'
+#' **In most cases**, the selectors `all_numeric_predictors()` and
+#'  `all_nominal_predictors()`, which select on role and type, will be the right
+#'  approach for users.
+#'
+#'  See [selections] for more details.
 #'
 #'  `current_info()` is an internal function.
 #'
-#'  All of these functions have have limited utility
-#'  outside of column selection in step functions.
+#'  All of these functions have have limited utility outside of column selection
+#'  in step functions.
 #'
 #' @param match A single character string for the query. Exact
 #'  matching is used (i.e. regular expressions won't work).
@@ -192,7 +206,8 @@ nest_current_info <- function(info) {
 #' @export
 has_role <- function(match = "predictor") {
   roles <- peek_roles()
-  lgl_matches <- purrr::map_lgl(roles, ~any(.x %in% match))
+  # roles is potentially a list columns so we unlist `.x` below.
+  lgl_matches <- purrr::map_lgl(roles, ~any(unlist(.x) %in% match))
   which(lgl_matches)
 }
 
@@ -201,6 +216,19 @@ has_role <- function(match = "predictor") {
 all_predictors <- function() {
   has_role("predictor")
 }
+
+#' @export
+#' @rdname has_role
+all_numeric_predictors <- function() {
+  intersect(has_role("predictor"), has_type("numeric"))
+}
+
+#' @export
+#' @rdname has_role
+all_nominal_predictors <- function() {
+  intersect(has_role("predictor"), has_type("nominal"))
+}
+
 
 #' @export
 #' @rdname has_role
@@ -290,6 +318,8 @@ element_check <- function(x) {
   role_selectors <- c(
     "has_role",
     "all_predictors",
+    "all_numeric_predictors",
+    "all_nominal_predictors",
     "all_outcomes"
   )
   type_selectors <- c(

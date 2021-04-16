@@ -14,9 +14,10 @@ step_pls(
   predictor_prop = 1,
   outcome = NULL,
   options = list(scale = TRUE),
-  preserve = FALSE,
+  preserve = deprecated(),
   res = NULL,
   prefix = "PLS",
+  keep_original_cols = FALSE,
   skip = FALSE,
   id = rand_id("pls")
 )
@@ -54,14 +55,17 @@ variable.}
 \code{mixOmics::plsda()}, or \code{mixOmics::splsda()} (depending on the data and
 arguments).}
 
-\item{preserve}{A single logical: should the original predictor data be
-retained along with the new features?}
+\item{preserve}{Use \code{keep_original_cols} instead to specify whether the
+original predictor data should be retained along with the new features.}
 
 \item{res}{A list of results are stored here once this preprocessing step
 has been trained by \code{\link[=prep.recipe]{prep.recipe()}}.}
 
 \item{prefix}{A character string that will be the prefix to the
 resulting new variables. See notes below.}
+
+\item{keep_original_cols}{A logical to keep the original variables in the
+output. Defaults to \code{FALSE}.}
 
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
@@ -130,11 +134,11 @@ biom_te <-
 
 dense_pls <-
   recipe(HHV ~ ., data = biom_tr) \%>\%
-  step_pls(all_predictors(), outcome = "HHV", num_comp = 3)
+  step_pls(all_numeric_predictors(), outcome = "HHV", num_comp = 3)
 
 sparse_pls <-
   recipe(HHV ~ ., data = biom_tr) \%>\%
-  step_pls(all_predictors(), outcome = "HHV", num_comp = 3, predictor_prop = 4/5)
+  step_pls(all_numeric_predictors(), outcome = "HHV", num_comp = 3, predictor_prop = 4/5)
 
 ## -----------------------------------------------------------------------------
 ## PLS discriminant analysis
@@ -152,11 +156,11 @@ cell_te <-
 
 dense_plsda <-
   recipe(class ~ ., data = cell_tr) \%>\%
-  step_pls(all_predictors(), outcome = "class", num_comp = 5)
+  step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5)
 
 sparse_plsda <-
   recipe(class ~ ., data = cell_tr) \%>\%
-  step_pls(all_predictors(), outcome = "class", num_comp = 5, predictor_prop = 1/4)
+  step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5, predictor_prop = 1/4)
 
 }
 \references{
@@ -164,7 +168,7 @@ sparse_plsda <-
 
 Rohart F, Gautier B, Singh A, Lê Cao K-A (2017) \emph{mixOmics: An R package for
 'omics feature selection and multiple data integration}. PLoS Comput Biol
-13(11): e1005752. \url{https://doi.org/10.1371/journal.pcbi.1005752}
+13(11): e1005752. \doi{10.1371/journal.pcbi.1005752}
 }
 \seealso{
 \code{\link[=step_pca]{step_pca()}}, \code{\link[=step_kpca]{step_kpca()}}, \code{\link[=step_ica]{step_ica()}}, \code{\link[=recipe]{recipe()}},

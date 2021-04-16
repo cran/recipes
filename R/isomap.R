@@ -25,6 +25,8 @@
 #'  [prep.recipe()].
 #' @param prefix A character string that will be the prefix to the
 #'  resulting new variables. See notes below.
+#' @param keep_original_cols A logical to keep the original variables in the
+#'  output. Defaults to `FALSE`.
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
 #'  `tidy` method, a tibble with columns `terms` (the
@@ -78,9 +80,9 @@
 #'               data = biomass_tr)
 #'
 #' im_trans <- rec %>%
-#'   step_YeoJohnson(all_predictors()) %>%
-#'   step_normalize(all_predictors()) %>%
-#'   step_isomap(all_predictors(), neighbors = 100, num_terms = 2)
+#'   step_YeoJohnson(all_numeric_predictors()) %>%
+#'   step_normalize(all_numeric_predictors()) %>%
+#'   step_isomap(all_numeric_predictors(), neighbors = 100, num_terms = 2)
 #'
 #' if (require(dimRed) & require(RSpectra)) {
 #'   im_estimates <- prep(im_trans, training = biomass_tr)
@@ -109,6 +111,7 @@ step_isomap <-
            options = list(.mute = c("message", "output")),
            res = NULL,
            prefix = "Isomap",
+           keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("isomap")) {
 
@@ -125,6 +128,7 @@ step_isomap <-
         options = options,
         res = res,
         prefix = prefix,
+        keep_original_cols = keep_original_cols,
         skip = skip,
         id = id
       )
@@ -133,7 +137,7 @@ step_isomap <-
 
 step_isomap_new <-
   function(terms, role, trained, num_terms, neighbors, options, res,
-           prefix, skip, id) {
+           prefix, keep_original_cols, skip, id) {
     step(
       subclass = "isomap",
       terms = terms,
@@ -144,6 +148,7 @@ step_isomap_new <-
       options = options,
       res = res,
       prefix = prefix,
+      keep_original_cols = keep_original_cols,
       skip = skip,
       id = id
     )
@@ -186,6 +191,7 @@ prep.step_isomap <- function(x, training, info = NULL, ...) {
     options = x$options,
     res = iso_map,
     prefix = x$prefix,
+    keep_original_cols = get_keep_original_cols(x),
     skip = x$skip,
     id = x$id
   )
@@ -202,8 +208,10 @@ bake.step_isomap <- function(object, new_data, ...) {
     comps <- comps[, 1:object$num_terms, drop = FALSE]
     comps <- check_name(comps, new_data, object)
     new_data <- bind_cols(new_data, as_tibble(comps))
-    new_data <-
-      new_data[, !(colnames(new_data) %in% isomap_vars), drop = FALSE]
+    keep_original_cols <- get_keep_original_cols(object)
+    if (!keep_original_cols) {
+      new_data <- new_data[, !(colnames(new_data) %in% isomap_vars), drop = FALSE]
+    }
     if (!is_tibble(new_data))
       new_data <- as_tibble(new_data)
   }
@@ -249,7 +257,7 @@ tunable.step_isomap <- function(x, ...) {
     name = c("num_terms", "neighbors"),
     call_info = list(
       list(pkg = "dials", fun = "num_terms", range = c(1L, 4L)),
-      list(pkg = "dials", fun = "neighbors", range = c(1L, 15L))
+      list(pkg = "dials", fun = "neighbors", range = c(20L, 80L))
     ),
     source = "recipe",
     component = "step_isomap",

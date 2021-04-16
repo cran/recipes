@@ -53,7 +53,8 @@ the computations for subsequent operations}
 
 \item{...}{One or more selector functions to choose which
 variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
+for more details, and consider using \code{\link[tidyselect:starts_with]{tidyselect::starts_with()}} when
+dummy variables have been created. For the \code{tidy} method, these are not
 currently used.}
 }
 \value{
@@ -95,38 +96,37 @@ variables \code{x_2}, \code{x_3}, ..., \code{x_6} using \code{\link[=step_dummy]
 you wanted an interaction with numeric column \code{z}, you could
 create a set of specific interaction effects (e.g.
 \code{x_2:z + x_3:z} and so on) or you could use
-\code{starts_with("z_"):z}. When \code{\link[=prep]{prep()}} evaluates this step,
-\code{starts_with("z_")} resolves to \code{(x_2 + x_3 + x_4 + x_5 + x6)}
-so that the formula is now \code{(x_2 + x_3 + x_4 + x_5 + x6):z} and
+\code{starts_with("x_"):z}. When \code{\link[=prep]{prep()}} evaluates this step,
+\code{starts_with("x_")} resolves to \code{(x_2 + x_3 + x_4 + x_5 + x_6)}
+so that the formula is now \code{(x_2 + x_3 + x_4 + x_5 + x_6):z} and
 all two-way interactions are created.
 }
 \examples{
 library(modeldata)
-data(biomass)
+data(penguins)
+penguins <- penguins \%>\% na.omit()
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
-
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass_tr)
+rec <- recipe(flipper_length_mm ~., data = penguins)
 
 int_mod_1 <- rec \%>\%
-  step_interact(terms = ~ carbon:hydrogen)
+  step_interact(terms = ~ bill_depth_mm:bill_length_mm)
 
+# specify all dummy variables succinctly with `starts_with()`
 int_mod_2 <- rec \%>\%
-  step_interact(terms = ~ (matches("gen$") + sulfur)^2)
+  step_dummy(sex, species, island) \%>\%
+  step_interact(terms = ~ body_mass_g:starts_with("species"))
 
-int_mod_1 <- prep(int_mod_1, training = biomass_tr)
-int_mod_2 <- prep(int_mod_2, training = biomass_tr)
+int_mod_1 <- prep(int_mod_1, training = penguins)
+int_mod_2 <- prep(int_mod_2, training = penguins)
 
-dat_1 <- bake(int_mod_1, biomass_te)
-dat_2 <- bake(int_mod_2, biomass_te)
+dat_1 <- bake(int_mod_1, penguins)
+dat_2 <- bake(int_mod_2, penguins)
 
 names(dat_1)
 names(dat_2)
 
 tidy(int_mod_1, number = 1)
-tidy(int_mod_2, number = 1)
+tidy(int_mod_2, number = 2)
 }
 \concept{model_specification}
 \concept{preprocessing}

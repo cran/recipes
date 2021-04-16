@@ -11,9 +11,10 @@ step_dummy(
   role = "predictor",
   trained = FALSE,
   one_hot = FALSE,
-  preserve = FALSE,
+  preserve = deprecated(),
   naming = dummy_names,
   levels = NULL,
+  keep_original_cols = FALSE,
   skip = FALSE,
   id = rand_id("dummy")
 )
@@ -27,7 +28,7 @@ sequence of operations for this recipe.}
 \item{...}{One or more selector functions to choose which
 \emph{factor} variables will be used to create the dummy variables. See
 \code{\link[=selections]{selections()}} for more details. The selected
-variables must be factors. For the \code{tidy} method, these are
+variables must be factors. For the \code{tidy()} method, these are
 not currently used.}
 
 \item{role}{For model terms created by this step, what analysis
@@ -41,8 +42,8 @@ preprocessing have been estimated.}
 \item{one_hot}{A logical. For C levels, should C dummy variables be created
 rather than C-1?}
 
-\item{preserve}{A single logical; should the selected column(s) be retained
-(in addition to the new dummy variables).}
+\item{preserve}{Use \code{keep_original_cols} to specify whether the selected
+column(s) should be retained (in addition to the new dummy variables).}
 
 \item{naming}{A function that defines the naming convention for
 new dummy columns. See Details below.}
@@ -51,6 +52,9 @@ new dummy columns. See Details below.}
 create dummy variables for each variable contained in
 \code{terms}. This is \code{NULL} until the step is trained by
 \code{\link[=prep.recipe]{prep.recipe()}}.}
+
+\item{keep_original_cols}{A logical to keep the original variables in the
+output. Defaults to \code{FALSE}.}
 
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
@@ -71,13 +75,13 @@ selectors or original variables selected) and \code{columns} (the
 list of corresponding binary columns).
 }
 \description{
-\code{step_dummy} creates a \emph{specification} of a recipe
+\code{step_dummy()} creates a \emph{specification} of a recipe
 step that will convert nominal data (e.g. character or factors)
 into one or more numeric binary model terms for the levels of
 the original data.
 }
 \details{
-\code{step_dummy} will create a set of binary dummy
+\code{step_dummy()} will create a set of binary dummy
 variables from a factor variable. For example, if an unordered
 factor column in the data set has levels of "red", "green",
 "blue", the dummy variable bake will create two additional
@@ -106,7 +110,8 @@ To change the type of contrast being used, change the global
 contrast option via \code{options}.
 
 When the factor being converted has a missing value, all of the
-corresponding dummy variables are also missing.
+corresponding dummy variables are also missing. See \code{\link[=step_unknown]{step_unknown()}} for
+a solution.
 
 When data to be processed contains novel levels (i.e., not
 contained in the training set), a missing value is assigned to
@@ -114,6 +119,12 @@ the results. See \code{\link[=step_other]{step_other()}} for an alternative.
 
 If no columns are selected (perhaps due to an earlier \code{step_zv()}),
 \code{bake()} will return the data as-is (e.g. with no dummy variables).
+
+Note that, by default, the new dummy variable column names obey the naming
+rules for columns. If there are levels such as "0", \code{\link[=dummy_names]{dummy_names()}} will put
+a leading "X" in front of the level (since it uses \code{\link[=make.names]{make.names()}}). This can
+be changed by passing in a different function to the \code{naming} argument for
+this step.
 
 The \href{https://recipes.tidymodels.org/articles/Dummies.html}{package vignette for dummy variables}
 and interactions has more information.
@@ -123,31 +134,37 @@ library(modeldata)
 data(okc)
 okc <- okc[complete.cases(okc),]
 
+# Original data: diet has 18 levels
+length(unique(okc$diet))
+unique(okc$diet) \%>\% sort()
+
 rec <- recipe(~ diet + age + height, data = okc)
 
-dummies <- rec \%>\% step_dummy(diet)
-dummies <- prep(dummies, training = okc)
+# Default dummy coding: 17 dummy variables
+dummies <- rec \%>\%
+    step_dummy(diet) \%>\%
+    prep(training = okc)
 
-dummy_data <- bake(dummies, new_data = okc)
+dummy_data <- bake(dummies, new_data = NULL)
 
-unique(okc$diet)
-grep("^diet", names(dummy_data), value = TRUE)
+dummy_data \%>\%
+    select(starts_with("diet")) \%>\%
+    names() # level "anything" is the reference level
 
-# Obtain the full set of dummy variables using `one_hot` option
-rec \%>\%
-  step_dummy(diet, one_hot = TRUE) \%>\%
-  prep(training = okc) \%>\%
-  bake(new_data = NULL, starts_with("diet")) \%>\%
-  names() \%>\%
-  length()
+# Obtain the full set of 18 dummy variables using `one_hot` option
+dummies_one_hot <- rec \%>\%
+    step_dummy(diet, one_hot = TRUE) \%>\%
+    prep(training = okc)
 
-length(unique(okc$diet))
+dummy_data_one_hot <- bake(dummies_one_hot, new_data = NULL)
 
-# Without one_hot
-length(grep("^diet", names(dummy_data), value = TRUE))
+dummy_data_one_hot \%>\%
+    select(starts_with("diet")) \%>\%
+    names() # no reference level
 
 
 tidy(dummies, number = 1)
+tidy(dummies_one_hot, number = 1)
 }
 \seealso{
 \code{\link[=step_factor2string]{step_factor2string()}}, \code{\link[=step_string2factor]{step_string2factor()}},

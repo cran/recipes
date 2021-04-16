@@ -307,7 +307,7 @@ ellipse_check <- function(...) {
 #'  recipe (e.g. `terms` in most steps).
 #' @param trained A logical for whether the step has been trained.
 #' @param width An integer denoting where the output should be wrapped.
-#' @return `NULL``, invisibly.
+#' @return `NULL`, invisibly.
 #' @keywords internal
 #' @export
 #' @rdname recipes-internal
@@ -333,7 +333,7 @@ printer <- function(tr_obj = NULL,
 #' @export
 #' @keywords internal
 #' @rdname recipes-internal
-prepare   <- function(x, ...)
+prepare <- function(x, ...)
   rlang::abort(paste0("As of version 0.0.1.9006, used `prep` ",
        "instead of `prepare`"))
 
@@ -474,7 +474,7 @@ to_character <- function(x) {
 
 simple_terms <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = x$columns)
+    res <- tibble(terms = unname(x$columns))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names)
@@ -636,6 +636,32 @@ check_training_set <- function(x, rec, fresh) {
   x
 }
 
+#' Get the `keep_original_cols` value of a recipe step
+#'
+#' @export
+#' @param object A recipe step
+#' @return A logical to keep the original variables in the output
+#' @keywords internal
+get_keep_original_cols <- function(object) {
+  # Allow prepping of old recipes created before addition of keep_original_cols
+  step_class <- class(object)[1]
+
+  if (is.null(object$keep_original_cols)) {
+    ret <- FALSE
+    rlang::warn(
+      paste0(
+        "'keep_original_cols' was added to `",
+        step_class,
+        "()` after this recipe was created.\n",
+        "Regenerate your recipe to avoid this warning."
+      )
+    )
+  } else {
+    ret <- object$keep_original_cols
+  }
+
+  ret
+}
 
 # ------------------------------------------------------------------------------
 # From parsnip, keep synced

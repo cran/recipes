@@ -22,7 +22,8 @@
 #'  to obtain a consensus projection.
 #' @param options A list of options to `nmf()` in the NMF package by way of the
 #'  `NNMF()` function in the `dimRed` package. **Note** that the arguments
-#'  `data` and `ndim` should not be passed here.
+#'  `data` and `ndim` should not be passed here, and that NMF's parallel
+#'  processing is turned off in favor of resample-level parallelization.
 #' @param res The `NNMF()` object is stored
 #'  here once this preprocessing step has been trained by
 #'  [prep.recipe()].
@@ -30,6 +31,8 @@
 #'  resulting new variables. See notes below.
 #' @param seed An integer that will be used to set the seed in isolation
 #'  when computing the factorization.
+#' @param keep_original_cols A logical to keep the original variables in the
+#'  output. Defaults to `FALSE`.
 #' @return An updated version of `recipe` with the new step
 #'  added to the sequence of existing steps (if any). For the
 #'  `tidy` method, a tibble with columns `terms` (the
@@ -60,7 +63,7 @@
 #' # rec <- recipe(HHV ~ ., data = biomass) %>%
 #' #   update_role(sample, new_role = "id var") %>%
 #' #   update_role(dataset, new_role = "split variable") %>%
-#' #   step_nnmf(all_predictors(), num_comp = 2, seed = 473, num_run = 2) %>%
+#' #   step_nnmf(all_numeric_predictors(), num_comp = 2, seed = 473, num_run = 2) %>%
 #' #   prep(training = biomass)
 #' #
 #' # bake(rec, new_data = NULL)
@@ -83,6 +86,7 @@ step_nnmf <-
            res = NULL,
            prefix = "NNMF",
            seed = sample.int(10^5, 1),
+           keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("nnmf")
            ) {
@@ -99,6 +103,7 @@ step_nnmf <-
         res = res,
         prefix = prefix,
         seed = seed,
+        keep_original_cols = keep_original_cols,
         skip = skip,
         id = id
       )
@@ -106,8 +111,8 @@ step_nnmf <-
   }
 
 step_nnmf_new <-
-  function(terms, role, trained, num_comp, num_run,
-           options, res, prefix, seed, skip, id) {
+  function(terms, role, trained, num_comp, num_run, options, res,
+           prefix, seed, keep_original_cols, skip, id) {
     step(
       subclass = "nnmf",
       terms = terms,
@@ -119,6 +124,7 @@ step_nnmf_new <-
       res = res,
       prefix = prefix,
       seed = seed,
+      keep_original_cols = keep_original_cols,
       skip = skip,
       id = id
     )
@@ -141,12 +147,8 @@ prep.step_nnmf <- function(x, training, info = NULL, ...) {
     opts$.mute <- c("message", "output")
     opts$.data <- dimRed::dimRedData(as.data.frame(training[, col_names, drop = FALSE]))
     opts$.method <- "NNMF"
-
-    for (i in nmf_pkg) {
-      suppressPackageStartupMessages(
-        require(i, character.only = TRUE)
-      )
-    }
+    nmf_opts <- list(parallel = FALSE, parallel.required = FALSE)
+    opts$options <- list(.options = nmf_opts)
 
     nnm <- try(do.call(dimRed::embed, opts), silent = TRUE)
     if (inherits(nnm, "try-error")) {
@@ -166,6 +168,7 @@ prep.step_nnmf <- function(x, training, info = NULL, ...) {
     res = nnm,
     prefix = x$prefix,
     seed = x$seed,
+    keep_original_cols = get_keep_original_cols(x),
     skip = x$skip,
     id = x$id
   )
@@ -184,8 +187,11 @@ bake.step_nnmf <- function(object, new_data, ...) {
     comps <- comps[, 1:object$num_comp, drop = FALSE]
     colnames(comps) <- names0(ncol(comps), object$prefix)
     new_data <- bind_cols(new_data, as_tibble(comps))
-    new_data <-
-      new_data[, !(colnames(new_data) %in% nnmf_vars), drop = FALSE]
+    keep_original_cols <- get_keep_original_cols(object)
+
+    if (!keep_original_cols) {
+      new_data <- new_data[, !(colnames(new_data) %in% nnmf_vars), drop = FALSE]
+    }
   }
   as_tibble(new_data)
 }
@@ -207,14 +213,20 @@ print.step_nnmf <- function(x, width = max(20, options()$width - 29), ...) {
 tidy.step_nnmf <- function(x, ...) {
   if (is_trained(x)) {
     if (x$num_comp > 0) {
-      var_names <- colnames(x$res@other.data$H)
-      res <- tibble(terms = var_names, components  = x$num_comp)
+      res <- x$res@other.data$w
+      var_nms <- rownames(res)
+      res <- tibble::as_tibble(res)
+      res$terms <- var_nms
+      res <- tidyr::pivot_longer(res, cols = c(-terms),
+                                 names_to = "component", values_to = "value")
+      res <- res[,c("terms", "value", "component")]
+      res <- res[order(res$component, res$terms),]
     } else {
       res <- tibble(terms = x$res$x_vars, value = na_dbl, component  = na_chr)
     }
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names, components  = x$num_comp)
+    res <- tibble(terms = term_names, value = na_dbl, component  = x$num_comp)
   }
   res$id <- x$id
   res
@@ -237,8 +249,6 @@ tunable.step_nnmf <- function(x, ...) {
   )
 }
 
-
-nmf_pkg <- c("dimRed", "NMF")
 #' @rdname required_pkgs.step
 #' @export
 required_pkgs.step_nnmf <- function(x, ...) {

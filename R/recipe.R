@@ -30,7 +30,8 @@ recipe.default <- function(x, ...)
 #'  (e.g. `log(x)`, `x:y`, etc.) and minus signs are not allowed. These types of
 #'  transformations should be enacted using `step` functions in this package.
 #'  Dots are allowed as are simple multivariate outcome terms (i.e. no need for
-#'  `cbind`; see Examples).
+#'  `cbind`; see Examples). A model formula may not be the best choice for
+#'  high-dimensional data with many columns, because of problems with memory.
 #' @param x,data A data frame or tibble of the *template* data set
 #'   (see below).
 #' @return An object of class `recipe` with sub-objects:
@@ -59,7 +60,9 @@ recipe.default <- function(x, ...)
 #'
 #' Alternatively, a `recipe` object can be created by first specifying
 #'   which variables in a data set should be used and then sequentially
-#'   defining their roles (see the last example).
+#'   defining their roles (see the last example). This alternative is an
+#'   excellent choice when the number of variables is very high, as the
+#'   formula method is memory-inefficient with many variables.
 #'
 #' There are two different types of operations that can be
 #'  sequentially added to a recipe. **Steps**  can include common
@@ -104,8 +107,8 @@ recipe.default <- function(x, ...)
 #' # Now add preprocessing steps to the recipe.
 #'
 #' sp_signed <- rec %>%
-#'   step_normalize(all_predictors()) %>%
-#'   step_spatialsign(all_predictors())
+#'   step_normalize(all_numeric_predictors()) %>%
+#'   step_spatialsign(all_numeric_predictors())
 #' sp_signed
 #'
 #' # now estimate required parameters
@@ -118,8 +121,8 @@ recipe.default <- function(x, ...)
 #' # or use pipes for the entire workflow:
 #' rec <- biomass_tr %>%
 #'   recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur) %>%
-#'   step_normalize(all_predictors()) %>%
-#'   step_spatialsign(all_predictors())
+#'   step_normalize(all_numeric_predictors()) %>%
+#'   step_spatialsign(all_numeric_predictors())
 #'
 #' ###############################################
 #' # multivariate example
@@ -128,15 +131,17 @@ recipe.default <- function(x, ...)
 #' multi_y <- recipe(carbon + hydrogen ~ oxygen + nitrogen + sulfur,
 #'                   data = biomass_tr)
 #' multi_y <- multi_y %>%
-#'   step_center(all_outcomes()) %>%
-#'   step_scale(all_predictors())
+#'   step_center(all_numeric_predictors()) %>%
+#'   step_scale(all_numeric_predictors())
 #'
 #' multi_y_trained <- prep(multi_y, training = biomass_tr)
 #'
 #' results <- bake(multi_y_trained, biomass_te)
 #'
 #' ###############################################
-#' # Creating a recipe manually with different roles
+#' # example with manually updating different roles
+#'
+#' # best choice for high-dimensional data:
 #'
 #' rec <- recipe(biomass_tr) %>%
 #'   update_role(carbon, hydrogen, oxygen, nitrogen, sulfur,
@@ -478,6 +483,8 @@ prep.recipe <-
             " in memory.\n\n")
 
       x$template <- training
+    } else {
+      x$template <- training[0,]
     }
 
     x$tr_info <- tr_data
@@ -494,7 +501,14 @@ prep.recipe <-
       running_info %>%
       group_by(variable) %>%
       arrange(desc(number)) %>%
-      slice(1)
+      summarise(
+        type = dplyr::first(type),
+        role = as.list(unique(unlist(role))),
+        source = dplyr::first(source),
+        number = dplyr::first(number),
+        skip = dplyr::first(skip),
+        .groups = "keep"
+      )
     x
   }
 
@@ -840,5 +854,11 @@ required_pkgs.recipe <- function(x, infra = TRUE, ...) {
 #' @rdname required_pkgs
 #' @export
 required_pkgs.step <- function(x, ...) {
+  character(0)
+}
+
+#' @rdname required_pkgs
+#' @export
+required_pkgs.check <- function(x, ...) {
   character(0)
 }

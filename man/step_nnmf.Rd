@@ -16,6 +16,7 @@ step_nnmf(
   res = NULL,
   prefix = "NNMF",
   seed = sample.int(10^5, 1),
+  keep_original_cols = FALSE,
   skip = FALSE,
   id = rand_id("nnmf")
 )
@@ -49,7 +50,8 @@ to obtain a consensus projection.}
 
 \item{options}{A list of options to \code{nmf()} in the NMF package by way of the
 \code{NNMF()} function in the \code{dimRed} package. \strong{Note} that the arguments
-\code{data} and \code{ndim} should not be passed here.}
+\code{data} and \code{ndim} should not be passed here, and that NMF's parallel
+processing is turned off in favor of resample-level parallelization.}
 
 \item{res}{The \code{NNMF()} object is stored
 here once this preprocessing step has been trained by
@@ -60,6 +62,9 @@ resulting new variables. See notes below.}
 
 \item{seed}{An integer that will be used to set the seed in isolation
 when computing the factorization.}
+
+\item{keep_original_cols}{A logical to keep the original variables in the
+output. Defaults to \code{FALSE}.}
 
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
@@ -105,7 +110,7 @@ data(biomass)
 # rec <- recipe(HHV ~ ., data = biomass) \%>\%
 #   update_role(sample, new_role = "id var") \%>\%
 #   update_role(dataset, new_role = "split variable") \%>\%
-#   step_nnmf(all_predictors(), num_comp = 2, seed = 473, num_run = 2) \%>\%
+#   step_nnmf(all_numeric_predictors(), num_comp = 2, seed = 473, num_run = 2) \%>\%
 #   prep(training = biomass)
 #
 # bake(rec, new_data = NULL)

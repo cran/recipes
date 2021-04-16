@@ -8,6 +8,7 @@
 #' @importFrom dplyr filter group_by count ungroup do select_vars tbl_vars mutate
 #' @importFrom dplyr tibble bind_rows slice right_join rename select full_join
 #' @importFrom dplyr arrange desc bind_cols sample_n sample_frac mutate_at
+#' @importFrom dplyr summarise
 #' @importFrom Matrix Matrix
 #' @importFrom rlang quos call2 sym quo_get_expr quo_text expr f_lhs f_rhs
 #' @importFrom rlang is_empty is_quosure as_character na_dbl syms !! names2
@@ -15,6 +16,7 @@
 #' @importFrom gower gower_topn
 #' @importFrom lubridate year yday week decimal_date quarter semester wday month
 #' @importFrom lubridate is.Date
+#' @importFrom lifecycle deprecated
 #' @importFrom utils stack globalVariables packageVersion object.size install.packages
 #' @importFrom tidyselect everything
 #' @importFrom withr with_seed
@@ -32,6 +34,6 @@ utils::globalVariables(
     "denom",                                                           # ratio.R
     "component", "denom", "id", "value",                                 # ica.R
     "training", "x_names", "y_names",                                    # pls.R
-    ".order_1", ".order_2"                                           # recipes.R
+    ".order_1", ".order_2", "role", "skip"                           # recipes.R
   )
 )
