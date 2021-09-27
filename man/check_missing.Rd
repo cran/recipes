@@ -2,7 +2,6 @@
 % Please edit documentation in R/missing.r
 \name{check_missing}
 \alias{check_missing}
-\alias{tidy.check_missing}
 \title{Check for Missing Values}
 \usage{
 check_missing(
@@ -14,17 +13,13 @@ check_missing(
   skip = FALSE,
   id = rand_id("missing")
 )
-
-\method{tidy}{check_missing}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The check will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are checked in the check See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this check. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this check since no new variables are
 created.}
@@ -42,15 +37,11 @@ conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
 the computations for subsequent operations.}
 
-\item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{check_missing} object.}
+\item{id}{A character string that is unique to this check to identify it.}
 }
 \value{
-An updated version of \code{recipe} with the new check
-added to the sequence of existing operations (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected).
+An updated version of \code{recipe} with the new check added to the
+sequence of any existing operations.
 }
 \description{
 \code{check_missing} creates a \emph{specification} of a recipe
@@ -60,6 +51,9 @@ operation that will check if variables contain missing values.
 This check will break the \code{bake} function if any of the checked
 columns does contain \code{NA} values. If the check passes, nothing is changed
 to the data.
+
+When you \code{\link[=tidy]{tidy()}} this check, a tibble with column \code{terms} (the
+selectors or variables selected) is returned.
 }
 \examples{
 library(modeldata)
@@ -94,3 +88,11 @@ bake(rp, train_data)
 bake(rp, test_data)
 }
 }
+\seealso{
+Other checks: 
+\code{\link{check_class}()},
+\code{\link{check_cols}()},
+\code{\link{check_new_values}()},
+\code{\link{check_range}()}
+}
+\concept{checks}

@@ -5,12 +5,6 @@
 #'  deviation of one.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param sds A named numeric vector of standard deviations. This
 #'  is `NULL` until computed by [prep.recipe()].
 #' @param factor A numeric value of either 1 or 2 that scales the
@@ -20,14 +14,8 @@
 #'  binary inputs. Defaults to `1`. More in reference below.
 #' @param na_rm A logical value indicating whether `NA`
 #'  values should be removed when computing the standard deviation.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the
-#'  standard deviations).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept normalization_methods
+#' @template step-return
+#' @family normalization steps
 #' @export
 #' @details Scaling data means that the standard deviation of a
 #'  variable is divided out of the data. `step_scale` estimates
@@ -35,6 +23,11 @@
 #'  `training` argument of `prep.recipe`.
 #'  `bake.recipe` then applies the scaling to new data sets
 #'  using these standard deviations.
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `value` (the
+#'  standard deviations) is returned.
+#'
 #' @references Gelman, A. (2007) "Scaling regression inputs by
 #'  dividing by two standard deviations." Unpublished. Source:
 #'  \url{http://www.stat.columbia.edu/~gelman/research/unpublished/standardizing.pdf}.
@@ -102,7 +95,7 @@ step_scale_new <-
 
 #' @export
 prep.step_scale <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   if (x$factor != 1 & x$factor != 2) {
@@ -143,8 +136,7 @@ print.step_scale <-
   }
 
 
-#' @rdname step_scale
-#' @param x A `step_scale` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_scale <- function(x, ...) {
   if (is_trained(x)) {

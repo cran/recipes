@@ -4,28 +4,19 @@
 #'  that will log transform data.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details.  For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param base A numeric value for the base.
 #' @param offset An optional value to add to the data prior to
 #'  logging (to avoid `log(0)`).
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
 #' @param signed A logical indicating whether to take the signed log.
-#'  This is sign(x) * abs(x) when abs(x) => 1 or 0 if abs(x) < 1.
+#'  This is sign(x) * abs(log(x)) when abs(x) => 1 or 0 if abs(x) < 1.
 #'  If `TRUE` the `offset` argument will be ignored.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  columns that will be affected) and `base`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @template step-return
+#' @family individual transformation steps
 #' @export
+#' @details When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  columns that will be affected) and `base`.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(exp(rnorm(40)), ncol = 2)
@@ -59,11 +50,6 @@
 #'   prep(training = examples2) %>%
 #'   bake(examples2)
 #'
-#' @seealso [step_logit()] [step_invlogit()]
-#'   [step_hyperbolic()]  [step_sqrt()]
-#'   [recipe()] [prep.recipe()]
-#'   [bake.recipe()]
-
 step_log <-
   function(recipe,
            ...,
@@ -110,7 +96,7 @@ step_log_new <-
 
 #' @export
 prep.step_log <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -159,8 +145,7 @@ print.step_log <-
     invisible(x)
   }
 
-#' @rdname step_log
-#' @param x A `step_log` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_log <- function(x, ...) {
   out <- simple_terms(x, ...)

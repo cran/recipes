@@ -2,7 +2,6 @@
 % Please edit documentation in R/relu.R
 \name{step_relu}
 \alias{step_relu}
-\alias{tidy.step_relu}
 \title{Apply (Smoothed) Rectified Linear Transformation}
 \usage{
 step_relu(
@@ -18,20 +17,20 @@ step_relu(
   skip = FALSE,
   id = rand_id("relu")
 )
-
-\method{tidy}{step_relu}(x, ...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the sequence of
-operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the
+sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which variables are
-affected by the step. See \code{\link[=selections]{selections()}} for more details.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{Defaults to "predictor".}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
-\item{trained}{A logical to indicate if the quantities for preprocessing
-have been estimated.}
+\item{trained}{A logical to indicate if the quantities for
+preprocessing have been estimated.}
 
 \item{shift}{A numeric value dictating a translation to apply to the data.}
 
@@ -41,8 +40,8 @@ opposed to the right hinge.}
 \item{smooth}{A logical indicating if the softplus function, a smooth
 approximation to the rectified linear transformation, should be used.}
 
-\item{prefix}{A prefix for generated column names, default to "right_relu_"
-when right hinge transformation and "left_relu_" for reversed/left hinge
+\item{prefix}{A prefix for generated column names, defaults to "right_relu_"
+for right hinge transformation and "left_relu_" for reversed/left hinge
 transformations.}
 
 \item{columns}{A character string of variable names that will
@@ -53,15 +52,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_relu} object.}
 }
 \value{
-An updated version of \code{recipe} with the
-new step added to the sequence of existing steps (if any).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_relu} creates a \emph{specification} of a recipe step that
@@ -106,9 +103,21 @@ transformed_te <- rec \%>\%
   bake(biomass_te)
 
 transformed_te
-
 }
 \seealso{
-\code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other individual transformation steps: 
+\code{\link{step_BoxCox}()},
+\code{\link{step_YeoJohnson}()},
+\code{\link{step_bs}()},
+\code{\link{step_harmonic}()},
+\code{\link{step_hyperbolic}()},
+\code{\link{step_inverse}()},
+\code{\link{step_invlogit}()},
+\code{\link{step_logit}()},
+\code{\link{step_log}()},
+\code{\link{step_mutate}()},
+\code{\link{step_ns}()},
+\code{\link{step_poly}()},
+\code{\link{step_sqrt}()}
 }
+\concept{individual transformation steps}

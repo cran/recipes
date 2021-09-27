@@ -2,25 +2,14 @@
 #'
 #' `step_sqrt` creates a *specification* of a recipe
 #'  step that will square root transform the data.
-
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be transformed. See [selections()] for
-#'  more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be affected.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @template step-return
+#' @family individual transformation steps
+#' @details When you [`tidy()`] this step, a tibble with column `terms` (the
+#' columns that will be affected) is returned.
 #' @export
 #' @examples
 #' set.seed(313)
@@ -39,10 +28,6 @@
 #'
 #' tidy(sqrt_trans, number = 1)
 #' tidy(sqrt_obj, number = 1)
-#' @seealso [step_logit()] [step_invlogit()]
-#'   [step_log()]  [step_hyperbolic()] [recipe()]
-#'   [prep.recipe()] [bake.recipe()]
-
 step_sqrt <- function(recipe, ..., role = NA,
                       trained = FALSE, columns = NULL,
                       skip = FALSE,
@@ -76,7 +61,7 @@ step_sqrt_new <-
 
 #' @export
 prep.step_sqrt <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   step_sqrt_new(
@@ -104,8 +89,7 @@ print.step_sqrt <- function(x, width = max(20, options()$width - 29), ...) {
   invisible(x)
 }
 
-#' @rdname step_sqrt
-#' @param x A `step_sqrt` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_sqrt <- function(x, ...) {
   res <-simple_terms(x, ...)

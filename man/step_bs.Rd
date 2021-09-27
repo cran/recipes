@@ -2,7 +2,6 @@
 % Please edit documentation in R/bs.R
 \name{step_bs}
 \alias{step_bs}
-\alias{tidy.step_bs}
 \title{B-Spline Basis Functions}
 \usage{
 step_bs(
@@ -17,22 +16,17 @@ step_bs(
   skip = FALSE,
   id = rand_id("bs")
 )
-
-\method{tidy}{step_bs}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{For model terms created by this step, what analysis
-role should they be assigned?. By default, the function assumes
-that the new columns created from the original variables will be
-used as predictors in a model.}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -55,17 +49,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_bs} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which is
-the columns that will be affected and \code{holiday}.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_bs} creates a \emph{specification} of a recipe step
@@ -80,6 +70,9 @@ determined by the \code{df}, \code{degree}, or \code{knot} arguments of
 \code{\link[splines:bs]{splines::bs()}}. The original variables are removed
 from the data and new columns are added. The naming convention
 for the new variables is \code{varname_bs_1} and so on.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the
+columns that will be affected) is returned.
 }
 \examples{
 library(modeldata)
@@ -99,9 +92,19 @@ expanded <- bake(with_splines, biomass_te)
 expanded
 }
 \seealso{
-\code{\link[=step_poly]{step_poly()}} \code{\link[=recipe]{recipe()}} \code{\link[=step_ns]{step_ns()}}
-\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
+Other individual transformation steps: 
+\code{\link{step_BoxCox}()},
+\code{\link{step_YeoJohnson}()},
+\code{\link{step_harmonic}()},
+\code{\link{step_hyperbolic}()},
+\code{\link{step_inverse}()},
+\code{\link{step_invlogit}()},
+\code{\link{step_logit}()},
+\code{\link{step_log}()},
+\code{\link{step_mutate}()},
+\code{\link{step_ns}()},
+\code{\link{step_poly}()},
+\code{\link{step_relu}()},
+\code{\link{step_sqrt}()}
 }
-\concept{basis_expansion}
-\concept{preprocessing}
-\keyword{datagen}
+\concept{individual transformation steps}

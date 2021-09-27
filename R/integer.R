@@ -4,16 +4,8 @@
 #'  step that will convert new data into a set of integers based
 #'  on the original data values.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be used to create the integer variables. See
-#'  [selections()] for more details. For the `tidy` method, these
-#'  are not currently used.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
-#'  that the new columns created by the original variables will be
-#'  used as predictors in a model.
 #' @param key A list that contains the information needed to
 #'  create integer variables for each variable contained in
 #'  `terms`. This is `NULL` until the step is trained by
@@ -22,14 +14,8 @@
 #'  integers (as opposed to double).
 #' @param zero_based A logical for whether the integers should start at zero and
 #'  new values be appended as the largest integer.
-#' @return An updated version of `recipe` with the new step added
-#'  to the sequence of existing steps (if any). For the `tidy`
-#'  method, a tibble with columns `terms` (the selectors or
-#'  variables selected) and `value` is a _list column_ with the
-#'  conversion key.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_encodings
+#' @template step-return
+#' @family dummy variable and encoding steps
 #' @export
 #' @details `step_integer` will determine the unique values of
 #'  each variable from the training set (excluding missing values),
@@ -44,11 +30,10 @@
 #' Despite the name, the new values are returned as numeric unless
 #'  `strict = TRUE`, which will coerce the results to integers.
 #'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the selectors or
+#'  variables selected) and `value` (a _list column_ with the
+#'  conversion key) is returned.
 #'
-#' @seealso [step_factor2string()], [step_string2factor()],
-#'  [step_regex()], [step_count()],
-#'  [step_ordinalscore()], [step_unorder()], [step_other()]
-#'  [step_novel()], [step_dummy()]
 #' @examples
 #' library(modeldata)
 #' data(okc)
@@ -126,7 +111,7 @@ get_unique_values <- function(x, zero = FALSE) {
 
 #' @export
 prep.step_integer <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   step_integer_new(
     terms = x$terms,
@@ -186,8 +171,7 @@ print.step_integer <-
     invisible(x)
   }
 
-#' @rdname step_integer
-#' @param x A `step_integer` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_integer <- function(x, ...) {
   if (is_trained(x)) {

@@ -2,7 +2,6 @@
 % Please edit documentation in R/normalize.R
 \name{step_normalize}
 \alias{step_normalize}
-\alias{tidy.step_normalize}
 \title{Center and scale numeric data}
 \usage{
 step_normalize(
@@ -16,17 +15,13 @@ step_normalize(
   skip = FALSE,
   id = rand_id("normalize")
 )
-
-\method{tidy}{step_normalize}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -48,18 +43,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_normalize} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected), \code{value} (the
-standard deviations and means), and \code{statistic} for the type of value.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_normalize} creates a \emph{specification} of a recipe
@@ -71,8 +61,12 @@ Centering data means that the average of a variable is subtracted
 from the data. Scaling data means that the standard deviation of a variable
 is divided out of the data. \code{step_normalize} estimates the variable standard
 deviations and means from the data used in the \code{training} argument of
-\code{prep.recipe}. \code{bake.recipe} then applies the scaling to new data sets using
+\code{prep.recipe}. \code{\link{bake.recipe}} then applies the scaling to new data sets using
 these estimates.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected), \code{value} (the standard deviations and
+means), and \code{statistic} for the type of value is returned.
 }
 \examples{
 library(modeldata)
@@ -106,6 +100,10 @@ keep_orig_te <- bake(keep_orig_obj, biomass_te)
 keep_orig_te
 
 }
-\concept{normalization_methods}
-\concept{preprocessing}
-\keyword{datagen}
+\seealso{
+Other normalization steps: 
+\code{\link{step_center}()},
+\code{\link{step_range}()},
+\code{\link{step_scale}()}
+}
+\concept{normalization steps}

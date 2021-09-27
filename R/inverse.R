@@ -4,24 +4,15 @@
 #'  step that will inverse transform the data.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param offset An optional value to add to the data prior to
 #'  logging (to avoid `1/0`).
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be affected.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @template step-return
+#' @family individual transformation steps
 #' @export
+#' @details When you [`tidy()`] this step, a tibble with columns `terms`
+#' (the columns that will be affected) is returned.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(runif(40), ncol = 2)
@@ -39,10 +30,6 @@
 #'
 #' tidy(inverse_trans, number = 1)
 #' tidy(inverse_obj, number = 1)
-#' @seealso [step_log()]
-#' [step_sqrt()]  [step_hyperbolic()] [recipe()]
-#' [prep.recipe()] [bake.recipe()]
-
 step_inverse <-
   function(recipe,
            ...,
@@ -80,7 +67,7 @@ step_inverse_new <-
 
 #' @export
 prep.step_inverse <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -111,8 +98,7 @@ print.step_inverse <-
     invisible(x)
   }
 
-#' @rdname step_inverse
-#' @param x A `step_inverse` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_inverse <- function(x, ...) {
   res <-simple_terms(x, ...)

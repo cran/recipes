@@ -3,8 +3,6 @@ library(ipred)
 library(rpart)
 library(recipes)
 
-context("bagged imputation")
-
 library(modeldata)
 data(biomass)
 
@@ -15,7 +13,7 @@ rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur + fac,
 
 test_that('imputation models', {
   imputed <- rec %>%
-    step_bagimpute(carbon, fac, impute_with = imp_vars(hydrogen, oxygen),
+    step_impute_bag(carbon, fac, impute_with = imp_vars(hydrogen, oxygen),
                    seed_val = 12, trees = 5)
 
   imputed_trained <- prep(imputed, training = biomass, verbose = FALSE)
@@ -56,17 +54,27 @@ test_that('imputation models', {
            model = imputed_trained$steps[[1]]$models,
            id = imputed_trained$steps[[1]]$id)
 
-  expect_equivalent(as.data.frame(tidy(imputed, 1)), as.data.frame(imp_tibble_un))
+  expect_equal(as.data.frame(tidy(imputed, 1)), as.data.frame(imp_tibble_un))
   expect_equal(tidy(imputed_trained, 1)$terms, imp_tibble_tr$terms)
   expect_equal(tidy(imputed_trained, 1)$model, imp_tibble_tr$model)
-
-
 })
 
 
+test_that("All NA values", {
+
+  imputed <- rec %>%
+    step_impute_bag(carbon, fac, impute_with = imp_vars(hydrogen, oxygen),
+                    seed_val = 12, trees = 5) %>%
+    prep(biomass)
+
+  imputed_te <- bake(imputed, biomass %>% mutate(carbon = NA))
+  expect_equal(sum(is.na(imputed_te$carbon)), 0)
+
+})
+
 test_that('printing', {
   imputed <- rec %>%
-    step_bagimpute(carbon, impute_with = imp_vars(hydrogen), seed_val = 12,
+    step_impute_bag(carbon, impute_with = imp_vars(hydrogen), seed_val = 12,
                    trees = 7)
 
   expect_output(print(imputed))
@@ -76,7 +84,7 @@ test_that('printing', {
 test_that('tunable', {
   rec <-
     recipe(~ ., data = iris) %>%
-    step_bagimpute(all_predictors(), impute_with = imp_vars(all_predictors()))
+    step_impute_bag(all_predictors(), impute_with = imp_vars(all_predictors()))
   rec_param <- tunable.step_impute_bag(rec$steps[[1]])
   expect_equal(rec_param$name, c("trees"))
   expect_true(all(rec_param$source == "recipe"))
@@ -86,5 +94,18 @@ test_that('tunable', {
     names(rec_param),
     c('name', 'call_info', 'source', 'component', 'component_id')
   )
+})
+
+
+test_that('non-factor imputation', {
+  data(scat)
+  scat$Location <- as.character(scat$Location)
+  scat$Location[1] <- NA
+  rec <-
+    recipe(Species ~ ., data = scat) %>%
+    step_impute_bag(Location, impute_with = imp_vars(all_predictors())) %>%
+    prep(strings_as_factors = FALSE)
+  expect_true(is.character(bake(rec, NULL, Location)[[1]]))
+
 })
 

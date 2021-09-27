@@ -2,7 +2,6 @@
 % Please edit documentation in R/count.R
 \name{step_count}
 \alias{step_count}
-\alias{tidy.step_count}
 \title{Create Counts of Patterns using Regular Expressions}
 \usage{
 step_count(
@@ -18,23 +17,18 @@ step_count(
   skip = FALSE,
   id = rand_id("count")
 )
-
-\method{tidy}{step_count}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{A single selector functions to choose which variable
-will be searched for the pattern. The selector should resolve
-into a single variable. See \code{\link[=selections]{selections()}} for more
-details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{A single selector function to choose which variable
+will be searched for the regex pattern. The selector should
+resolve to a single variable. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{For a variable created by this step, what analysis
-role should they be assigned?. By default, the function assumes
-that the new dummy variable column created by the original
-variable will be used as a predictor in a model.}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -62,23 +56,23 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_count} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected) and \code{result} (the
-new column name).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_count} creates a \emph{specification} of a recipe
 step that will create a variable that counts instances of a
 regular expression pattern in text.
+}
+\details{
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected) and \code{result} (the
+new column name) is returned.
 }
 \examples{
 library(modeldata)
@@ -97,7 +91,24 @@ count_values
 tidy(rec, number = 1)
 tidy(rec2, number = 1)
 }
-\concept{dummy_variables}
-\concept{preprocessing}
-\concept{regular_expressions}
-\keyword{datagen}
+\seealso{
+Other dummy variable and encoding steps: 
+\code{\link{step_bin2factor}()},
+\code{\link{step_date}()},
+\code{\link{step_dummy_multi_choice}()},
+\code{\link{step_dummy}()},
+\code{\link{step_factor2string}()},
+\code{\link{step_holiday}()},
+\code{\link{step_indicate_na}()},
+\code{\link{step_integer}()},
+\code{\link{step_novel}()},
+\code{\link{step_num2factor}()},
+\code{\link{step_ordinalscore}()},
+\code{\link{step_other}()},
+\code{\link{step_regex}()},
+\code{\link{step_relevel}()},
+\code{\link{step_string2factor}()},
+\code{\link{step_unknown}()},
+\code{\link{step_unorder}()}
+}
+\concept{dummy variable and encoding steps}

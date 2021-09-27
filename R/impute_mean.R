@@ -1,31 +1,26 @@
-#' Impute Numeric Data Using the Mean
+#' Impute numeric data using the mean
 #'
 #' `step_impute_mean` creates a *specification* of a recipe step that will
 #'  substitute missing values of numeric variables by the training set mean of
 #'  those variables.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which variables are
-#'  affected by the step. See [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role Not used by this step since no new variables are created.
 #' @param means A named numeric vector of means. This is `NULL` until computed
 #'  by [prep.recipe()]. Note that, if the original data are integers, the mean
 #'  will be converted to an integer to maintain the same data type.
 #' @param trim The fraction (0 to 0.5) of observations to be trimmed from each
 #'  end of the variables before the mean is computed. Values of trim outside
 #'  that range are taken as the nearest endpoint.
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of existing steps (if any). For the `tidy` method, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `model` (the mean
-#'  value).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept imputation
+#' @template step-return
+#' @family imputation steps
 #' @export
 #' @details `step_impute_mean` estimates the variable means from the data used
 #'  in the `training` argument of `prep.recipe`. `bake.recipe` then applies the
 #'  new values to new data sets using these averages.
+#'
+#' When you [`tidy()`] this step, a tibble with
+#'  columns `terms` (the selectors or variables selected) and `model` (the mean
+#'  value) is returned.
 #'
 #'  As of `recipes` 0.1.16, this function name changed from `step_meanimpute()`
 #'    to `step_impute_mean()`.
@@ -93,7 +88,7 @@ step_meanimpute <-
            trim = 0,
            skip = FALSE,
            id = rand_id("impute_mean")) {
-    lifecycle::deprecate_soft(
+    lifecycle::deprecate_warn(
       when = "0.1.16",
       what = "recipes::step_meanimpute()",
       with = "recipes::step_impute_mean()"
@@ -126,7 +121,7 @@ step_impute_mean_new <-
 
 #' @export
 prep.step_impute_mean <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -145,18 +140,21 @@ prep.step_impute_mean <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
+#' @keywords internal
 prep.step_meanimpute <- prep.step_impute_mean
 
 #' @export
 bake.step_impute_mean <- function(object, new_data, ...) {
   for (i in names(object$means)) {
     if (any(is.na(new_data[[i]])))
+      new_data[[i]] <- vec_cast(new_data[[i]], object$means[[i]])
       new_data[is.na(new_data[[i]]), i] <- object$means[[i]]
   }
   as_tibble(new_data)
 }
 
 #' @export
+#' @keywords internal
 bake.step_meanimpute <- bake.step_impute_mean
 
 #' @export
@@ -168,10 +166,10 @@ print.step_impute_mean <-
   }
 
 #' @export
+#' @keywords internal
 print.step_meanimpute <- print.step_impute_mean
 
-#' @rdname step_impute_mean
-#' @param x A `step_impute_mean` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_impute_mean <- function(x, ...) {
   if (is_trained(x)) {
@@ -186,9 +184,10 @@ tidy.step_impute_mean <- function(x, ...) {
 }
 
 #' @export
-tidy.step_meanimpute <-tidy.step_impute_mean
+#' @keywords internal
+tidy.step_meanimpute <- tidy.step_impute_mean
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_impute_mean <- function(x, ...) {
   tibble::tibble(
@@ -203,4 +202,5 @@ tunable.step_impute_mean <- function(x, ...) {
 }
 
 #' @export
+#' @keywords internal
 tunable.step_meanimpute <- tunable.step_impute_mean

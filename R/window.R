@@ -5,10 +5,6 @@
 #'  functions that compute statistics across moving windows.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details.  For the `tidy` method, these are not
-#'  currently used.
 #' @param role For model terms created by this step, what analysis
 #'  role should they be assigned? If `names` is left to be
 #'  `NULL`, the rolling statistics replace the original columns
@@ -31,14 +27,7 @@
 #'  are not sure what columns will be selected, use the
 #'  `summary` function (see the example below). These will be
 #'  the names of the new columns created by the step.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `statistic` (the
-#'  summary function name), and `size`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept moving_windows
+#' @template step-return
 #' @export
 #' @details The calculations use a somewhat atypical method for
 #'  handling the beginning and end parts of the rolling statistics.
@@ -50,8 +39,13 @@
 #'  values are estimated by `median(x[1:5])` and the fourth
 #'  uses `median(x[2:6])`.
 #'
-# This step requires the \pkg{RcppRoll} package. If not installed, the
+#  This step requires the \pkg{RcppRoll} package. If not installed, the
 #'  step will stop with a note about installing the package.
+#'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected), `statistic` (the
+#'  summary function name), and `size` is returned.
+#'
 #' @examples
 #' library(recipes)
 #' library(dplyr)
@@ -74,10 +68,6 @@
 #'               names = paste0("mean_3pt_", 1:2),
 #'               role = "outcome")
 #' rec <- prep(rec, training = sim_dat)
-#'
-#' # If you aren't sure how to set the names, see which variables are selected
-#' # and the order that they are selected:
-#' terms_select(info = summary(rec), terms = quos(starts_with("y")))
 #'
 #' smoothed_dat <- bake(rec, sim_dat, everything())
 #'
@@ -114,13 +104,15 @@ step_window <-
            names = NULL,
            skip = FALSE,
            id = rand_id("window")) {
-    if (!(statistic %in% roll_funs) | length(statistic) != 1)
+    if (!is_call(statistic) &&
+        (!(statistic %in% roll_funs) | length(statistic) != 1)) {
       rlang::abort(
         paste0(
-        "`statistic` should be one of: ",
-        paste0("'", roll_funs, "'", collapse = ", ")
-          )
+          "`statistic` should be one of: ",
+          paste0("'", roll_funs, "'", collapse = ", ")
         )
+      )
+    }
 
     ## ensure size is odd, integer, and not too small
     if (!is_tune(size) & !is_varying(size)) {
@@ -188,7 +180,7 @@ step_window_new <-
 
 #' @export
 prep.step_window <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   if (any(info$type[info$variable %in% col_names] != "numeric"))
     rlang::abort("The selected variables should be numeric")
@@ -280,8 +272,7 @@ print.step_window <-
     invisible(x)
   }
 
-#' @rdname step_window
-#' @param x A `step_window` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_window <- function(x, ...) {
   out <- simple_terms(x, ...)
@@ -292,14 +283,14 @@ tidy.step_window <- function(x, ...) {
 }
 
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_window <- function(x, ...) {
   tibble::tibble(
     name = c("statistic", "window"),
     call_info = list(
       list(pkg = "dials", fun = "summary_stat"),
-      list(pkg = "dials", fun = "window")
+      list(pkg = "dials", fun = "window_size")
     ),
     source = "recipe",
     component = "step_window",
@@ -308,7 +299,7 @@ tunable.step_window <- function(x, ...) {
 }
 
 
-#' @rdname required_pkgs.step
+#' @rdname required_pkgs.recipe
 #' @export
 required_pkgs.step_window <- function(x, ...) {
   c("RcppRoll")

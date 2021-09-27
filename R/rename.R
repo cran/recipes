@@ -3,25 +3,22 @@
 #' `step_rename` creates a *specification* of a recipe step that will add
 #'  variables using [dplyr::rename()].
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param ... One or more unquoted expressions separated by commas. See
 #'  [dplyr::rename()] where the convention is **`new_name = old_name`**.
-#' @param role For model terms created by this step, what analysis role should
-#'  they be assigned? By default, the function assumes that the new dimension
-#'  columns created by the original variables will be used as predictors in a
-#'  model.
 #' @param inputs Quosure(s) of `...`.
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of existing steps (if any). For the `tidy` method, a tibble with
-#'  columns `values` which contains the `rename` expressions as character
-#'  strings (and are not reparsable).
+#' @template step-return
 #' @details When an object in the user's global environment is referenced in
 #'  the expression defining the new variable(s), it is a good idea to use
 #'  quasiquotation (e.g. `!!`) to embed the value of the object in the
 #'  expression (to be portable between sessions).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#'
+#'  When you [`tidy()`] this step, a tibble with
+#'  columns `values` which contains the `rename` expressions as character
+#'  strings (and are not reparsable) is returned.
+#'
+#' @family dplyr steps
 #' @export
 #' @examples
 #' recipe( ~ ., data = iris) %>%
@@ -110,8 +107,7 @@ print.step_rename <-
     invisible(x)
   }
 
-#' @rdname step_rename
-#' @param x A `step_rename` object
+#' @rdname tidy.recipe
 #' @export
 tidy.step_rename <- function(x, ...) {
   var_expr <- map(x$inputs, quo_get_expr)

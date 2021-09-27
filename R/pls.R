@@ -3,15 +3,8 @@
 #' `step_pls` creates a *specification* of a recipe step that will
 #'  convert numeric data into one or more new dimensions.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which variables will be
-#'  used to compute the dimensions. See [selections()] for more details. For the
-#'  `tidy` method, these are not currently used.
-#' @param role For model terms created by this step, what analysis role should
-#'  they be assigned?. By default, the function assumes that the new dimension
-#'  columns created by the original variables will be used as predictors in a
-#'  model.
 #' @param num_comp The number of pls dimensions to retain as new predictors.
 #'  If `num_comp` is greater than the number of columns or the number of
 #'  possible dimensions, a smaller value will be used.
@@ -27,18 +20,8 @@
 #' arguments).
 #' @param res A list of results are stored here once this preprocessing step
 #'  has been trained by [prep.recipe()].
-#' @param prefix A character string that will be the prefix to the
-#'  resulting new variables. See notes below.
-#' @param keep_original_cols A logical to keep the original variables in the
-#'  output. Defaults to `FALSE`.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected), `components`, and `values`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept pls
-#' @concept projection_methods
+#' @template step-return
+#' @family multivariate transformation steps
 #' @export
 #' @details PLS is a supervised version of principal component
 #'  analysis that requires the outcome data to compute
@@ -61,7 +44,7 @@
 #' proportion to determine the `keepX` parameter in `mixOmics::spls()` and
 #' `mixOmics::splsda()`. See the references in `mixOmics::spls()` for details.
 #'
-#' The `tidy()` method returns the coefficients that are usually defined as
+#' The [`tidy()`] method returns the coefficients that are usually defined as
 #'
 #' \deqn{W(P'W)^{-1}}
 #'
@@ -69,7 +52,8 @@
 #'
 #' When applied to data, these values are usually scaled by a column-specific
 #' norm. The `tidy()` method applies this same norm to the coefficients shown
-#' above.
+#' above. When you `tidy()` this step, a tibble with columns `terms` (the
+#' selectors or variables selected), `components`, and `values` is returned.
 #'
 #' @references
 #' \url{https://en.wikipedia.org/wiki/Partial_least_squares_regression}
@@ -120,9 +104,6 @@
 #'   recipe(class ~ ., data = cell_tr) %>%
 #'   step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5, predictor_prop = 1/4)
 #'
-#' @seealso [step_pca()], [step_kpca()], [step_ica()], [recipe()],
-#'  [prep.recipe()], [bake.recipe()]
-
 step_pls <-
   function(recipe,
            ...,
@@ -143,7 +124,7 @@ step_pls <-
     }
 
     if (lifecycle::is_present(preserve)) {
-      lifecycle::deprecate_soft(
+      lifecycle::deprecate_warn(
         "0.1.16",
         "step_pls(preserve = )",
         "step_pls(keep_original_cols = )"
@@ -309,8 +290,8 @@ prop2int <- function(x, p) {
 
 #' @export
 prep.step_pls <- function(x, training, info = NULL, ...) {
-  x_names <- eval_select_recipes(x$terms, training, info)
-  y_names <- eval_select_recipes(x$outcome, training, info)
+  x_names <- recipes_eval_select(x$terms, training, info)
+  y_names <- recipes_eval_select(x$outcome, training, info)
 
   check_type(training[, x_names])
   if (length(y_names) > 1 ) {
@@ -401,8 +382,7 @@ print.step_pls <- function(x, width = max(20, options()$width - 35), ...) {
 }
 
 
-#' @rdname step_pls
-#' @param x A `step_pls` object
+#' @rdname tidy.recipe
 #' @export
 tidy.step_pls <- function(x, ...) {
   if (is_trained(x)) {
@@ -425,7 +405,7 @@ tidy.step_pls <- function(x, ...) {
 }
 
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_pls <- function(x, ...) {
   tibble::tibble(
@@ -441,7 +421,7 @@ tunable.step_pls <- function(x, ...) {
 }
 
 
-#' @rdname required_pkgs.step
+#' @rdname required_pkgs.recipe
 #' @export
 required_pkgs.step_pls <- function(x, ...) {
   c("mixOmics")

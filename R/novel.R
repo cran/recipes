@@ -5,25 +5,13 @@
 #'  new value.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables that will be affected by the step. These variables
-#'  should be character or factor types. See [selections()] for more
-#'  details. For the `tidy` method, these are not currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param new_level A single character value that will be assigned
 #'  to new factor levels.
 #' @param objects A list of objects that contain the information
 #'  on factor levels that will be determined by [prep.recipe()].
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  columns that will be affected) and `value` (the factor
-#'  levels that is used for the new value)
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept factors
+#' @template step-return
+#' @family dummy variable and encoding steps
+#' @seealso [dummy_names()]
 #' @export
 #' @details The selected variables are adjusted to have a new
 #'  level (given by `new_level`) that is placed in the last
@@ -44,9 +32,10 @@
 #'  [hardhat::default_recipe_blueprint()]. This will allow your model to handle
 #'  new levels at prediction time, instead of throwing warnings or errors.
 #'
-#' @seealso [step_factor2string()], [step_string2factor()],
-#'  [dummy_names()], [step_regex()], [step_count()],
-#'  [step_ordinalscore()], [step_unorder()], [step_other()]
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  columns that will be affected) and `value` (the factor
+#'  levels that is used for the new value) is returned.
+#'
 #' @examples
 #' library(modeldata)
 #' data(okc)
@@ -121,7 +110,7 @@ get_existing_values <- function(x) {
 
 #' @export
 prep.step_novel <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   col_check <- dplyr::filter(info, variable %in% col_names)
 
@@ -184,8 +173,7 @@ print.step_novel <-
     invisible(x)
   }
 
-#' @rdname step_novel
-#' @param x A `step_novel` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_novel <- function(x, ...) {
   if (is_trained(x)) {

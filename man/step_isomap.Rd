@@ -2,7 +2,6 @@
 % Please edit documentation in R/isomap.R
 \name{step_isomap}
 \alias{step_isomap}
-\alias{tidy.step_isomap}
 \title{Isomap Embedding}
 \usage{
 step_isomap(
@@ -19,22 +18,17 @@ step_isomap(
   skip = FALSE,
   id = rand_id("isomap")
 )
-
-\method{tidy}{step_isomap}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables will be used to compute the dimensions. See
-\code{\link[=selections]{selections()}} for more details. For the \code{tidy}
-method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{For model terms created by this step, what analysis
-role should they be assigned?. By default, the function assumes
-that the new dimension columns created by the original variables
-will be used as predictors in a model.}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -52,8 +46,8 @@ used.}
 here once this preprocessing step has be trained by
 \code{\link[=prep.recipe]{prep.recipe()}}.}
 
-\item{prefix}{A character string that will be the prefix to the
-resulting new variables. See notes below.}
+\item{prefix}{A character string for the prefix of the resulting new
+variables. See notes below.}
 
 \item{keep_original_cols}{A logical to keep the original variables in the
 output. Defaults to \code{FALSE}.}
@@ -63,17 +57,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_isomap} object}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_isomap} creates a \emph{specification} of a recipe
@@ -104,6 +94,9 @@ numbers. The variable names are padded with zeros. For example,
 if \code{num_terms < 10}, their names will be \code{Isomap1} -
 \code{Isomap9}. If \code{num_terms = 101}, the names would be
 \code{Isomap001} - \code{Isomap101}.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the
+selectors or variables selected) is returned.
 }
 \examples{
 \donttest{
@@ -145,11 +138,19 @@ versus local methods in nonlinear dimensionality reduction.
 https://github.com/gdkrmr
 }
 \seealso{
-\code{\link[=step_pca]{step_pca()}} \code{\link[=step_kpca]{step_kpca()}}
-\code{\link[=step_ica]{step_ica()}} \code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other multivariate transformation steps: 
+\code{\link{step_classdist}()},
+\code{\link{step_depth}()},
+\code{\link{step_geodist}()},
+\code{\link{step_ica}()},
+\code{\link{step_kpca_poly}()},
+\code{\link{step_kpca_rbf}()},
+\code{\link{step_kpca}()},
+\code{\link{step_mutate_at}()},
+\code{\link{step_nnmf}()},
+\code{\link{step_pca}()},
+\code{\link{step_pls}()},
+\code{\link{step_ratio}()},
+\code{\link{step_spatialsign}()}
 }
-\concept{isomap}
-\concept{preprocessing}
-\concept{projection_methods}
-\keyword{datagen}
+\concept{multivariate transformation steps}

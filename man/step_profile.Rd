@@ -2,7 +2,6 @@
 % Please edit documentation in R/profile.R
 \name{step_profile}
 \alias{step_profile}
-\alias{tidy.step_profile}
 \title{Create a Profiling Version of a Data Set}
 \usage{
 step_profile(
@@ -18,17 +17,13 @@ step_profile(
   skip = FALSE,
   id = rand_id("profile")
 )
-
-\method{tidy}{step_profile}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables will be fixed to a single value. See \code{\link[=selections]{selections()}} for
-more details. For the \code{tidy} method, these are not currently
-used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{profile}{A call to \code{\link[dplyr:vars]{dplyr::vars()}}) to specify which
 variable will be profiled (see \code{\link[=selections]{selections()}}). If a column is
@@ -74,18 +69,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_profile} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (which
-is the columns that will be affected), and \code{type} (fixed or
-profiled).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_profile} creates a \emph{specification} of a recipe step that
@@ -98,6 +88,10 @@ models.
 This step is atypical in that, when baked, the
 \code{new_data} argument is ignored; the resulting data set is
 based on the fixed and profiled variable's information.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (which
+is the columns that will be affected) and \code{type} (fixed or
+profiled) is returned.
 }
 \examples{
 library(modeldata)
@@ -149,5 +143,3 @@ ggplot(plot_data, aes(x = disp, y = pred)) +
   geom_point(alpha = .5, cex = 1) +
   facet_wrap(~ method)
 }
-\concept{preprocessing}
-\keyword{datagen}

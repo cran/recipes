@@ -2,7 +2,6 @@
 % Please edit documentation in R/pca.R
 \name{step_pca}
 \alias{step_pca}
-\alias{tidy.step_pca}
 \title{PCA Signal Extraction}
 \usage{
 step_pca(
@@ -19,21 +18,17 @@ step_pca(
   skip = FALSE,
   id = rand_id("pca")
 )
-
-\method{tidy}{step_pca}(x, type = "coef", ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which variables will be
-used to compute the components. See \code{\link[=selections]{selections()}} for more details. For the
-\code{tidy} method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{For model terms created by this step, what analysis role should
-they be assigned?. By default, the function assumes that the new principal
-component columns created by the original variables will be used as
-predictors in a model.}
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -55,8 +50,8 @@ should not be passed here (or at all).}
 \item{res}{The \code{\link[stats:prcomp]{stats::prcomp.default()}} object is stored here once this
 preprocessing step has be trained by \code{\link[=prep.recipe]{prep.recipe()}}.}
 
-\item{prefix}{A character string that will be the prefix to the resulting
-new variables. See notes below.}
+\item{prefix}{A character string for the prefix of the resulting new
+variables. See notes below.}
 
 \item{keep_original_cols}{A logical to keep the original variables in the
 output. Defaults to \code{FALSE}.}
@@ -66,21 +61,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_pca} object.}
-
-\item{type}{For the \code{tidy()} method, either "coef" (for the variable
-loadings per component) or "variance" (how much variance does each component
-account for).}
 }
 \value{
 An updated version of \code{recipe} with the new step added to the
-sequence of existing steps (if any). For the \code{tidy} method, a tibble with
-columns \code{terms} (the selectors or variables selected), \code{value} (the
-loading), and \code{component}.
+sequence of any existing operations.
 }
 \description{
 \code{step_pca} creates a \emph{specification} of a recipe step that will convert
@@ -113,6 +100,10 @@ If \code{num_comp = 101}, the names would be \code{PC001} -
 Alternatively, \code{threshold} can be used to determine the
 number of components that are required to capture a specified
 fraction of the total variance in the variables.
+
+When you \code{\link[=tidy]{tidy()}} this step, use either \code{type = "coef"} for the variable
+loadings per component or \code{type = "variance"} for how much variance each
+component accounts for.
 }
 \examples{
 rec <- recipe( ~ ., data = USArrests)
@@ -140,11 +131,19 @@ Jolliffe, I. T. (2010). \emph{Principal Component
 Analysis}. Springer.
 }
 \seealso{
-\code{\link[=step_ica]{step_ica()}} \code{\link[=step_kpca]{step_kpca()}}
-\code{\link[=step_isomap]{step_isomap()}} \code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other multivariate transformation steps: 
+\code{\link{step_classdist}()},
+\code{\link{step_depth}()},
+\code{\link{step_geodist}()},
+\code{\link{step_ica}()},
+\code{\link{step_isomap}()},
+\code{\link{step_kpca_poly}()},
+\code{\link{step_kpca_rbf}()},
+\code{\link{step_kpca}()},
+\code{\link{step_mutate_at}()},
+\code{\link{step_nnmf}()},
+\code{\link{step_pls}()},
+\code{\link{step_ratio}()},
+\code{\link{step_spatialsign}()}
 }
-\concept{pca}
-\concept{preprocessing}
-\concept{projection_methods}
-\keyword{datagen}
+\concept{multivariate transformation steps}

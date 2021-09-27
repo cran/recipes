@@ -2,7 +2,6 @@
 % Please edit documentation in R/rm.R
 \name{step_rm}
 \alias{step_rm}
-\alias{tidy.step_rm}
 \title{General Variable Filter}
 \usage{
 step_rm(
@@ -14,17 +13,13 @@ step_rm(
   skip = FALSE,
   id = rand_id("rm")
 )
-
-\method{tidy}{step_rm}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables that will be evaluated by the filtering bake. See
-\code{\link[=selections]{selections()}} for more details. For the \code{tidy}
-method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -41,21 +36,21 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_rm} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be removed.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_rm} creates a \emph{specification} of a recipe step
 that will remove variables based on their name, type, or role.
+}
+\details{
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the
+columns that will be removed) is returned.
 }
 \examples{
 library(modeldata)
@@ -79,6 +74,12 @@ filtered_te
 
 tidy(smaller_set, number = 1)
 }
-\concept{preprocessing}
-\concept{variable_filters}
-\keyword{datagen}
+\seealso{
+Other variable filter steps: 
+\code{\link{step_corr}()},
+\code{\link{step_lincomb}()},
+\code{\link{step_nzv}()},
+\code{\link{step_select}()},
+\code{\link{step_zv}()}
+}
+\concept{variable filter steps}

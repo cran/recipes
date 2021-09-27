@@ -37,10 +37,6 @@ discretize.default <- function(x, ...)
 #' @return `discretize` returns an object of class
 #'  `discretize` and `predict.discretize` returns a factor
 #'  vector.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept discretization
-#' @concept factors
 #' @export
 #' @details `discretize` estimates the cut points from
 #'  `x` using percentiles. For example, if `cuts = 3`, the
@@ -214,8 +210,6 @@ print.discretize <-
 #'  on a training set).
 #'
 #' @inheritParams step_center
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param num_breaks An integer defining how many cuts to make of the
 #'  data.
 #' @param min_unique An integer defining a sample size line of
@@ -230,16 +224,11 @@ print.discretize <-
 #'  the options `prefix` and `labels` when more than one
 #'  variable is being transformed might be problematic as all
 #'  variables inherit those values.
-#' @param ... For `step_discretize`, the dots specify
-#'  one or more selector functions to choose which variables are
-#'  affected by the step. See [selections()] for more
-#'  details. For the `tidy` method, these are not currently
-#'  used.
-#' @return `step_discretize` returns an updated version of
-#'  `recipe` with the new step added to the sequence of
-#'  existing steps (if any). For the `tidy` method, a tibble
+#' @template step-return
+#' @details  When you [`tidy()`] this step, a tibble
 #'  with columns `terms` (the selectors or variables selected)
-#'  and `value` (the breaks).
+#'  and `value` (the breaks) is returned.
+#' @family discretization steps
 #' @export
 
 step_discretize <- function(recipe,
@@ -300,7 +289,7 @@ bin_wrapper <- function(x, args) {
 
 #' @export
 prep.step_discretize <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   if (length(col_names) > 1 & any(names(x$options) %in% c("prefix", "labels"))) {
@@ -344,8 +333,7 @@ print.step_discretize <-
     invisible(x)
   }
 
-#' @rdname step_discretize
-#' @param x A `step_discretize` object
+#' @rdname tidy.recipe
 #' @export
 tidy.step_discretize <- function(x, ...) {
   if (is_trained(x)) {
@@ -365,7 +353,7 @@ tidy.step_discretize <- function(x, ...) {
 
 
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_discretize <- function(x, ...) {
   tibble::tibble(

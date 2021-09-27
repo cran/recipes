@@ -5,16 +5,10 @@
 #'  distance measurements to the data centroid. This is done for
 #'  each value of a categorical class variable.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
 #' @param class A single character string that specifies a single
 #'  categorical variable to be used as the class.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
-#'  that resulting distances will be used as predictors in a model.
 #' @param mean_func A function to compute the center of the
 #'  distribution.
 #' @param cov_func A function that computes the covariance matrix
@@ -22,18 +16,10 @@
 #'  by pooling the data for all of the classes?
 #' @param log A logical: should the distances be transformed by
 #'  the natural log function?
-#' @param prefix A character string that defines the naming convention for
-#'  new distance columns. Defaults to `"classdist_"`. See Details below.
 #' @param objects Statistics are stored here once this step has
 #'  been trained by [prep.recipe()].
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected), `value` (the centroid of
-#'  the class), and `class`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept dimension_reduction
+#' @template step-return
+#' @family multivariate transformation steps
 #' @export
 #' @details `step_classdist` will create a new column for every
 #'  unique value of the `class` variable.
@@ -46,6 +32,11 @@
 #'  listed in the `terms` argument. If `pool = TRUE`,
 #'  there must be at least as many data points are variables
 #'  overall.
+#'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected), `value` (the centroid of
+#'  the class), and `class` is returned.
+#'
 #' @examples
 #'
 #' # in case of missing data...
@@ -135,7 +126,7 @@ get_both <- function(x, mfun = mean, cfun = cov) {
 #' @export
 prep.step_classdist <- function(x, training, info = NULL, ...) {
   class_var <- x$class[1]
-  x_names <- eval_select_recipes(x$terms, training, info)
+  x_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, x_names])
 
   x_dat <-
@@ -222,8 +213,7 @@ get_centroid <- function(x) {
          value = unname(x$center))
 }
 
-#' @rdname step_classdist
-#' @param x A `step_classdist` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_classdist <- function(x, ...) {
   if (is_trained(x)) {

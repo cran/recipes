@@ -4,9 +4,6 @@ library(tibble)
 library(tidyselect)
 library(rlang)
 
-context("Term selection")
-
-
 library(modeldata)
 data(okc)
 rec1 <- recipe(~ ., data = okc)
@@ -16,13 +13,20 @@ library(modeldata)
 data(biomass)
 rec2 <- recipe(biomass) %>%
   update_role(carbon, hydrogen, oxygen, nitrogen, sulfur,
-           new_role = "predictor") %>%
+              new_role = "predictor") %>%
   update_role(HHV, new_role = "outcome") %>%
   update_role(sample, new_role = "id variable") %>%
   update_role(dataset, new_role = "splitting indicator")
 info2 <- summary(rec2)
 
+test_that("terms_select() is deprecated", {
+  rlang::local_options(lifecycle_verbosity = "warning")
+  expect_warning(terms_select(info = info1, quos(all_predictors())))
+})
+
 test_that('simple role selections', {
+  rlang::local_options(lifecycle_verbosity = "quiet")
+
   expect_equal(
     terms_select(info = info1, quos(all_predictors())),
     info1$variable
@@ -39,6 +43,8 @@ test_that('simple role selections', {
 })
 
 test_that('simple type selections', {
+  rlang::local_options(lifecycle_verbosity = "quiet")
+
   expect_equal(
     terms_select(info = info1, quos(all_numeric())),
     c("age", "height")
@@ -55,6 +61,8 @@ test_that('simple type selections', {
 
 
 test_that('simple name selections', {
+  rlang::local_options(lifecycle_verbosity = "quiet")
+
   expect_equal(
     terms_select(info = info1, quos(matches("e$"))),
     c("age", "date")
@@ -89,6 +97,8 @@ test_that('simple name selections', {
 
 
 test_that('combinations', {
+  rlang::local_options(lifecycle_verbosity = "quiet")
+
   expect_equal(
     terms_select(info = info2, quos(matches("[hH]"), -all_outcomes())),
     "hydrogen"
@@ -108,6 +118,8 @@ test_that('combinations', {
 })
 
 test_that('namespaced selectors', {
+  rlang::local_options(lifecycle_verbosity = "quiet")
+
   expect_equal(
     terms_select(info = info1, quos(tidyselect::matches("e$"))),
     terms_select(info = info1, quos(matches("e$")))
@@ -123,7 +135,7 @@ test_that('namespaced selectors', {
 })
 
 test_that('new dplyr selectors', {
-  skip_if(tidyselect_pre_1.0.0())
+  rlang::local_options(lifecycle_verbosity = "quiet")
 
   vnames <- c("hydrogen", "carbon")
   expect_error(

@@ -7,24 +7,12 @@
 #'  reference.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#'
-#' @param ... One or more selector functions to choose which
-#'  variables that will be affected by the step. These variables
-#'  should be character or factor types. See [selections()] for more
-#'  details.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param ref_level A single character value that will be used to
 #'  relevel the factor column(s) (if the level is present).
 #' @param objects A list of objects that contain the information
 #'  on factor levels that will be determined by [prep.recipe()].
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any).
-#'
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept factors
+#' @template step-return
+#' @family dummy variable and encoding steps
 #' @export
 #' @details The selected variables are releveled to a level
 #' (given by `ref_level`). Placing the `ref_level` in the first
@@ -84,7 +72,7 @@ step_relevel_new <-
 
 #' @export
 prep.step_relevel <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   col_check <- dplyr::filter(info, .data$variable %in% col_names)
 
@@ -150,8 +138,7 @@ print.step_relevel <-
     invisible(x)
   }
 
-#' @rdname step_relevel
-#' @param x A `step_relevel` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_relevel <- function(x, ...) {
   if (is_trained(x)) {

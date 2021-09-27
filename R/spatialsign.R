@@ -4,25 +4,14 @@
 #'  step that will convert numeric data into a projection on to a
 #'  unit sphere.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be used for the normalization. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?
 #' @param na_rm A logical: should missing data be removed from the
 #'  norm computation?
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be affected.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept projection_methods
+#' @template step-return
+#' @family multivariate transformation steps
 #' @export
 #' @details The spatial sign transformation projects the variables
 #'  onto a unit sphere and is related to global contrast
@@ -31,6 +20,9 @@
 #'
 #' The variables should be centered and scaled prior to the
 #'  computations.
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the columns
+#'  that will be affected) is returned.
 #'
 #' @references Serneels, S., De Nolf, E., and Van Espen, P.
 #'  (2006). Spatial sign preprocessing: a simple way to impart
@@ -100,7 +92,7 @@ step_spatialsign_new <-
 
 #' @export
 prep.step_spatialsign <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -118,10 +110,10 @@ prep.step_spatialsign <- function(x, training, info = NULL, ...) {
 #' @export
 bake.step_spatialsign <- function(object, new_data, ...) {
   col_names <- object$columns
-  ss <- function(x, na_rm) {
-    x / sqrt(sum(x ^ 2, na.rm = na_rm))
-  }
-  res <- t(apply(as.matrix(new_data[, col_names]), 1, ss, na_rm = object$na_rm))
+
+  res <- as.matrix(new_data[, col_names])
+  res <- res / sqrt(rowSums(res ^ 2, na.rm = object$na_rm))
+
   res <- tibble::as_tibble(res)
   new_data[, col_names] <- res
   tibble::as_tibble(new_data)
@@ -134,8 +126,7 @@ print.step_spatialsign <-
     invisible(x)
   }
 
-#' @rdname step_spatialsign
-#' @param x A `step_spatialsign` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_spatialsign <- function(x, ...) {
   res <-simple_terms(x, ...)

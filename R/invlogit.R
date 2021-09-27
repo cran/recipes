@@ -5,25 +5,17 @@
 #'  zero and one.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be affected.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @template step-return
+#' @family individual transformation steps
 #' @export
 #' @details The inverse logit transformation takes values on the
 #'  real line and translates them to be between zero and one using
 #'  the function `f(x) = 1/(1+exp(-x))`.
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms`
+#'  (the columns that will be affected) is returned.
 #' @examples
 #' library(modeldata)
 #' data(biomass)
@@ -43,11 +35,6 @@
 #'
 #' transformed_te <- bake(ilogit_obj, biomass_te)
 #' plot(biomass_te$carbon, transformed_te$carbon)
-#' @seealso [step_logit()] [step_log()]
-#'   [step_sqrt()]  [step_hyperbolic()]
-#'   [recipe()] [prep.recipe()]
-#'   [bake.recipe()]
-
 step_invlogit <-
   function(recipe, ...,  role = NA, trained = FALSE, columns = NULL,
            skip = FALSE, id = rand_id("invlogit")) {
@@ -77,7 +64,7 @@ step_invlogit_new <-
 
 #' @export
 prep.step_invlogit <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   step_invlogit_new(
@@ -107,8 +94,7 @@ print.step_invlogit <-
     invisible(x)
   }
 
-#' @rdname step_invlogit
-#' @param x A `step_invlogit` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_invlogit <- function(x, ...) {
   res <- simple_terms(x, ...)

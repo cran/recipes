@@ -4,23 +4,13 @@
 #'  that will remove variables that contain only a single value.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables that will be evaluated by the filtering. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param removals A character string that contains the names of
 #'  columns that should be removed. These values are not determined
 #'  until [prep.recipe()] is called.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be removed.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_filters
+#' @template step-return
+#' @details When you [`tidy()`] this step, a tibble with column `terms` (the
+#'  columns that will be removed) is returned.
+#' @family variable filter steps
 #' @export
 #'
 #' @examples
@@ -46,10 +36,6 @@
 #'
 #' tidy(zv_filter, number = 1)
 #' tidy(filter_obj, number = 1)
-#' @seealso [step_nzv()] [step_corr()]
-#'   [recipe()]
-#'   [prep.recipe()] [bake.recipe()]
-
 step_zv <-
   function(recipe,
            ...,
@@ -91,7 +77,7 @@ one_unique <- function(x) {
 
 #' @export
 prep.step_zv <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   filter <- vapply(training[, col_names], one_unique, logical(1))
 
   step_zv_new(
@@ -131,7 +117,6 @@ print.step_zv <-
   }
 
 
-#' @rdname step_zv
-#' @param x A `step_zv` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_zv <- tidy_filter

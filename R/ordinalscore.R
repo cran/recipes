@@ -5,24 +5,13 @@
 #'  numeric scores.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param columns A character string of variables that will be
 #'  converted. This is `NULL` until computed by
 #'  [prep.recipe()].
 #' @param convert A function that takes an ordinal factor vector
 #'  as an input and outputs a single numeric variable.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  columns that will be affected).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept ordinal_data
+#' @template step-return
+#' @family dummy variable and encoding steps
 #' @export
 #' @details Dummy variables from ordered factors with `C`
 #'  levels will create polynomial basis functions with `C-1`
@@ -31,6 +20,10 @@
 #'  represent (subjective) scores. By default, the translation uses
 #'  a linear scale (1, 2, 3, ... `C`) but custom score
 #'  functions can also be used (see the example below).
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the
+#'  columns that will be affected) is returned.
+#'
 #' @examples
 #' fail_lvls <- c("meh", "annoying", "really_bad")
 #'
@@ -107,7 +100,7 @@ step_ordinalscore_new <-
 #' @export
 prep.step_ordinalscore <-
   function(x, training, info = NULL, ...) {
-    col_names <- eval_select_recipes(x$terms, training, info)
+    col_names <- recipes_eval_select(x$terms, training, info)
     ord_check <-
       vapply(training[, col_names], is.ordered, c(logic = TRUE))
     if (!all(ord_check))
@@ -144,8 +137,7 @@ print.step_ordinalscore <-
   }
 
 
-#' @rdname step_ordinalscore
-#' @param x A `step_ordinalscore` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_ordinalscore <- function(x, ...) {
   res <- simple_terms(x, ...)

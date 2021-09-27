@@ -2,7 +2,6 @@
 % Please edit documentation in R/window.R
 \name{step_window}
 \alias{step_window}
-\alias{tidy.step_window}
 \title{Moving Window Functions}
 \usage{
 step_window(
@@ -18,17 +17,13 @@ step_window(
   skip = FALSE,
   id = rand_id("window")
 )
-
-\method{tidy}{step_window}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details.  For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{For model terms created by this step, what analysis
 role should they be assigned? If \code{names} is left to be
@@ -66,18 +61,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_window} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected) and \code{statistic} (the
-summary function name), and \code{size}.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_window} creates a \emph{specification} of a recipe
@@ -96,6 +86,10 @@ values are estimated by \code{median(x[1:5])} and the fourth
 uses \code{median(x[2:6])}.
 
 step will stop with a note about installing the package.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected), \code{statistic} (the
+summary function name), and \code{size} is returned.
 }
 \examples{
 library(recipes)
@@ -120,10 +114,6 @@ rec <- recipe(y1 + y2 ~ x1 + x2 + x3, data = sim_dat) \%>\%
               role = "outcome")
 rec <- prep(rec, training = sim_dat)
 
-# If you aren't sure how to set the names, see which variables are selected
-# and the order that they are selected:
-terms_select(info = summary(rec), terms = quos(starts_with("y")))
-
 smoothed_dat <- bake(rec, sim_dat, everything())
 
 ggplot(data = sim_dat, aes(x = x1, y = y1)) +
@@ -146,6 +136,3 @@ ggplot(smoothed_dat, aes(x = original, y = y1)) +
   geom_point() +
   theme_bw()
 }
-\concept{moving_windows}
-\concept{preprocessing}
-\keyword{datagen}

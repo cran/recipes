@@ -2,7 +2,6 @@
 % Please edit documentation in R/scale.R
 \name{step_scale}
 \alias{step_scale}
-\alias{tidy.step_scale}
 \title{Scaling Numeric Data}
 \usage{
 step_scale(
@@ -16,17 +15,13 @@ step_scale(
   skip = FALSE,
   id = rand_id("scale")
 )
-
-\method{tidy}{step_scale}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -51,18 +46,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_scale} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected) and \code{value} (the
-standard deviations).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_scale} creates a \emph{specification} of a recipe
@@ -76,6 +66,10 @@ the variable standard deviations from the data used in the
 \code{training} argument of \code{prep.recipe}.
 \code{bake.recipe} then applies the scaling to new data sets
 using these standard deviations.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected) and \code{value} (the
+standard deviations) is returned.
 }
 \examples{
 library(modeldata)
@@ -105,6 +99,10 @@ Gelman, A. (2007) "Scaling regression inputs by
 dividing by two standard deviations." Unpublished. Source:
 \url{http://www.stat.columbia.edu/~gelman/research/unpublished/standardizing.pdf}.
 }
-\concept{normalization_methods}
-\concept{preprocessing}
-\keyword{datagen}
+\seealso{
+Other normalization steps: 
+\code{\link{step_center}()},
+\code{\link{step_normalize}()},
+\code{\link{step_range}()}
+}
+\concept{normalization steps}

@@ -2,7 +2,6 @@
 % Please edit documentation in R/center.R
 \name{step_center}
 \alias{step_center}
-\alias{tidy.step_center}
 \title{Centering numeric data}
 \usage{
 step_center(
@@ -15,17 +14,13 @@ step_center(
   skip = FALSE,
   id = rand_id("center")
 )
-
-\method{tidy}{step_center}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -44,17 +39,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_center} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected) and \code{value} (the means).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_center} creates a \emph{specification} of a recipe
@@ -66,6 +57,9 @@ subtracted from the data. \code{step_center} estimates the
 variable means from the data used in the \code{training}
 argument of \code{prep.recipe}. \code{bake.recipe} then applies
 the centering to new data sets using these means.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected) and \code{value} (the means) is returned.
 }
 \examples{
 library(modeldata)
@@ -91,9 +85,9 @@ tidy(center_trans, number = 1)
 tidy(center_obj, number = 1)
 }
 \seealso{
-\code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other normalization steps: 
+\code{\link{step_normalize}()},
+\code{\link{step_range}()},
+\code{\link{step_scale}()}
 }
-\concept{normalization_methods}
-\concept{preprocessing}
-\keyword{datagen}
+\concept{normalization steps}

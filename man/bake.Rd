@@ -3,7 +3,7 @@
 \name{bake}
 \alias{bake}
 \alias{bake.recipe}
-\title{Apply a Trained Data Recipe}
+\title{Apply a trained preprocessing recipe}
 \usage{
 bake(object, ...)
 
@@ -38,8 +38,10 @@ For a recipe with at least one preprocessing operation that has been trained by
 \code{\link[=prep.recipe]{prep.recipe()}}, apply the computations to new data.
 }
 \details{
-\code{\link[=bake]{bake()}} takes a trained recipe and applies the
-operations to a data set to create a design matrix.
+\code{\link[=bake]{bake()}} takes a trained recipe and applies its operations to a
+data set to create a design matrix. If you are using a recipe as a
+preprocessor for modeling, we \strong{highly recommend} that you use a \code{workflow()}
+instead of manually applying a recipe (see the example in \code{\link[=recipe]{recipe()}}).
 
 If the data set is not too large, time can be saved by using the
 \code{retain = TRUE} option of \code{\link[=prep]{prep()}}. This stores the processed version of the
@@ -65,17 +67,15 @@ ames_rec <-
   prep()
 
 # return the training set (already embedded in ames_rec)
-ames_train <- bake(ames_rec, new_data = NULL)
+bake(ames_rec, new_data = NULL)
 
 # apply processing to other data:
-ames_new <- bake(ames_rec, new_data = head(ames))
+bake(ames_rec, new_data = head(ames))
+
+# only return selected variables:
+bake(ames_rec, new_data = head(ames), all_numeric_predictors())
+bake(ames_rec, new_data = head(ames), starts_with(c("Longitude", "Latitude")))
 }
 \seealso{
 \code{\link[=recipe]{recipe()}}, \code{\link[=prep]{prep()}}
 }
-\author{
-Max Kuhn
-}
-\concept{model_specification}
-\concept{preprocessing}
-\keyword{datagen}

@@ -4,23 +4,16 @@
 #'  step that will transform the data.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  columns that will be affected).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept ordinal_data
+#' @template step-return
+#' @family dummy variable and encoding steps
 #' @export
 #' @details The factors level order is preserved during the transformation.
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the
+#'  columns that will be affected) is returned.
+#'
 #' @examples
 #' lmh <- c("Low", "Med", "High")
 #'
@@ -40,9 +33,6 @@
 #'
 #' tidy(factor_trans, number = 1)
 #' tidy(factor_obj, number = 1)
-#' @seealso [step_ordinalscore()] [recipe()]
-#' [prep.recipe()] [bake.recipe()]
-
 step_unorder <-
   function(recipe,
            ...,
@@ -77,7 +67,7 @@ step_unorder_new <-
 
 #' @export
 prep.step_unorder <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   order_check <- vapply(training[, col_names],
                         is.ordered,
                         logical(1L))
@@ -126,8 +116,7 @@ print.step_unorder <-
   }
 
 
-#' @rdname step_unorder
-#' @param x A `step_unorder` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_unorder <- function(x, ...) {
   res <- simple_terms(x, ...)

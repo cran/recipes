@@ -7,13 +7,6 @@
 #'  models.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be fixed to a single value. See [selections()] for
-#'  more details. For the `tidy` method, these are not currently
-#'  used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param profile A call to [dplyr::vars()]) to specify which
 #'  variable will be profiled (see [selections()]). If a column is
 #'  included in both lists to be fixed and to be profiled, an error
@@ -45,13 +38,12 @@
 #' @details This step is atypical in that, when baked, the
 #'  `new_data` argument is ignored; the resulting data set is
 #'  based on the fixed and profiled variable's information.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (which
-#'  is the columns that will be affected), and `type` (fixed or
-#'  profiled).
-#' @keywords datagen
-#' @concept preprocessing
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms` (which
+#'  is the columns that will be affected) and `type` (fixed or
+#'  profiled) is returned.
+#'
+#' @template step-return
 #' @export
 #' @examples
 #' library(modeldata)
@@ -161,8 +153,8 @@ step_profile_new <-
 
 #' @export
 prep.step_profile <- function(x, training, info = NULL, ...) {
-  fixed_names <- eval_select_recipes(x$terms, training, info)
-  profile_name <- eval_select_recipes(x$profile, training, info)
+  fixed_names <- recipes_eval_select(x$terms, training, info)
+  profile_name <- recipes_eval_select(x$profile, training, info)
 
   if(length(fixed_names) == 0)
     rlang::abort("At least one variable should be fixed")
@@ -222,8 +214,7 @@ print.step_profile <-
     invisible(x)
   }
 
-#' @rdname step_profile
-#' @param x A `step_profile` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_profile <- function(x, ...) {
   if (is_trained(x)) {

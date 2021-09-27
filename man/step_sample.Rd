@@ -2,7 +2,6 @@
 % Please edit documentation in R/sample.R
 \name{step_sample}
 \alias{step_sample}
-\alias{tidy.step_sample}
 \title{Sample rows using dplyr}
 \usage{
 step_sample(
@@ -15,16 +14,13 @@ step_sample(
   skip = TRUE,
   id = rand_id("sample")
 )
-
-\method{tidy}{step_sample}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
 \item{...}{Argument ignored; included for consistency with other step
-specification functions. For the \code{tidy}
-method, these are not currently used.}
+specification functions.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -47,19 +43,19 @@ conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = FALSE}.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_sample} object}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{size}, \code{replace},
-and \code{id}.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_sample} creates a \emph{specification} of a recipe step
 that will sample rows using \code{\link[dplyr:sample_n]{dplyr::sample_n()}} or
 \code{\link[dplyr:sample_n]{dplyr::sample_frac()}}.
+}
+\details{
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{size},
+\code{replace}, and \code{id} is returned.
 }
 \section{Row Filtering}{
 
@@ -99,7 +95,24 @@ bake(smaller_cars, new_data = NULL) \%>\% nrow()
 bake(smaller_cars, new_data = mtcars \%>\% slice(21:32)) \%>\% nrow()
 }
 \seealso{
-\code{\link[=step_filter]{step_filter()}} \code{\link[=step_naomit]{step_naomit()}} \code{\link[=step_slice]{step_slice()}}
+Other row operation steps: 
+\code{\link{step_arrange}()},
+\code{\link{step_filter}()},
+\code{\link{step_impute_roll}()},
+\code{\link{step_lag}()},
+\code{\link{step_naomit}()},
+\code{\link{step_shuffle}()},
+\code{\link{step_slice}()}
+
+Other dplyr steps: 
+\code{\link{step_arrange}()},
+\code{\link{step_filter}()},
+\code{\link{step_mutate_at}()},
+\code{\link{step_mutate}()},
+\code{\link{step_rename_at}()},
+\code{\link{step_rename}()},
+\code{\link{step_select}()},
+\code{\link{step_slice}()}
 }
-\concept{preprocessing}
-\keyword{datagen}
+\concept{dplyr steps}
+\concept{row operation steps}

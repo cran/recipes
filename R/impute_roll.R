@@ -1,17 +1,13 @@
-#' Impute Numeric Data Using a Rolling Window Statistic
+#' Impute numeric data using a rolling window statistic
 #'
 #' `step_impute_roll` creates a *specification* of a
 #'  recipe step that will substitute missing values of numeric
 #'  variables by the measure of location (e.g. median) within a moving window.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()] for more
-#'  details. These columns should be non-integer numerics (i.e.,
-#'  double precision). For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
+#' @param ... One or more selector functions to choose variables to be imputed;
+#'  these columns must be non-integer numerics (i.e., double precision).
+#'  See [selections()] for more details.
 #' @param columns A named numeric vector of columns. This is
 #'  `NULL` until computed by [prep.recipe()].
 #' @param window The size of the window around a point to be imputed. Should be
@@ -20,13 +16,9 @@
 #' @param statistic A function with a single argument for the data to compute
 #'  the imputed value. Only complete values will be passed to the function and
 #'  it should return a double precision value.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `window` (the window size).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept imputation
+#' @template step-return
+#' @family imputation steps
+#' @family row operation steps
 #' @export
 #' @details On the tails, the window is shifted towards the ends.
 #'  For example, for a 5-point window, the windows for the first
@@ -42,6 +34,9 @@
 #'  window data used for imputation. In other words, each imputation
 #'  does not know anything about previous imputations in the series
 #'  prior to the current point.
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `window` (the window size) is returned.
 #'
 #'  As of `recipes` 0.1.16, this function name changed from `step_rollimpute()`
 #'    to `step_impute_roll()`.
@@ -102,7 +97,6 @@ step_impute_roll <-
     )
   }
 
-
 #' @rdname step_impute_roll
 #' @export
 step_rollimpute <-
@@ -115,7 +109,7 @@ step_rollimpute <-
            window = 5,
            skip = FALSE,
            id = rand_id("impute_roll")) {
-    lifecycle::deprecate_soft(
+    lifecycle::deprecate_warn(
       when = "0.1.16",
       what = "recipes::step_rollimpute()",
       with = "recipes::step_impute_roll()"
@@ -150,7 +144,7 @@ step_impute_roll_new <-
 
 #' @export
 prep.step_impute_roll <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
   dbl_check <- vapply(training[, col_names], is.double, logical(1))
   if (any(!dbl_check))
@@ -169,6 +163,7 @@ prep.step_impute_roll <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
+#' @keywords internal
 prep.step_rollimpute <- prep.step_impute_roll
 
 get_window_ind <- function(i, n, k) {
@@ -217,6 +212,7 @@ bake.step_impute_roll <- function(object, new_data, ...) {
 }
 
 #' @export
+#' @keywords internal
 bake.step_rollimpute <- bake.step_impute_roll
 
 #' @export
@@ -228,10 +224,10 @@ print.step_impute_roll <-
   }
 
 #' @export
+#' @keywords internal
 print.step_rollimpute <- print.step_impute_roll
 
-#' @rdname step_impute_roll
-#' @param x A `step_impute_roll` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_impute_roll <- function(x, ...) {
   if (is_trained(x)) {
@@ -245,9 +241,10 @@ tidy.step_impute_roll <- function(x, ...) {
 }
 
 #' @export
+#' @keywords internal
 tidy.step_rollimpute <- tidy.step_impute_roll
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_impute_roll <- function(x, ...) {
   tibble::tibble(
@@ -263,4 +260,5 @@ tunable.step_impute_roll <- function(x, ...) {
 }
 
 #' @export
+#' @keywords internal
 tunable.step_rollimpute <- tunable.step_impute_roll

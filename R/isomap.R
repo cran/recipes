@@ -4,16 +4,8 @@
 #'  step that will convert numeric data into one or more new
 #'  dimensions.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be used to compute the dimensions. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
-#'  that the new dimension columns created by the original variables
-#'  will be used as predictors in a model.
 #' @param num_terms The number of isomap dimensions to retain as new
 #'  predictors. If `num_terms` is greater than the number of columns
 #'  or the number of possible dimensions, a smaller value will be
@@ -23,18 +15,8 @@
 #' @param res The [dimRed::Isomap()] object is stored
 #'  here once this preprocessing step has be trained by
 #'  [prep.recipe()].
-#' @param prefix A character string that will be the prefix to the
-#'  resulting new variables. See notes below.
-#' @param keep_original_cols A logical to keep the original variables in the
-#'  output. Defaults to `FALSE`.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept isomap
-#' @concept projection_methods
+#' @template step-return
+#' @family multivariate transformation steps
 #' @export
 #' @details Isomap is a form of multidimensional scaling (MDS).
 #'  MDS methods try to find a reduced set of dimensions such that
@@ -60,6 +42,10 @@
 #'  if `num_terms < 10`, their names will be `Isomap1` -
 #'  `Isomap9`. If `num_terms = 101`, the names would be
 #'  `Isomap001` - `Isomap101`.
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the
+#'  selectors or variables selected) is returned.
+#'
 #' @references De Silva, V., and Tenenbaum, J. B. (2003). Global
 #'  versus local methods in nonlinear dimensionality reduction.
 #'  *Advances in Neural Information Processing Systems*.
@@ -97,10 +83,6 @@
 #'   tidy(im_estimates, number = 3)
 #' }
 #' }
-#' @seealso [step_pca()] [step_kpca()]
-#'   [step_ica()] [recipe()] [prep.recipe()]
-#'   [bake.recipe()]
-
 step_isomap <-
   function(recipe,
            ...,
@@ -156,7 +138,7 @@ step_isomap_new <-
 
 #' @export
 prep.step_isomap <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -201,10 +183,11 @@ prep.step_isomap <- function(x, training, info = NULL, ...) {
 bake.step_isomap <- function(object, new_data, ...) {
   if (object$num_terms > 0) {
     isomap_vars <- colnames(environment(object$res@apply)$indata)
-    comps <-
-      object$res@apply(
+    suppressMessages({
+      comps <- object$res@apply(
         dimRed::dimRedData(as.data.frame(new_data[, isomap_vars, drop = FALSE]))
       )@data
+    })
     comps <- comps[, 1:object$num_terms, drop = FALSE]
     comps <- check_name(comps, new_data, object)
     new_data <- bind_cols(new_data, as_tibble(comps))
@@ -230,8 +213,7 @@ print.step_isomap <- function(x, width = max(20, options()$width - 35), ...) {
   }
 
 
-#' @rdname step_isomap
-#' @param x A `step_isomap` object
+#' @rdname tidy.recipe
 #' @export
 tidy.step_isomap <- function(x, ...) {
   if (is_trained(x)) {
@@ -250,7 +232,7 @@ tidy.step_isomap <- function(x, ...) {
 
 
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_isomap <- function(x, ...) {
   tibble::tibble(
@@ -265,7 +247,7 @@ tunable.step_isomap <- function(x, ...) {
   )
 }
 
-#' @rdname required_pkgs.step
+#' @rdname required_pkgs.recipe
 #' @export
 required_pkgs.step_isomap <- function(x, ...) {
   c("dimRed", "RSpectra", "igraph", "RANN")

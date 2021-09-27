@@ -62,7 +62,7 @@ get_rhs_vars <- function(formula, data, no_lhs = FALSE) {
   ## or should it? what about Y ~ log(x)?
   ## Answer: when called from `form2args`, the function
   ## `inline_check` stops when in-line functions are used.
-  data_info <- attr(model.frame(formula, data), "terms")
+  data_info <- attr(model.frame(formula, data[1,]), "terms")
   response_info <- attr(data_info, "response")
   predictor_names <- names(attr(data_info, "dataClasses"))
   if (length(response_info) > 0 && all(response_info > 0)) {
@@ -123,26 +123,33 @@ mod_call_args <- function(cl, args, removals = NULL) {
 #' @param ordinal A logical; was the original factor ordered?
 #' @param sep A single character value for the separator between the names and
 #'  levels.
+#'
+#' @details When using `dummy_names()`, factor levels that are not valid
+#'  variable names (e.g. "some text  with spaces") will be changed to valid
+#'  names by [base::make.names()]; see example below. This function will also
+#'  change the names of ordinal dummy variables. Instead of values such as
+#'  "`.L`", "`.Q`", or "`^4`", ordinal dummy variables are given simple integer
+#'  suffixes such as "`_1`", "`_2`", etc.
+#'
 #' @return `names0` returns a character string of length `num` and
 #'  `dummy_names` generates a character vector the same length as
 #'  `lvl`.
-#' @keywords datagen
-#' @concept string_functions
-#' @concept naming_functions
 #' @examples
-#' names0(9, "x")
-#' names0(10, "x")
+#' names0(9, "a")
+#' names0(10, "a")
 #'
-#' example <- data.frame(y = ordered(letters[1:5]),
-#'                       z = factor(LETTERS[1:5]))
+#' example <- data.frame(x = ordered(letters[1:5]),
+#'                       y = factor(LETTERS[1:5]),
+#'                       z = factor(paste(LETTERS[1:5], 1:5)))
 #'
+#' dummy_names("y", levels(example$y)[-1])
 #' dummy_names("z", levels(example$z)[-1])
 #'
-#' after_mm <- colnames(model.matrix(~y, data = example))[-1]
+#' after_mm <- colnames(model.matrix(~x, data = example))[-1]
 #' after_mm
-#' levels(example$y)
+#' levels(example$x)
 #'
-#' dummy_names("y", substring(after_mm, 2), ordinal = TRUE)
+#' dummy_names("x", substring(after_mm, 2), ordinal = TRUE)
 #' @export
 
 names0 <- function(num, prefix = "x") {
@@ -156,6 +163,11 @@ names0 <- function(num, prefix = "x") {
 #' @export
 #' @rdname names0
 dummy_names <- function(var, lvl, ordinal = FALSE, sep = "_") {
+  # Work around `paste()` recycling bug with 0 length input
+  args <- vctrs::vec_recycle_common(var, lvl)
+  var <- args[[1]]
+  lvl <- args[[2]]
+
   if(!ordinal)
     nms <- paste(var, make.names(lvl), sep = sep)
   else
@@ -693,12 +705,6 @@ is_tune <- function(x) {
 }
 
 # ------------------------------------------------------------------------------
-
-tidyr_new_interface <- function() {
-  utils::packageVersion("tidyr") > "0.8.99"
-}
-
-# ------------------------------------------------------------------------------
 # For all imputation functions that substitute elements into an existing vector:
 # vctrs's cast functions would be better but we'll deal with the known cases
 # to avoid a dependency.
@@ -713,13 +719,6 @@ cast <- function(x, ref) {
   }
   x
 }
-
-## -----------------------------------------------------------------------------
-
-tidyselect_pre_1.0.0 <- function() {
-  utils::packageVersion("tidyselect") <= "0.2.5"
-}
-
 
 ## -----------------------------------------------------------------------------
 

@@ -2,7 +2,6 @@
 % Please edit documentation in R/sqrt.R
 \name{step_sqrt}
 \alias{step_sqrt}
-\alias{tidy.step_sqrt}
 \title{Square Root Transformation}
 \usage{
 step_sqrt(
@@ -14,17 +13,13 @@ step_sqrt(
   skip = FALSE,
   id = rand_id("sqrt")
 )
-
-\method{tidy}{step_sqrt}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables will be transformed. See \code{\link[=selections]{selections()}} for
-more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -40,21 +35,21 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_sqrt} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be affected.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_sqrt} creates a \emph{specification} of a recipe
 step that will square root transform the data.
+}
+\details{
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the
+columns that will be affected) is returned.
 }
 \examples{
 set.seed(313)
@@ -75,10 +70,19 @@ tidy(sqrt_trans, number = 1)
 tidy(sqrt_obj, number = 1)
 }
 \seealso{
-\code{\link[=step_logit]{step_logit()}} \code{\link[=step_invlogit]{step_invlogit()}}
-\code{\link[=step_log]{step_log()}}  \code{\link[=step_hyperbolic]{step_hyperbolic()}} \code{\link[=recipe]{recipe()}}
-\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
+Other individual transformation steps: 
+\code{\link{step_BoxCox}()},
+\code{\link{step_YeoJohnson}()},
+\code{\link{step_bs}()},
+\code{\link{step_harmonic}()},
+\code{\link{step_hyperbolic}()},
+\code{\link{step_inverse}()},
+\code{\link{step_invlogit}()},
+\code{\link{step_logit}()},
+\code{\link{step_log}()},
+\code{\link{step_mutate}()},
+\code{\link{step_ns}()},
+\code{\link{step_poly}()},
+\code{\link{step_relu}()}
 }
-\concept{preprocessing}
-\concept{transformation_methods}
-\keyword{datagen}
+\concept{individual transformation steps}

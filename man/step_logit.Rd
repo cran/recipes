@@ -2,29 +2,28 @@
 % Please edit documentation in R/logit.R
 \name{step_logit}
 \alias{step_logit}
-\alias{tidy.step_logit}
 \title{Logit Transformation}
 \usage{
 step_logit(
   recipe,
   ...,
+  offset = 0,
   role = NA,
   trained = FALSE,
   columns = NULL,
   skip = FALSE,
   id = rand_id("logit")
 )
-
-\method{tidy}{step_logit}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
+
+\item{offset}{A numeric value to modify values of the columns that are either
+one or zero. They are modified to be \code{x - offset} or \code{offset}, respectively.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -40,17 +39,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_logit} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be affected.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_logit} creates a \emph{specification} of a recipe
@@ -60,6 +55,9 @@ step that will logit transform the data.
 The logit transformation takes values between
 zero and one and translates them to be on the real line using
 the function \code{f(p) = log(p/(1-p))}.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms}
+(the columns that will be affected) is returned.
 }
 \examples{
 set.seed(313)
@@ -80,10 +78,19 @@ tidy(logit_trans, number = 1)
 tidy(logit_obj, number = 1)
 }
 \seealso{
-\code{\link[=step_invlogit]{step_invlogit()}} \code{\link[=step_log]{step_log()}}
-\code{\link[=step_sqrt]{step_sqrt()}}  \code{\link[=step_hyperbolic]{step_hyperbolic()}} \code{\link[=recipe]{recipe()}}
-\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
+Other individual transformation steps: 
+\code{\link{step_BoxCox}()},
+\code{\link{step_YeoJohnson}()},
+\code{\link{step_bs}()},
+\code{\link{step_harmonic}()},
+\code{\link{step_hyperbolic}()},
+\code{\link{step_inverse}()},
+\code{\link{step_invlogit}()},
+\code{\link{step_log}()},
+\code{\link{step_mutate}()},
+\code{\link{step_ns}()},
+\code{\link{step_poly}()},
+\code{\link{step_relu}()},
+\code{\link{step_sqrt}()}
 }
-\concept{preprocessing}
-\concept{transformation_methods}
-\keyword{datagen}
+\concept{individual transformation steps}

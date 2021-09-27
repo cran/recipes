@@ -5,26 +5,14 @@
 #'  transformation.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param lambdas A numeric vector of transformation values. This
 #'  is `NULL` until computed by [prep.recipe()].
 #' @param limits A length 2 numeric vector defining the range to
 #'  compute the transformation parameter lambda.
-#' @param num_unique An integer where data that have less possible
-#'  values will not be evaluated for a transformation.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the
-#'  lambda estimate).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @param num_unique An integer to specify minimum required unique
+#'  values to evaluate for a transformation.
+#' @template step-return
+#' @family individual transformation steps
 #' @export
 #' @details The Box-Cox transformation, which requires a strictly
 #'  positive variable, can be used to rescale a variable to be more
@@ -44,6 +32,10 @@
 #'  closed to the bounds, or if the optimization fails, a value of
 #'  `NA` is used and no transformation is applied.
 #'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `value` (the
+#'  lambda estimate) is returned.
+#'
 #' @references Sakia, R. M. (1992). The Box-Cox transformation technique:
 #'   A review. *The Statistician*, 169-178..
 #' @examples
@@ -61,9 +53,6 @@
 #'
 #' tidy(bc_trans, number = 1)
 #' tidy(bc_estimates, number = 1)
-#'
-#' @seealso [step_YeoJohnson()] [recipe()]
-#'   [prep.recipe()] [bake.recipe()]
 step_BoxCox <-
   function(recipe,
            ...,
@@ -106,7 +95,7 @@ step_BoxCox_new <-
 
 #' @export
 prep.step_BoxCox <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -117,6 +106,13 @@ prep.step_BoxCox <- function(x, training, info = NULL, ...) {
     limits = x$limits,
     num_unique = x$num_unique
   )
+  if (any(is.na(values))) {
+    var_names <- names(values[is.na(values)])
+    vars <- glue::glue_collapse(glue::backtick(var_names), sep = ", ")
+    rlang::warn(paste(
+      "No Box-Cox transformation could be estimated for:", glue::glue("{vars}")
+    ))
+  }
   values <- values[!is.na(values)]
   step_BoxCox_new(
     terms = x$terms,
@@ -150,6 +146,13 @@ print.step_BoxCox <-
 
 ## computes the new data
 bc_trans <- function(x, lambda, eps = .001) {
+
+  if (any(x <= 0))
+    rlang::warn(paste0(
+      "Applying Box-Cox transformation to non-positive data in column `",
+      names(lambda), "`"
+      ))
+
   if (is.na(lambda))
     return(x)
   if (abs(lambda) < eps)
@@ -185,9 +188,13 @@ estimate_bc <- function(dat,
                         limits = c(-5, 5),
                         num_unique = 5) {
   eps <- .001
-  if (length(unique(dat)) < num_unique |
-      any(dat[complete.cases(dat)] <= 0))
+  if (length(unique(dat)) < num_unique) {
+    rlang::warn("Fewer than `num_unique` values in selected variable.")
     return(NA)
+  } else if (any(dat[complete.cases(dat)] <= 0)) {
+    rlang::warn("Non-positive values in selected variable.")
+    return(NA)
+  }
   res <- optimize(
     bc_obj,
     interval = limits,
@@ -202,8 +209,7 @@ estimate_bc <- function(dat,
 }
 
 
-#' @rdname step_BoxCox
-#' @param x A `step_BoxCox` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_BoxCox <- function(x, ...) {
   if (is_trained(x)) {

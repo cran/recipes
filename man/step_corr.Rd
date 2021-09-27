@@ -2,7 +2,6 @@
 % Please edit documentation in R/corr.R
 \name{step_corr}
 \alias{step_corr}
-\alias{tidy.step_corr}
 \title{High Correlation Filter}
 \usage{
 step_corr(
@@ -17,17 +16,13 @@ step_corr(
   skip = FALSE,
   id = rand_id("corr")
 )
-
-\method{tidy}{step_corr}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -55,17 +50,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_corr} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be removed.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_corr} creates a \emph{specification} of a recipe
@@ -81,6 +72,9 @@ When a column has a single unique value, that column will be
 excluded from the correlation analysis. Also, if the data set
 has sporadic missing values (and an inappropriate value of \code{use}
 is chosen), some columns will also be excluded from the filter.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the columns
+that will be removed) is returned.
 }
 \examples{
 library(modeldata)
@@ -109,8 +103,12 @@ tidy(corr_filter, number = 1)
 tidy(filter_obj, number = 1)
 }
 \seealso{
-\code{\link[=step_nzv]{step_nzv()}} \code{\link[=recipe]{recipe()}}
-\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
+Other variable filter steps: 
+\code{\link{step_lincomb}()},
+\code{\link{step_nzv}()},
+\code{\link{step_rm}()},
+\code{\link{step_select}()},
+\code{\link{step_zv}()}
 }
 \author{
 Original R code for filtering algorithm by Dong Li,
@@ -118,6 +116,4 @@ modified by Max Kuhn. Contributions by Reynald Lescarbeau (for
 original in \code{caret} package). Max Kuhn for the \code{step}
 function.
 }
-\concept{preprocessing}
-\concept{variable_filters}
-\keyword{datagen}
+\concept{variable filter steps}

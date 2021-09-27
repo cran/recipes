@@ -4,16 +4,8 @@
 #'  that will convert numeric data into one or more non-negative
 #'  components.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be used to compute the components. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
-#'  that the new component columns created by the
-#'  original variables will be used as predictors in a model.
 #' @param num_comp The number of components to retain as new
 #'  predictors. If `num_comp` is greater than the number of columns
 #'  or the number of possible components, a smaller value will be
@@ -31,16 +23,8 @@
 #'  resulting new variables. See notes below.
 #' @param seed An integer that will be used to set the seed in isolation
 #'  when computing the factorization.
-#' @param keep_original_cols A logical to keep the original variables in the
-#'  output. Defaults to `FALSE`.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and the number of components.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept nnmf
-#' @concept projection_methods
+#' @template step-return
+#' @family multivariate transformation steps
 #' @export
 #' @details Non-negative matrix factorization computes latent components that
 #'  have non-negative values and take into account that the original data
@@ -54,6 +38,9 @@
 #'  if `num < 10`, their names will be `NNMF1` - `NNMF9`.
 #'  If `num = 101`, the names would be `NNMF001` -
 #'  `NNMF101`.
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the
+#'  selectors or variables selected) and the number of components is returned.
 #'
 #' @examples
 #'
@@ -71,10 +58,6 @@
 #' # library(ggplot2)
 #' # bake(rec, new_data = NULL) %>%
 #' #  ggplot(aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
-#'
-#' @seealso [step_pca()], [step_ica()], [step_kpca()],
-#'   [step_isomap()], [recipe()], [prep.recipe()],
-#'   [bake.recipe()]
 step_nnmf <-
   function(recipe,
            ...,
@@ -132,7 +115,7 @@ step_nnmf_new <-
 
 #' @export
 prep.step_nnmf <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -208,8 +191,8 @@ print.step_nnmf <- function(x, width = max(20, options()$width - 29), ...) {
 }
 
 
-#' @rdname step_nnmf
-#' @param x A `step_nnmf` object.
+#' @rdname tidy.recipe
+#' @export
 tidy.step_nnmf <- function(x, ...) {
   if (is_trained(x)) {
     if (x$num_comp > 0) {
@@ -234,7 +217,7 @@ tidy.step_nnmf <- function(x, ...) {
 
 # ------------------------------------------------------------------------------
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_nnmf <- function(x, ...) {
   tibble::tibble(
@@ -249,7 +232,7 @@ tunable.step_nnmf <- function(x, ...) {
   )
 }
 
-#' @rdname required_pkgs.step
+#' @rdname required_pkgs.recipe
 #' @export
 required_pkgs.step_nnmf <- function(x, ...) {
   c("dimRed", "NMF")

@@ -4,25 +4,19 @@
 #'  step that will logit transform the data.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be affected.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @param offset A numeric value to modify values of the columns that are either
+#' one or zero. They are modified to be `x - offset` or `offset`, respectively.
+#' @template step-return
+#' @family individual transformation steps
 #' @export
 #' @details The logit transformation takes values between
 #'  zero and one and translates them to be on the real line using
 #'  the function `f(p) = log(p/(1-p))`.
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms`
+#'  (the columns that will be affected) is returned.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(runif(40), ncol = 2)
@@ -40,13 +34,10 @@
 #'
 #' tidy(logit_trans, number = 1)
 #' tidy(logit_obj, number = 1)
-#' @seealso [step_invlogit()] [step_log()]
-#' [step_sqrt()]  [step_hyperbolic()] [recipe()]
-#' [prep.recipe()] [bake.recipe()]
-
 step_logit <-
   function(recipe,
            ...,
+           offset = 0,
            role = NA,
            trained = FALSE,
            columns = NULL,
@@ -55,6 +46,7 @@ step_logit <-
     add_step(recipe,
              step_logit_new(
                terms = ellipse_check(...),
+               offset = offset,
                role = role,
                trained = trained,
                columns = columns,
@@ -64,10 +56,11 @@ step_logit <-
   }
 
 step_logit_new <-
-  function(terms, role, trained, columns, skip, id) {
+  function(terms, offset, role, trained, columns, skip, id) {
     step(
       subclass = "logit",
       terms = terms,
+      offset = offset,
       role = role,
       trained = trained,
       columns = columns,
@@ -78,12 +71,13 @@ step_logit_new <-
 
 #' @export
 prep.step_logit <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
   step_logit_new(
     terms = x$terms,
+    offset = x$offset,
     role = x$role,
     trained = TRUE,
     columns = col_names,
@@ -92,11 +86,20 @@ prep.step_logit <- function(x, training, info = NULL, ...) {
   )
 }
 
+pre_logit <- function(x, eps = 0) {
+  x <- ifelse(x == 1, x - eps, x)
+  x <- ifelse(x == 0,     eps, x)
+  x
+}
+
 #' @export
 bake.step_logit <- function(object, new_data, ...) {
-  for (i in seq_along(object$columns))
+  for (i in seq_along(object$columns)) {
     new_data[, object$columns[i]] <-
-      binomial()$linkfun(getElement(new_data, object$columns[i]))
+      binomial()$linkfun(
+        pre_logit(new_data[[ object$columns[i] ]], object$offset)
+      )
+  }
   as_tibble(new_data)
 }
 
@@ -108,8 +111,7 @@ print.step_logit <-
     invisible(x)
   }
 
-#' @rdname step_logit
-#' @param x A `step_logit` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_logit <- function(x, ...) {
   res <- simple_terms(x, ...)

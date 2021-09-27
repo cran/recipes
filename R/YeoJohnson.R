@@ -5,26 +5,14 @@
 #'  transformation.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param lambdas A numeric vector of transformation values. This
 #'  is `NULL` until computed by [prep.recipe()].
 #' @param limits A length 2 numeric vector defining the range to
 #'  compute the transformation parameter lambda.
 #' @param num_unique An integer where data that have less possible
 #'  values will not be evaluated for a transformation.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the
-#'  lambda estimate).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept transformation_methods
+#' @template step-return
+#' @family individual transformation steps
 #' @export
 #' @details The Yeo-Johnson transformation is very similar to the
 #'  Box-Cox but does not require the input variables to be strictly
@@ -42,6 +30,10 @@
 #' If the transformation parameters are estimated to be very
 #'  closed to the bounds, or if the optimization fails, a value of
 #'  `NA` is used and no transformation is applied.
+#'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `value` (the
+#'  lambda estimate) is returned.
 #'
 #' @references Yeo, I. K., and Johnson, R. A. (2000). A new family of power
 #'   transformations to improve normality or symmetry. *Biometrika*.
@@ -67,8 +59,6 @@
 #'
 #' tidy(yj_transform, number = 1)
 #' tidy(yj_estimates, number = 1)
-#' @seealso [step_BoxCox()] [recipe()]
-#'   [prep.recipe()] [bake.recipe()]
 step_YeoJohnson <-
   function(recipe, ..., role = NA, trained = FALSE,
            lambdas = NULL, limits = c(-5, 5), num_unique = 5,
@@ -109,7 +99,7 @@ step_YeoJohnson_new <-
 
 #' @export
 prep.step_YeoJohnson <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   values <- vapply(
@@ -160,7 +150,7 @@ print.step_YeoJohnson <-
 #' @export
 #' @keywords internal
 #' @rdname recipes-internal
-yj_transform <- function(x, lambda, eps = .001) {
+yj_transform <- function(x, lambda, ind_neg = NULL, eps = 0.001) {
   if (is.na(lambda))
     return(x)
   if (!inherits(x, "tbl_df") || is.data.frame(x)) {
@@ -170,8 +160,12 @@ yj_transform <- function(x, lambda, eps = .001) {
       x <- as.vector(x)
   }
 
-  not_neg <- which(x >= 0)
-  is_neg <- which(x < 0)
+  if (is.null(ind_neg)) {
+    dat_neg <- x < 0
+    ind_neg <- list(is = which(dat_neg), not = which(!dat_neg))
+  }
+  not_neg <- ind_neg[["not"]]
+  is_neg <- ind_neg[["is"]]
 
   nn_trans <- function(x, lambda)
     if (abs(lambda) < eps)
@@ -197,31 +191,25 @@ yj_transform <- function(x, lambda, eps = .001) {
 ## Helper for the log-likelihood calc for eq 3.1 of Yeo, I. K.,
 ## & Johnson, R. A. (2000). A new family of power transformations
 ## to improve normality or symmetry. Biometrika. page 957
-
-ll_yj <- function(lambda, y, eps = .001) {
-  y <- y[!is.na(y)]
+ll_yj <- function(lambda, y, ind_neg, const, eps = 0.001) {
   n <- length(y)
-  nonneg <- all(y > 0)
-  y_t <- yj_transform(y, lambda)
+  y_t <- yj_transform(y, lambda, ind_neg)
   mu_t <- mean(y_t)
   var_t <- var(y_t) * (n - 1) / n
-  const <- sum(sign(y) * log(abs(y) + 1))
   res <- -.5 * n * log(var_t) + (lambda - 1) * const
   res
 }
 
 ## eliminates missing data and returns -llh
-yj_obj <- function(lam, dat){
-  dat <- dat[complete.cases(dat)]
-  ll_yj(lambda = lam, y = dat)
+yj_obj <- function(lam, dat, ind_neg, const) {
+  ll_yj(lambda = lam, y = dat, ind_neg = ind_neg, const = const)
 }
 
 ## estimates the values
 #' @export
 #' @keywords internal
 #' @rdname recipes-internal
-estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5,
-                        na_rm = TRUE) {
+estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5, na_rm = TRUE) {
   na_rows <- which(is.na(dat))
   if (length(na_rows) > 0) {
     if (na_rm) {
@@ -234,11 +222,18 @@ estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5,
   eps <- .001
   if (length(unique(dat)) < num_unique)
     return(NA)
+  dat_neg <- dat < 0
+  ind_neg <- list(is = which(dat_neg), not = which(!dat_neg))
+
+  const <- sum(sign(dat) * log(abs(dat) + 1))
+
   res <- optimize(
     yj_obj,
     interval = limits,
     maximum = TRUE,
     dat = dat,
+    ind_neg = ind_neg,
+    const = const,
     tol = .0001
   )
   lam <- res$maximum
@@ -248,7 +243,6 @@ estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5,
 }
 
 
-#' @rdname step_YeoJohnson
-#' @param x A `step_YeoJohnson` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_YeoJohnson <- tidy.step_BoxCox

@@ -5,12 +5,6 @@
 #'  and unbalanced.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables that will be evaluated by the filtering. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param freq_cut,unique_cut Numeric parameters for the filtering process. See
 #'  the Details section below.
 #' @param options A list of options for the filter (see Details
@@ -18,13 +12,8 @@
 #' @param removals A character string that contains the names of
 #'  columns that should be removed. These values are not determined
 #'  until [prep.recipe()] is called.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be removed.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_filters
+#' @template step-return
+#' @family variable filter steps
 #' @export
 #'
 #' @details This step diagnoses predictors that have one unique
@@ -47,11 +36,13 @@
 #'  unique values," the number of unique values divided by the total
 #'  number of samples (times 100), must also be below
 #'  `unique_cut`.
-
 #'
 #' In the above example, the frequency ratio is 999 and the unique
 #'  value percent is 0.2%.
-
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the columns
+#'  that will be removed) is returned.
+#'
 #' @examples
 #' library(modeldata)
 #' data(biomass)
@@ -75,9 +66,6 @@
 #'
 #' tidy(nzv_filter, number = 1)
 #' tidy(filter_obj, number = 1)
-#' @seealso [step_corr()] [recipe()]
-#'   [prep.recipe()] [bake.recipe()]
-
 step_nzv <-
   function(recipe,
            ...,
@@ -94,14 +82,12 @@ step_nzv <-
     if (!isTRUE(all.equal(exp_list, options))) {
       freq_cut <- options$freq_cut
       unique_cut <- options$unique_cut
-      message(
-        paste(
-          "The argument `options` is deprecated in favor of `freq_cut`",
-          "and `unique_cut`. options` will be removed in next version."
-        )
+      lifecycle::deprecate_stop(
+        "0.1.7",
+        "step_nzv(options)",
+        details = "Please use the arguments `freq_cut` and `unique_cut` instead."
       )
     }
-
 
     add_step(
       recipe,
@@ -137,7 +123,7 @@ step_nzv_new <-
 
 #' @export
 prep.step_nzv <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   filter <- nzv(
     x = training[, col_names],
@@ -217,13 +203,12 @@ nzv <- function(x,
   colnames(x)[out]
 }
 
-#' @rdname step_nzv
-#' @param x A `step_nzv` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_nzv <- tidy_filter
 
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_nzv <- function(x, ...) {
   tibble::tibble(

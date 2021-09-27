@@ -1,4 +1,4 @@
-#' Impute Numeric Data Below the Threshold of Measurement
+#' Impute numeric data below the threshold of measurement
 #'
 #' `step_impute_lower` creates a *specification* of a recipe step
 #'  designed for cases where the non-negative numeric data cannot be
@@ -7,27 +7,19 @@
 #'  random uniform number between zero and the truncation point.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param threshold A named numeric vector of lower bounds. This is
 #'  `NULL` until computed by [prep.recipe()].
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` for the estimated
-#'  threshold.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept imputation
+#' @template step-return
+#' @family imputation steps
 #' @export
 #' @details `step_impute_lower` estimates the variable minimums
 #'  from the data used in the `training` argument of `prep.recipe`.
 #'  `bake.recipe` then simulates a value for any data at the minimum
 #'  with a random uniform value between zero and the minimum.
+#'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `value` for the estimated
+#'  threshold is returned.
 #'
 #'  As of `recipes` 0.1.16, this function name changed from `step_lowerimpute()`
 #'    to `step_impute_lower()`.
@@ -93,7 +85,7 @@ step_lowerimpute <- function(recipe,
                              threshold = NULL,
                              skip = FALSE,
                              id = rand_id("impute_lower")) {
-  lifecycle::deprecate_soft(
+  lifecycle::deprecate_warn(
     when = "0.1.16",
     what = "recipes::step_lowerimpute()",
     with = "recipes::step_impute_lower()"
@@ -124,7 +116,7 @@ step_impute_lower_new <-
 
 #' @export
 prep.step_impute_lower <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   threshold <-
@@ -150,6 +142,7 @@ prep.step_impute_lower <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
+#' @keywords internal
 prep.step_lowerimpute <- prep.step_impute_lower
 
 #' @export
@@ -164,6 +157,7 @@ bake.step_impute_lower <- function(object, new_data, ...) {
 }
 
 #' @export
+#' @keywords internal
 bake.step_lowerimpute <- bake.step_impute_lower
 
 #' @export
@@ -175,10 +169,10 @@ print.step_impute_lower <-
   }
 
 #' @export
+#' @keywords internal
 print.step_lowerimpute <- print.step_impute_lower
 
-#' @rdname step_impute_lower
-#' @param x A `step_impute_lower` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_impute_lower <- function(x, ...) {
   if (is_trained(x)) {
@@ -193,4 +187,5 @@ tidy.step_impute_lower <- function(x, ...) {
 }
 
 #' @export
+#' @keywords internal
 tidy.step_lowerimpute <- tidy.step_impute_lower

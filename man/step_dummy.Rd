@@ -2,7 +2,6 @@
 % Please edit documentation in R/dummy.R
 \name{step_dummy}
 \alias{step_dummy}
-\alias{tidy.step_dummy}
 \title{Dummy Variables Creation}
 \usage{
 step_dummy(
@@ -18,23 +17,18 @@ step_dummy(
   skip = FALSE,
   id = rand_id("dummy")
 )
-
-\method{tidy}{step_dummy}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-\emph{factor} variables will be used to create the dummy variables. See
-\code{\link[=selections]{selections()}} for more details. The selected
-variables must be factors. For the \code{tidy()} method, these are
-not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details. The selected
+variables \emph{must} be factors.}
 
-\item{role}{For model terms created by this step, what analysis
-role should they be assigned?. By default, the function assumes
-that the binary dummy variable columns created by the original
-variables will be used as predictors in a model.}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -61,18 +55,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_dummy} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or original variables selected) and \code{columns} (the
-list of corresponding binary columns).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_dummy()} creates a \emph{specification} of a recipe
@@ -93,18 +82,12 @@ By default, the excluded dummy variable (i.e. the reference
 cell) will correspond to the first level of the unordered
 factor being converted.
 
-The function allows for non-standard naming of the resulting
+This recipe step allows for flexible naming of the resulting
 variables. For an unordered factor named \code{x}, with levels \code{"a"}
 and \code{"b"}, the default naming convention would be to create a
-new variable called \code{x_b}. Note that if the factor levels are
-not valid variable names (e.g. "some text with spaces"), it will
-be changed by \code{\link[base:make.names]{base::make.names()}} to be valid (see the example
-below). The naming format can be changed using the \code{naming}
-argument and the function \code{\link[=dummy_names]{dummy_names()}} is the default. This
-function will also change the names of ordinal dummy variables.
-Instead of values such as "\code{.L}", "\code{.Q}", or "\verb{^4}", ordinal
-dummy variables are given simple integer suffixes such as
-"\verb{_1}", "\verb{_2}", etc.
+new variable called \code{x_b}. The naming format can be changed using
+the \code{naming} argument; the function \code{\link[=dummy_names]{dummy_names()}} is the
+default.
 
 To change the type of contrast being used, change the global
 contrast option via \code{options}.
@@ -128,6 +111,10 @@ this step.
 
 The \href{https://recipes.tidymodels.org/articles/Dummies.html}{package vignette for dummy variables}
 and interactions has more information.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or original variables selected) and \code{columns} (the
+list of corresponding binary columns) is returned.
 }
 \examples{
 library(modeldata)
@@ -167,13 +154,25 @@ tidy(dummies, number = 1)
 tidy(dummies_one_hot, number = 1)
 }
 \seealso{
-\code{\link[=step_factor2string]{step_factor2string()}}, \code{\link[=step_string2factor]{step_string2factor()}},
-\code{\link[=dummy_names]{dummy_names()}}, \code{\link[=step_regex]{step_regex()}}, \code{\link[=step_count]{step_count()}},
-\code{\link[=step_ordinalscore]{step_ordinalscore()}}, \code{\link[=step_unorder]{step_unorder()}}, \code{\link[=step_other]{step_other()}}
-\code{\link[=step_novel]{step_novel()}}
+\code{\link[=dummy_names]{dummy_names()}}
+
+Other dummy variable and encoding steps: 
+\code{\link{step_bin2factor}()},
+\code{\link{step_count}()},
+\code{\link{step_date}()},
+\code{\link{step_dummy_multi_choice}()},
+\code{\link{step_factor2string}()},
+\code{\link{step_holiday}()},
+\code{\link{step_indicate_na}()},
+\code{\link{step_integer}()},
+\code{\link{step_novel}()},
+\code{\link{step_num2factor}()},
+\code{\link{step_ordinalscore}()},
+\code{\link{step_other}()},
+\code{\link{step_regex}()},
+\code{\link{step_relevel}()},
+\code{\link{step_string2factor}()},
+\code{\link{step_unknown}()},
+\code{\link{step_unorder}()}
 }
-\concept{dummy_variables}
-\concept{model_specification}
-\concept{preprocessing}
-\concept{variable_encodings}
-\keyword{datagen}
+\concept{dummy variable and encoding steps}

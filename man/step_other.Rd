@@ -2,7 +2,6 @@
 % Please edit documentation in R/other.R
 \name{step_other}
 \alias{step_other}
-\alias{tidy.step_other}
 \title{Collapse Some Categorical Levels}
 \usage{
 step_other(
@@ -16,17 +15,13 @@ step_other(
   skip = FALSE,
   id = rand_id("other")
 )
-
-\method{tidy}{step_other}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables that will potentially be reduced. See
-\code{\link[=selections]{selections()}} for more details. For the \code{tidy}
-method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -34,11 +29,12 @@ created.}
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
 
-\item{threshold}{A numeric value between 0 and 1 or an integer greater or
-equal to one.  If it's less than one then factor levels whose rate of
-occurrence in the training set are below \code{threshold} will be "othered". If
-it's greater or equal to one then it's treated as a frequency and factor
-levels that occur less then \code{threshold} times will be "othered".}
+\item{threshold}{A numeric value between 0 and 1, or an integer greater or
+equal to one.  If less than one, then factor levels with a rate of
+occurrence in the training set below \code{threshold} will be pooled to \code{other}.
+If greater or equal to one, then this value is treated as a frequency
+and factor levels that occur less than \code{threshold} times will be pooled
+to \code{other}.}
 
 \item{other}{A single character value for the "other" category.}
 
@@ -51,18 +47,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_other} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-columns that will be affected) and \code{retained} (the factor
-levels that were not pulled into "other")
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_other} creates a \emph{specification} of a recipe
@@ -92,6 +83,10 @@ pooling is needed, they will be placed into the other category.
 
 When data to be processed contains novel levels (i.e., not
 contained in the training set), the other category is assigned.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+columns that will be affected) and \code{retained} (the factor
+levels that were not pulled into "other") is returned.
 }
 \examples{
 library(modeldata)
@@ -133,10 +128,25 @@ tidy(rec, number = 1)
 # okc_tr \%>\% count(location, sort = TRUE) \%>\% top_n(3)
 }
 \seealso{
-\code{\link[=step_factor2string]{step_factor2string()}}, \code{\link[=step_string2factor]{step_string2factor()}},
-\code{\link[=dummy_names]{dummy_names()}}, \code{\link[=step_regex]{step_regex()}}, \code{\link[=step_count]{step_count()}},
-\code{\link[=step_ordinalscore]{step_ordinalscore()}}, \code{\link[=step_unorder]{step_unorder()}}, \code{\link[=step_novel]{step_novel()}}
+\code{\link[=dummy_names]{dummy_names()}}
+
+Other dummy variable and encoding steps: 
+\code{\link{step_bin2factor}()},
+\code{\link{step_count}()},
+\code{\link{step_date}()},
+\code{\link{step_dummy_multi_choice}()},
+\code{\link{step_dummy}()},
+\code{\link{step_factor2string}()},
+\code{\link{step_holiday}()},
+\code{\link{step_indicate_na}()},
+\code{\link{step_integer}()},
+\code{\link{step_novel}()},
+\code{\link{step_num2factor}()},
+\code{\link{step_ordinalscore}()},
+\code{\link{step_regex}()},
+\code{\link{step_relevel}()},
+\code{\link{step_string2factor}()},
+\code{\link{step_unknown}()},
+\code{\link{step_unorder}()}
 }
-\concept{factors}
-\concept{preprocessing}
-\keyword{datagen}
+\concept{dummy variable and encoding steps}

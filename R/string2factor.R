@@ -4,27 +4,13 @@
 #'  vectors to factors (ordered or unordered).
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be converted to factors. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param levels An options specification of the levels to be used
 #'  for the new factor. If left `NULL`, the sorted unique
 #'  values present when `bake` is called will be used.
 #' @param ordered A single logical value; should the factor(s) be
 #'  ordered?
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `ordered`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_encodings
-#' @concept factors
+#' @template step-return
+#' @family dummy variable and encoding steps
 #' @export
 #' @details If `levels` is given, `step_string2factor` will
 #'  convert all variables affected by this step to have the same
@@ -34,8 +20,10 @@
 #'  defaults to `TRUE`. This should be changed so that raw character
 #'  data will be applied to `step_string2factor`. However, this step
 #'  can also take existing factors (but will leave them as-is).
-#' @seealso [step_factor2string()] [step_dummy()] [step_other()]
-#'  [step_novel()]
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `ordered` is returned.
+#'
 #' @examples
 #' library(modeldata)
 #' data(okc)
@@ -104,7 +92,7 @@ get_ord_lvls <- function(x)
 
 #' @export
 prep.step_string2factor <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   str_check <-
     vapply(
       training[, col_names],
@@ -175,8 +163,7 @@ print.step_string2factor <-
   }
 
 
-#' @rdname step_string2factor
-#' @param x A `step_string2factor` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_string2factor <- function(x, ...) {
   term_names <- sel2char(x$terms)

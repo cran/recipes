@@ -1,31 +1,18 @@
-#' Imputation of numeric variables via a linear model.
+#' Impute numeric variables via a linear model
 #'
 #' `step_impute_linear` creates a *specification* of a recipe step that will
 #'  create linear regression models to impute missing data.
 #'
+#' @inheritParams step_impute_bag
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose variables. For
-#' `step_impute_linear`, this indicates the variables to be imputed; these variables
-#' **must** be of type `numeric`. When used with `imp_vars`, the dots indicates
-#' which variables are used to predict the missing data in each variable. See
-#' [selections()] for more details. For the `tidy` method, these are not
-#' currently used.
-#' @param role Not used by this step since no new variables are created.
-#' @param impute_with A call to `imp_vars` to specify which variables are used
-#'  to impute the variables that can include specific variable names separated
-#'  by commas or different selectors (see [selections()]). If a column is
-#'  included in both lists to be imputed and to be an imputation predictor, it
-#'  will be removed from the latter and not used to impute itself.
+#' @param ... One or more selector functions to choose variables to be imputed;
+#' these variables **must** be of type `numeric`. When used with `imp_vars`,
+#' these dots indicate which variables are used to predict the missing data
+#' in each variable. See [selections()] for more details.
 #' @param models The [lm()] objects are stored here once the linear models
 #'  have been trained by [prep.recipe()].
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of existing steps (if any). For the `tidy` method, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `model` (the
-#'  bagged tree object).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept imputation
+#' @template step-return
+#' @family imputation steps
 #' @export
 #' @details For each variable requiring imputation, a linear model is fit
 #'  where the outcome is the variable of interest and the predictors are any
@@ -38,6 +25,10 @@
 #'
 #'  Since this is a linear regression, the imputation model only uses complete
 #'  cases for the training set predictors.
+#'
+#'  When you [`tidy()`] this step, a tibble with
+#'  columns `terms` (the selectors or variables selected) and `model` (the
+#'  bagged tree object) is returned.
 #'
 #' @references Kuhn, M. and Johnson, K. (2013).
 #' *Feature Engineering and Selection*
@@ -196,6 +187,7 @@ bake.step_impute_linear <- function(object, new_data, ...) {
       } else {
         pred_vals <- predict(object$models[[imp_var]], pred_data)
         pred_vals <- cast(pred_vals, new_data[[imp_var]])
+        new_data[[imp_var]] <- vec_cast(new_data[[imp_var]], pred_vals)
         new_data[missing_rows, imp_var] <- pred_vals
       }
     }
@@ -212,8 +204,7 @@ print.step_impute_linear <-
     invisible(x)
   }
 
-#' @rdname step_impute_linear
-#' @param x A `step_impute_linear` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_impute_linear <- function(x, ...) {
   if (is_trained(x)) {

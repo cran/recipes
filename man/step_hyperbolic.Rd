@@ -2,7 +2,6 @@
 % Please edit documentation in R/hyperbolic.R
 \name{step_hyperbolic}
 \alias{step_hyperbolic}
-\alias{tidy.step_hyperbolic}
 \title{Hyperbolic Transformations}
 \usage{
 step_hyperbolic(
@@ -16,17 +15,13 @@ step_hyperbolic(
   skip = FALSE,
   id = rand_id("hyperbolic")
 )
-
-\method{tidy}{step_hyperbolic}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details.  For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -47,22 +42,22 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_hyperbolic} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-columns that will be affected), \code{inverse}, and \code{func}.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_hyperbolic} creates a \emph{specification} of a
 recipe step that will transform data using a hyperbolic
 function.
+}
+\details{
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+columns that will be affected), \code{inverse}, and \code{func} is returned.
 }
 \examples{
 set.seed(313)
@@ -84,10 +79,19 @@ tidy(cos_trans, number = 1)
 tidy(cos_obj, number = 1)
 }
 \seealso{
-\code{\link[=step_logit]{step_logit()}} \code{\link[=step_invlogit]{step_invlogit()}}
-\code{\link[=step_log]{step_log()}}  \code{\link[=step_sqrt]{step_sqrt()}} \code{\link[=recipe]{recipe()}}
-\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
+Other individual transformation steps: 
+\code{\link{step_BoxCox}()},
+\code{\link{step_YeoJohnson}()},
+\code{\link{step_bs}()},
+\code{\link{step_harmonic}()},
+\code{\link{step_inverse}()},
+\code{\link{step_invlogit}()},
+\code{\link{step_logit}()},
+\code{\link{step_log}()},
+\code{\link{step_mutate}()},
+\code{\link{step_ns}()},
+\code{\link{step_poly}()},
+\code{\link{step_relu}()},
+\code{\link{step_sqrt}()}
 }
-\concept{preprocessing}
-\concept{transformation_methods}
-\keyword{datagen}
+\concept{individual transformation steps}

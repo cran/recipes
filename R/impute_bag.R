@@ -1,18 +1,13 @@
-#' Imputation via Bagged Trees
+#' Impute via bagged trees
 #'
 #' `step_impute_bag` creates a *specification* of a recipe step that will
 #'  create bagged tree models to impute missing data.
-
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose variables. For
-#'  `step_impute_bag`, this indicates the variables to be imputed. When used
-#'  with `imp_vars`, the dots indicate which variables are used to predict the
-#'  missing data in each variable. See [selections()] for more details. For the
-#'  `tidy` method, these are not currently used.
-#' @param role Not used by this step since no new variables are created.
-
+#' @param ... One or more selector functions to choose variables to be imputed.
+#'  When used with `imp_vars`, these dots indicate which variables are used to
+#'  predict the missing data in each variable. See [selections()] for more
+#'  details.
 #' @param impute_with A call to `imp_vars` to specify which variables are used
 #'  to impute the variables that can include specific variable names separated
 #'  by commas or different selectors (see [selections()]). If a column is
@@ -26,13 +21,8 @@
 #'  is used across all imputation models.
 #' @param models The [ipred::ipredbagg()] objects are stored here once this
 #'  bagged trees have be trained by [prep.recipe()].
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of existing steps (if any). For the `tidy` method, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `model` (the
-#'  bagged tree object).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept imputation
+#' @template step-return
+#' @family imputation steps
 #' @export
 #' @details For each variable requiring imputation, a bagged tree is created
 #'  where the outcome is the variable of interest and the predictors are any
@@ -47,6 +37,9 @@
 #'
 #'   It is possible that missing values will still occur after imputation if a
 #'  large majority (or all) of the imputing variables are also missing.
+#'
+#'  When you [`tidy()`] this step, a tibble with columns `terms` (the selectors
+#'  or variables selected) and `model` (the bagged tree object) is returned.
 #'
 #'  As of `recipes` 0.1.16, this function name changed from `step_bagimpute()`
 #'    to `step_impute_bag()`.
@@ -145,7 +138,7 @@ step_bagimpute <-
            seed_val = sample.int(10 ^ 4, 1),
            skip = FALSE,
            id = rand_id("impute_bag")) {
-    lifecycle::deprecate_soft(
+    lifecycle::deprecate_warn(
       when = "0.1.16",
       what = "recipes::step_bagimpute()",
       with = "recipes::step_impute_bag()"
@@ -187,6 +180,10 @@ step_impute_bag_new <-
 bag_wrap <- function(vars, dat, opt, seed_val) {
   seed_val <- seed_val[1]
   dat <- as.data.frame(dat[, c(vars$y, vars$x)])
+  if (is.character(dat[[vars$y]])) {
+    dat[[vars$y]] <- factor(dat[[vars$y]])
+  }
+
   if (!is.null(seed_val) && !is.na(seed_val))
     set.seed(seed_val)
 
@@ -201,8 +198,8 @@ bag_wrap <- function(vars, dat, opt, seed_val) {
 ## This figures out which data should be used to predict each variable
 ## scheduled for imputation
 impute_var_lists <- function(to_impute, impute_using, training, info) {
-  to_impute <- eval_select_recipes(to_impute, training, info)
-  impute_using <- eval_select_recipes(impute_using, training, info)
+  to_impute <- recipes_eval_select(to_impute, training, info)
+  impute_using <- recipes_eval_select(impute_using, training, info)
 
   var_lists <- vector(mode = "list", length = length(to_impute))
   for (i in seq_along(var_lists)) {
@@ -248,6 +245,7 @@ prep.step_impute_bag <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
+#' @keywords internal
 prep.step_bagimpute <- prep.step_impute_bag
 
 #' @export
@@ -268,7 +266,8 @@ bake.step_impute_bag <- function(object, new_data, ...) {
         rlang::warn("All predictors are missing; cannot impute")
       } else {
         pred_vals <- predict(object$models[[imp_var]], pred_data)
-        pred_vals <- cast(pred_vals, new_data[[imp_var]])
+        # For an ipred bug reported on 2021-09-14:
+        pred_vals <- cast(pred_vals, object$models[[imp_var]]$y)
         new_data[missing_rows, imp_var] <- pred_vals
       }
     }
@@ -278,6 +277,7 @@ bake.step_impute_bag <- function(object, new_data, ...) {
 }
 
 #' @export
+#' @keywords internal
 bake.step_bagimpute <- bake.step_impute_bag
 
 #' @export
@@ -289,14 +289,14 @@ print.step_impute_bag <-
   }
 
 #' @export
+#' @keywords internal
 print.step_bagimpute <- print.step_impute_bag
 
 #' @export
 #' @rdname step_impute_bag
 imp_vars <- function(...) quos(...)
 
-#' @rdname step_impute_bag
-#' @param x A `step_impute_bag` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_impute_bag <- function(x, ...) {
   if (is_trained(x)) {
@@ -311,11 +311,12 @@ tidy.step_impute_bag <- function(x, ...) {
 }
 
 #' @export
+#' @keywords internal
 tidy.step_bagimpute <- tidy.step_impute_bag
 
 # ------------------------------------------------------------------------------
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_impute_bag <- function(x, ...) {
   tibble::tibble(

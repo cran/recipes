@@ -4,27 +4,16 @@
 #'   will remove observations (rows of data) if they contain `NA`
 #'   or `NaN` values.
 #'
-#' @param recipe A recipe object. The step will be added to the sequence of
-#'   operations for this recipe.
-#' @param ... One or more selector functions to choose which
-#'  variables will be used to remove observations containing `NA` or `NaN`
-#'   values. See [selections()] for more details.
+#' @template row-ops
+#' @inheritParams step_center
 #' @param role Unused, include for consistency with other steps.
 #' @param trained A logical to indicate if the quantities for preprocessing
 #'   have been estimated. Again included for consistency.
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
-#' @param id A character string that is unique to this step to identify it.
-#' @param skip A logical. Should the step be skipped when the
-#'  recipe is baked by [bake.recipe()]? While all operations are baked
-#'  when [prep.recipe()] is run, some operations may not be able to be
-#'  conducted on new data (e.g. processing the outcome variable(s)).
-#'  Care should be taken when using `skip = FALSE`.
 #'
-#' @template row-ops
-#' @rdname step_naomit
-#' @return An updated version of `recipe` with the
-#'   new step added to the sequence of existing steps (if any).
+#' @template step-return
+#' @family row operation steps
 #' @export
 #'
 #' @examples
@@ -34,7 +23,6 @@
 #'   prep(airquality, verbose = FALSE) %>%
 #'   bake(new_data = NULL)
 #'
-#' @seealso [step_filter()] [step_sample()] [step_slice()]
 step_naomit <- function(recipe, ..., role = NA, trained = FALSE,
                         columns = NULL, skip = FALSE,
                         id = rand_id("naomit")) {
@@ -69,7 +57,7 @@ prep.step_naomit <- function(x, training, info = NULL, ...) {
     terms = x$terms,
     role = x$role,
     trained = TRUE,
-    columns = eval_select_recipes(x$terms, training, info),
+    columns = recipes_eval_select(x$terms, training, info),
     skip = x$skip,
     id = x$id
   )
@@ -88,8 +76,7 @@ print.step_naomit <-
     invisible(x)
   }
 
-#' @rdname step_naomit
-#' @param x A `step_naomit` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_naomit <- function(x, ...) {
   res <-simple_terms(x, ...)

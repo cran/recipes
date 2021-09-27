@@ -2,7 +2,6 @@
 % Please edit documentation in R/class.R
 \name{check_class}
 \alias{check_class}
-\alias{tidy.check_class}
 \title{Check Variable Class}
 \usage{
 check_class(
@@ -16,23 +15,19 @@ check_class(
   class_list = NULL,
   id = rand_id("class")
 )
-
-\method{tidy}{check_class}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The check will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the check. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this check. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this check since no new variables are
 created.}
 
-\item{trained}{A logical to indicate if the quantities for
-preprocessing have been estimated.}
+\item{trained}{A logical for whether the selectors in \code{...}
+have been resolved by \code{\link[=prep]{prep()}}.}
 
 \item{class_nm}{A character vector that will be used in \code{inherits} to
 check the class. If \code{NULL} the classes will be learned in \code{prep}.
@@ -51,15 +46,11 @@ the computations for subsequent operations.}
 \item{class_list}{A named list of column classes. This is
 \code{NULL} until computed by \code{\link[=prep.recipe]{prep.recipe()}}.}
 
-\item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{check_class} object.}
+\item{id}{A character string that is unique to this check to identify it.}
 }
 \value{
-An updated version of \code{recipe} with the new check
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected) and \code{value} (the type).
+An updated version of \code{recipe} with the new check added to the
+sequence of any existing operations.
 }
 \description{
 \code{check_class} creates a \emph{specification} of a recipe
@@ -78,6 +69,9 @@ that in \code{prep} the argument \code{strings_as_factors} defaults to
 \code{TRUE}. If the train set contains character variables
 the check will be break \code{bake} when \code{strings_as_factors} is
 \code{TRUE}.
+
+When you \code{\link[=tidy]{tidy()}} this check, a tibble with columns \code{terms} (the
+selectors or variables selected) and \code{value} (the type) is returned.
 }
 \examples{
 library(dplyr)
@@ -119,8 +113,10 @@ recipe(x_df) \%>\%
 
 }
 \seealso{
-\code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other checks: 
+\code{\link{check_cols}()},
+\code{\link{check_missing}()},
+\code{\link{check_new_values}()},
+\code{\link{check_range}()}
 }
-\concept{preprocessing normalization_methods}
-\keyword{datagen}
+\concept{checks}

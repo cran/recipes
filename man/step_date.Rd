@@ -2,7 +2,6 @@
 % Please edit documentation in R/date.R
 \name{step_date}
 \alias{step_date}
-\alias{tidy.step_date}
 \title{Date Feature Generator}
 \usage{
 step_date(
@@ -19,23 +18,18 @@ step_date(
   skip = FALSE,
   id = rand_id("date")
 )
-
-\method{tidy}{step_date}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables that will be used to create the new variables. The
-selected variables should have class \code{Date} or
-\code{POSIXct}. See \code{\link[=selections]{selections()}} for more details.
-For the \code{tidy} method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. The selected variables should have class \code{Date} or
+\code{POSIXct}. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{For model terms created by this step, what analysis
-role should they be assigned?. By default, the function assumes
-that the new variable columns created by the original variables
-will be used as predictors in a model.}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -73,18 +67,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_date} object.}
 }
 \value{
-For \code{step_date}, an updated version of recipe with
-the new step added to the sequence of existing steps (if any).
-For the \code{tidy} method, a tibble with columns \code{terms}
-(the selectors or variables selected), \code{value} (the feature
-names), and \code{ordinal} (a logical).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_date} creates a \emph{specification} of a recipe
@@ -95,6 +84,10 @@ numeric variables.
 Unlike some other steps, \code{step_date} does \emph{not}
 remove the original date variables by default. Set \code{keep_original_cols}
 to \code{FALSE} to remove them.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms}
+(the selectors or variables selected), \code{value} (the feature
+names), and \code{ordinal} (a logical) is returned.
 }
 \examples{
 library(lubridate)
@@ -115,12 +108,23 @@ tidy(date_rec, number = 1)
 
 }
 \seealso{
-\code{\link[=step_holiday]{step_holiday()}} \code{\link[=step_rm]{step_rm()}}
-\code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other dummy variable and encoding steps: 
+\code{\link{step_bin2factor}()},
+\code{\link{step_count}()},
+\code{\link{step_dummy_multi_choice}()},
+\code{\link{step_dummy}()},
+\code{\link{step_factor2string}()},
+\code{\link{step_holiday}()},
+\code{\link{step_indicate_na}()},
+\code{\link{step_integer}()},
+\code{\link{step_novel}()},
+\code{\link{step_num2factor}()},
+\code{\link{step_ordinalscore}()},
+\code{\link{step_other}()},
+\code{\link{step_regex}()},
+\code{\link{step_relevel}()},
+\code{\link{step_string2factor}()},
+\code{\link{step_unknown}()},
+\code{\link{step_unorder}()}
 }
-\concept{dates}
-\concept{model_specification}
-\concept{preprocessing}
-\concept{variable_encodings}
-\keyword{datagen}
+\concept{dummy variable and encoding steps}

@@ -2,7 +2,6 @@
 % Please edit documentation in R/classdist.R
 \name{step_classdist}
 \alias{step_classdist}
-\alias{tidy.step_classdist}
 \title{Distances to Class Centroids}
 \usage{
 step_classdist(
@@ -20,24 +19,20 @@ step_classdist(
   skip = FALSE,
   id = rand_id("classdist")
 )
-
-\method{tidy}{step_classdist}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{class}{A single character string that specifies a single
 categorical variable to be used as the class.}
 
-\item{role}{For model terms created by this step, what analysis
-role should they be assigned?. By default, the function assumes
-that resulting distances will be used as predictors in a model.}
+\item{role}{For model terms created by this step, what analysis role should
+they be assigned? By default, the new columns created by this step from
+the original variables will be used as \emph{predictors} in a model.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -56,26 +51,21 @@ the natural log function?}
 \item{objects}{Statistics are stored here once this step has
 been trained by \code{\link[=prep.recipe]{prep.recipe()}}.}
 
-\item{prefix}{A character string that defines the naming convention for
-new distance columns. Defaults to \code{"classdist_"}. See Details below.}
+\item{prefix}{A character string for the prefix of the resulting new
+variables. See notes below.}
 
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_classdist} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected), \code{value} (the centroid of
-the class), and \code{class}.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_classdist} creates a \emph{specification} of a
@@ -95,6 +85,10 @@ that each class should have at least as many rows as variables
 listed in the \code{terms} argument. If \code{pool = TRUE},
 there must be at least as many data points are variables
 overall.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected), \code{value} (the centroid of
+the class), and \code{class} is returned.
 }
 \examples{
 
@@ -121,6 +115,20 @@ dists_to_species[, c("Species", dist_cols)]
 tidy(rec, number = 1)
 tidy(rec_dists, number = 1)
 }
-\concept{dimension_reduction}
-\concept{preprocessing}
-\keyword{datagen}
+\seealso{
+Other multivariate transformation steps: 
+\code{\link{step_depth}()},
+\code{\link{step_geodist}()},
+\code{\link{step_ica}()},
+\code{\link{step_isomap}()},
+\code{\link{step_kpca_poly}()},
+\code{\link{step_kpca_rbf}()},
+\code{\link{step_kpca}()},
+\code{\link{step_mutate_at}()},
+\code{\link{step_nnmf}()},
+\code{\link{step_pca}()},
+\code{\link{step_pls}()},
+\code{\link{step_ratio}()},
+\code{\link{step_spatialsign}()}
+}
+\concept{multivariate transformation steps}

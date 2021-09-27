@@ -3,22 +3,7 @@
 #' `check_class` creates a *specification* of a recipe
 #'  check that will check if a variable is of a designated class.
 #'
-#' @param recipe A recipe object. The check will be added to the
-#'  sequence of operations for this recipe.
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the check. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this check since no new variables are
-#'  created.
-#' @param trained A logical to indicate if the quantities for
-#'  preprocessing have been estimated.
-#' @param skip A logical. Should the check be skipped when the
-#'  recipe is baked by [bake.recipe()]? While all operations are baked
-#'  when [prep.recipe()] is run, some operations may not be able to be
-#'  conducted on new data (e.g. processing the outcome variable(s)).
-#'  Care should be taken when using `skip = TRUE` as it may affect
-#'  the computations for subsequent operations.
+#' @inheritParams check_missing
 #' @param class_nm A character vector that will be used in `inherits` to
 #'  check the class. If `NULL` the classes will be learned in `prep`.
 #'  Can contain more than one class.
@@ -26,14 +11,9 @@
 #'  have additional classes to the one(s) that are checked.
 #' @param class_list A named list of column classes. This is
 #'  `NULL` until computed by [prep.recipe()].
-#' @param id A character string that is unique to this step to identify it.
-#' @return An updated version of `recipe` with the new check
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the type).
+#' @template check-return
 #'
-#' @keywords datagen
-#' @concept preprocessing normalization_methods
+#' @family checks
 #' @export
 #' @details
 #' This function can check the classes of the variables
@@ -48,6 +28,10 @@
 #'  `TRUE`. If the train set contains character variables
 #'  the check will be break `bake` when `strings_as_factors` is
 #'  `TRUE`.
+#'
+#'  When you [`tidy()`] this check, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `value` (the type) is returned.
+#'
 #' @examples
 #' library(dplyr)
 #' library(modeldata)
@@ -86,8 +70,6 @@
 #'   prep(x_df) %>%
 #'   bake(x_df)
 #'
-#' @seealso [recipe()] [prep.recipe()]
-#'   [bake.recipe()]
 check_class <-
   function(recipe,
            ...,
@@ -135,7 +117,7 @@ prep.check_class <- function(x,
                              training,
                              info = NULL,
                              ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   # vapply requires a very specific return here
   # class can give back multiple values, return shape
@@ -219,8 +201,8 @@ print.check_class <-
   }
 
 
-#' @rdname check_class
-#' @param x A `check_class` object.
+#' @rdname tidy.recipe
+#' @export
 tidy.check_class <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble(terms = names(x$class_list),

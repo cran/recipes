@@ -6,27 +6,20 @@
 #' @template row-ops
 #' @inheritParams step_center
 #' @param ... Integer row values. See
-#'  [dplyr::slice()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
+#'  [dplyr::slice()] for more details.
 #' @param inputs Quosure of values given by `...`.
-#' @param skip A logical. Should the step be skipped when the
-#'  recipe is baked by [bake.recipe()]? While all operations are baked
-#'  when [prep.recipe()] is run, some operations may not be able to be
-#'  conducted on new data (e.g. processing the outcome variable(s)).
-#'  Care should be taken when using `skip = FALSE`.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  contains the filtering indices.
+#' @template step-return
 #' @details When an object in the user's global environment is
 #'  referenced in the expression defining the new variable(s),
 #'  it is a good idea to use quasiquotation (e.g. `!!`)
 #'   to embed the value of the object in the expression (to
 #'   be portable between sessions). See the examples.
-#' @keywords datagen
-#' @concept preprocessing
+#'
+#'  When you [`tidy()`] this step, a tibble with column `terms` which
+#'  contains the filtering indices is returned.
+#'
+#' @family row operation steps
+#' @family dplyr steps
 #' @export
 #' @examples
 #' rec <- recipe( ~ ., data = iris) %>%
@@ -66,8 +59,6 @@
 #'   prep(training = iris)
 #'
 #' tidy(qq_rec, number = 1)
-#' @seealso [step_filter()] [step_naomit()] [step_sample()]
-
 step_slice <- function(
   recipe, ...,
   role = NA,
@@ -134,8 +125,7 @@ print.step_slice <-
     invisible(x)
   }
 
-#' @rdname step_slice
-#' @param x A `step_slice` object
+#' @rdname tidy.recipe
 #' @export
 tidy.step_slice <- function(x, ...) {
   cond_expr <- map(x$inputs, quo_get_expr)

@@ -2,7 +2,6 @@
 % Please edit documentation in R/bin2factor.R
 \name{step_bin2factor}
 \alias{step_bin2factor}
-\alias{tidy.step_bin2factor}
 \title{Create a Factors from A Dummy Variable}
 \usage{
 step_bin2factor(
@@ -16,16 +15,13 @@ step_bin2factor(
   skip = FALSE,
   id = rand_id("bin2factor")
 )
-
-\method{tidy}{step_bin2factor}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{Selector functions that choose which variables will
-be converted. See \code{\link[=selections]{selections()}} for more details. For
-the \code{tidy} method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -48,17 +44,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_bin2factor} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-columns that will be affected).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_bin2factor} creates a \emph{specification} of a
@@ -73,6 +65,9 @@ would do better to have factor predictors so that the binomial
 distribution is modeled instead of a Gaussian probability
 density of numeric binary data. Note that the numeric data is
 only verified to be numeric (and does not count levels).
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the
+columns that will be affected) is returned.
 }
 \examples{
 library(modeldata)
@@ -92,7 +87,24 @@ table(results$rocks, results$more_rocks)
 
 tidy(rec, number = 3)
 }
-\concept{dummy_variables}
-\concept{factors}
-\concept{preprocessing}
-\keyword{datagen}
+\seealso{
+Other dummy variable and encoding steps: 
+\code{\link{step_count}()},
+\code{\link{step_date}()},
+\code{\link{step_dummy_multi_choice}()},
+\code{\link{step_dummy}()},
+\code{\link{step_factor2string}()},
+\code{\link{step_holiday}()},
+\code{\link{step_indicate_na}()},
+\code{\link{step_integer}()},
+\code{\link{step_novel}()},
+\code{\link{step_num2factor}()},
+\code{\link{step_ordinalscore}()},
+\code{\link{step_other}()},
+\code{\link{step_regex}()},
+\code{\link{step_relevel}()},
+\code{\link{step_string2factor}()},
+\code{\link{step_unknown}()},
+\code{\link{step_unorder}()}
+}
+\concept{dummy variable and encoding steps}

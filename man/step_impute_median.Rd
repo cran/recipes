@@ -3,8 +3,7 @@
 \name{step_impute_median}
 \alias{step_impute_median}
 \alias{step_medianimpute}
-\alias{tidy.step_impute_median}
-\title{Impute Numeric Data Using the Median}
+\title{Impute numeric data using the median}
 \usage{
 step_impute_median(
   recipe,
@@ -25,18 +24,16 @@ step_medianimpute(
   skip = FALSE,
   id = rand_id("impute_median")
 )
-
-\method{tidy}{step_impute_median}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which variables are
-affected by the step. See \code{\link[=selections]{selections()}} for more details. For the \code{tidy}
-method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{Not used by this step since no new variables are created.}
+\item{role}{Not used by this step since no new variables are
+created.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -50,17 +47,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_impute_median} object.}
 }
 \value{
 An updated version of \code{recipe} with the new step added to the
-sequence of existing steps (if any). For the \code{tidy} method, a tibble with
-columns \code{terms} (the selectors or variables selected) and \code{model} (the
-median value).
+sequence of any existing operations.
 }
 \description{
 \code{step_impute_median} creates a \emph{specification} of a recipe step that will
@@ -71,6 +64,10 @@ those variables.
 \code{step_impute_median} estimates the variable medians from the data
 used in the \code{training} argument of \code{prep.recipe}. \code{bake.recipe} then applies
 the new values to new data sets using these medians.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with
+columns \code{terms} (the selectors or variables selected) and \code{model} (the
+median value) is returned.
 
 As of \code{recipes} 0.1.16, this function name changed from
 \code{step_medianimpute()} to \code{step_impute_median()}.
@@ -104,6 +101,14 @@ imputed_te[missing_examples, names(credit_te)]
 tidy(impute_rec, number = 1)
 tidy(imp_models, number = 1)
 }
-\concept{imputation}
-\concept{preprocessing}
-\keyword{datagen}
+\seealso{
+Other imputation steps: 
+\code{\link{step_impute_bag}()},
+\code{\link{step_impute_knn}()},
+\code{\link{step_impute_linear}()},
+\code{\link{step_impute_lower}()},
+\code{\link{step_impute_mean}()},
+\code{\link{step_impute_mode}()},
+\code{\link{step_impute_roll}()}
+}
+\concept{imputation steps}

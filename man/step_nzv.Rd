@@ -2,7 +2,6 @@
 % Please edit documentation in R/nzv.R
 \name{step_nzv}
 \alias{step_nzv}
-\alias{tidy.step_nzv}
 \title{Near-Zero Variance Filter}
 \usage{
 step_nzv(
@@ -17,17 +16,13 @@ step_nzv(
   skip = FALSE,
   id = rand_id("nzv")
 )
-
-\method{tidy}{step_nzv}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables that will be evaluated by the filtering. See
-\code{\link[=selections]{selections()}} for more details. For the \code{tidy}
-method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -50,17 +45,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_nzv} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be removed.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_nzv} creates a \emph{specification} of a recipe step
@@ -91,6 +82,9 @@ number of samples (times 100), must also be below
 
 In the above example, the frequency ratio is 999 and the unique
 value percent is 0.2\%.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the columns
+that will be removed) is returned.
 }
 \examples{
 library(modeldata)
@@ -117,9 +111,11 @@ tidy(nzv_filter, number = 1)
 tidy(filter_obj, number = 1)
 }
 \seealso{
-\code{\link[=step_corr]{step_corr()}} \code{\link[=recipe]{recipe()}}
-\code{\link[=prep.recipe]{prep.recipe()}} \code{\link[=bake.recipe]{bake.recipe()}}
+Other variable filter steps: 
+\code{\link{step_corr}()},
+\code{\link{step_lincomb}()},
+\code{\link{step_rm}()},
+\code{\link{step_select}()},
+\code{\link{step_zv}()}
 }
-\concept{preprocessing}
-\concept{variable_filters}
-\keyword{datagen}
+\concept{variable filter steps}

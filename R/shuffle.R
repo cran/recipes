@@ -5,24 +5,13 @@
 #'  variables.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be permuted. See [selections()] for more
-#'  details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param columns A character string that contains the names of
 #'  columns that should be shuffled. These values are not determined
 #'  until [prep.recipe()] is called.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be affected.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept randomization
-#' @concept permutation
+#' @template step-return
+#' @details When you [`tidy()`] this step, a tibble with column `terms` (the
+#' columns that will be permuted) is returned.
+#' @family row operation steps
 #' @export
 #' @examples
 #' integers <- data.frame(A = 1:12, B = 13:24, C = 25:36)
@@ -71,7 +60,7 @@ step_shuffle_new <- function(terms, role, trained, columns, skip, id) {
 
 #' @export
 prep.step_shuffle <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   step_shuffle_new(
     terms = x$terms,
     role = x$role,
@@ -103,8 +92,7 @@ print.step_shuffle <-
     invisible(x)
   }
 
-#' @rdname step_shuffle
-#' @param x A `step_shuffle` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_shuffle <- function(x, ...) {
   res <-simple_terms(x, ...)

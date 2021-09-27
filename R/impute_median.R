@@ -1,28 +1,23 @@
-#' Impute Numeric Data Using the Median
+#' Impute numeric data using the median
 #'
 #' `step_impute_median` creates a *specification* of a recipe step that will
 #'  substitute missing values of numeric variables by the training set median of
 #'  those variables.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which variables are
-#'  affected by the step. See [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role Not used by this step since no new variables are created.
 #' @param medians A named numeric vector of medians. This is `NULL` until
 #'  computed by [prep.recipe()]. Note that, if the original data are integers,
 #'  the median will be converted to an integer to maintain the same data type.
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of existing steps (if any). For the `tidy` method, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `model` (the
-#'  median value).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept imputation
+#' @template step-return
+#' @family imputation steps
 #' @export
 #' @details `step_impute_median` estimates the variable medians from the data
 #'  used in the `training` argument of `prep.recipe`. `bake.recipe` then applies
 #'  the new values to new data sets using these medians.
+#'
+#' When you [`tidy()`] this step, a tibble with
+#'  columns `terms` (the selectors or variables selected) and `model` (the
+#'  median value) is returned.
 #'
 #'  As of `recipes` 0.1.16, this function name changed from
 #'    `step_medianimpute()` to `step_impute_median()`.
@@ -87,7 +82,7 @@ step_medianimpute <-
            medians = NULL,
            skip = FALSE,
            id = rand_id("impute_median")) {
-    lifecycle::deprecate_soft(
+    lifecycle::deprecate_warn(
       when = "0.1.16",
       what = "recipes::step_medianimpute()",
       with = "recipes::step_impute_median()"
@@ -118,7 +113,7 @@ step_impute_median_new <-
 
 #' @export
 prep.step_impute_median <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -136,18 +131,21 @@ prep.step_impute_median <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
+#' @keywords internal
 prep.step_medianimpute <- prep.step_impute_median
 
 #' @export
 bake.step_impute_median <- function(object, new_data, ...) {
   for (i in names(object$medians)) {
     if (any(is.na(new_data[[i]])))
+      new_data[[i]] <- vec_cast(new_data[[i]], object$medians[[i]])
       new_data[is.na(new_data[[i]]), i] <- object$medians[[i]]
   }
   as_tibble(new_data)
 }
 
 #' @export
+#' @keywords internal
 bake.step_medianimpute <- bake.step_impute_median
 
 #' @export
@@ -159,10 +157,10 @@ print.step_impute_median <-
   }
 
 #' @export
+#' @keywords internal
 print.step_medianimpute <- print.step_impute_median
 
-#' @rdname step_impute_median
-#' @param x A `step_impute_median` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_impute_median <- function(x, ...) {
   if (is_trained(x)) {
@@ -177,4 +175,5 @@ tidy.step_impute_median <- function(x, ...) {
 }
 
 #' @export
+#' @keywords internal
 tidy.step_medianimpute <- tidy.step_impute_median

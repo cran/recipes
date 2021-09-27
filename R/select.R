@@ -4,25 +4,21 @@
 #'  that will select variables using [dplyr::select()].
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables will be selected when baking. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
 #' @param role For model terms selected by this step, what analysis
 #'  role should they be assigned?
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with column `terms` which
-#'  contains the `select` expressions as character strings
-#'  (and are not reparsable).
+#' @template step-return
 #' @details When an object in the user's global environment is
 #'  referenced in the expression defining the new variable(s),
 #'  it is a good idea to use quasiquotation (e.g. `!!`) to embed
 #'  the value of the object in the expression (to be portable
 #'  between sessions). See the examples.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_filters
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` which
+#'  contains the `select` expressions as character strings
+#'  (and are not reparsable) is returned.
+#'
+#' @family variable filter steps
+#' @family dplyr steps
 #' @export
 #' @examples
 #' library(dplyr)
@@ -86,7 +82,7 @@ step_select_new <- function(terms, role, trained, skip, id) {
 
 #' @export
 prep.step_select <- function(x, training, info = NULL, ...) {
-  terms <- eval_select_recipes(x$terms, training, info, allow_rename = TRUE)
+  terms <- recipes_eval_select(x$terms, training, info, allow_rename = TRUE)
 
   step_select_new(
     terms = terms,
@@ -124,8 +120,7 @@ print.step_select <-
     invisible(x)
   }
 
-#' @rdname step_select
-#' @param x A `step_select` object
+#' @rdname tidy.recipe
 #' @export
 tidy.step_select <- function(x, ...) {
   if (is_trained(x)) {

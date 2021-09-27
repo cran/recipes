@@ -5,12 +5,6 @@
 #'  absolute correlations with other variables.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
 #' @param threshold A value for the threshold of absolute
 #'  correlation values. The step will try to remove the minimum
 #'  number of columns so that all the resulting absolute
@@ -22,17 +16,12 @@
 #' @param removals A character string that contains the names of
 #'  columns that should be removed. These values are not determined
 #'  until [prep.recipe()] is called.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be removed.
-#' @keywords datagen
+#' @template step-return
 #' @author Original R code for filtering algorithm by Dong Li,
 #'  modified by Max Kuhn. Contributions by Reynald Lescarbeau (for
 #'  original in `caret` package). Max Kuhn for the `step`
 #'  function.
-#' @concept preprocessing
-#' @concept variable_filters
+#' @family variable filter steps
 #' @export
 #'
 #' @details This step attempts to remove variables to keep the
@@ -43,6 +32,9 @@
 #'  excluded from the correlation analysis. Also, if the data set
 #'  has sporadic missing values (and an inappropriate value of `use`
 #'  is chosen), some columns will also be excluded from the filter.
+#'
+#' When you [`tidy()`] this step, a tibble with column `terms` (the columns
+#'  that will be removed) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -69,9 +61,6 @@
 #'
 #' tidy(corr_filter, number = 1)
 #' tidy(filter_obj, number = 1)
-#' @seealso [step_nzv()] [recipe()]
-#'   [prep.recipe()] [bake.recipe()]
-
 step_corr <- function(recipe,
                       ...,
                       role = NA,
@@ -117,7 +106,7 @@ step_corr_new <-
 
 #' @export
 prep.step_corr <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   if (length(col_names) > 1) {
@@ -238,15 +227,12 @@ tidy_filter <- function(x, ...) {
   res
 }
 
-#' @rdname step_corr
-#' @param x A `step_corr` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_corr <- tidy_filter
 
 
-
-
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_corr <- function(x, ...) {
   tibble::tibble(

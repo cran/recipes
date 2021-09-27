@@ -2,7 +2,6 @@
 % Please edit documentation in R/lincombo.R
 \name{step_lincomb}
 \alias{step_lincomb}
-\alias{tidy.step_lincomb}
 \title{Linear Combination Filter}
 \usage{
 step_lincomb(
@@ -15,17 +14,13 @@ step_lincomb(
   skip = FALSE,
   id = rand_id("lincomb")
 )
-
-\method{tidy}{step_lincomb}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables are affected by the step. See \code{\link[=selections]{selections()}}
-for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -33,7 +28,7 @@ created.}
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
 
-\item{max_steps}{A value.}
+\item{max_steps}{The number of times to apply the algorithm.}
 
 \item{removals}{A character string that contains the names of
 columns that should be removed. These values are not determined
@@ -44,17 +39,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_lincomb} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be removed.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_lincomb} creates a \emph{specification} of a recipe
@@ -66,6 +57,9 @@ This step finds exact linear combinations between two
 or more variables and recommends which column(s) should be
 removed to resolve the issue. This algorithm may need to be
 applied multiple times (as defined by \code{max_steps}).
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the columns
+that will be removed) is returned.
 }
 \examples{
 library(modeldata)
@@ -93,13 +87,14 @@ tidy(lincomb_filter, number = 1)
 tidy(lincomb_filter_trained, number = 1)
 }
 \seealso{
-\link[=step_corr]{step_nzv()}
-\code{\link[=recipe]{recipe()}} \code{\link[=prep.recipe]{prep.recipe()}}
-\code{\link[=bake.recipe]{bake.recipe()}}
+Other variable filter steps: 
+\code{\link{step_corr}()},
+\code{\link{step_nzv}()},
+\code{\link{step_rm}()},
+\code{\link{step_select}()},
+\code{\link{step_zv}()}
 }
 \author{
 Max Kuhn, Kirk Mettler, and Jed Wing
 }
-\concept{preprocessing}
-\concept{variable_filters}
-\keyword{datagen}
+\concept{variable filter steps}

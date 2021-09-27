@@ -2,7 +2,6 @@
 % Please edit documentation in R/shuffle.R
 \name{step_shuffle}
 \alias{step_shuffle}
-\alias{tidy.step_shuffle}
 \title{Shuffle Variables}
 \usage{
 step_shuffle(
@@ -14,17 +13,13 @@ step_shuffle(
   skip = FALSE,
   id = rand_id("shuffle")
 )
-
-\method{tidy}{step_shuffle}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables will be permuted. See \code{\link[=selections]{selections()}} for more
-details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -41,22 +36,22 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_shuffle} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} which
-is the columns that will be affected.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_shuffle} creates a \emph{specification} of a recipe
 step that will randomly change the order of rows for selected
 variables.
+}
+\details{
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the
+columns that will be permuted) is returned.
 }
 \examples{
 integers <- data.frame(A = 1:12, B = 13:24, C = 25:36)
@@ -73,7 +68,14 @@ bake(rand_set, integers)
 tidy(rec, number = 1)
 tidy(rand_set, number = 1)
 }
-\concept{permutation}
-\concept{preprocessing}
-\concept{randomization}
-\keyword{datagen}
+\seealso{
+Other row operation steps: 
+\code{\link{step_arrange}()},
+\code{\link{step_filter}()},
+\code{\link{step_impute_roll}()},
+\code{\link{step_lag}()},
+\code{\link{step_naomit}()},
+\code{\link{step_sample}()},
+\code{\link{step_slice}()}
+}
+\concept{row operation steps}

@@ -46,9 +46,6 @@
 #' on all of the variables that have a custom role with the selector
 #' [has_role()].
 #'
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept model_specification
 #' @examples
 #' library(recipes)
 #' library(modeldata)
@@ -138,7 +135,7 @@ add_role <- function(recipe, ..., new_role = "predictor", new_type = NULL) {
   data <- recipe$template
   info <- recipe$var_info
 
-  vars <- eval_select_recipes(terms, data, info)
+  vars <- recipes_eval_select(terms, data, info)
 
   if (length(vars) == 0L) {
     rlang::warn("No columns were selected in `add_role()`.")
@@ -229,7 +226,7 @@ update_role <- function(recipe, ..., new_role = "predictor", old_role = NULL) {
   data <- recipe$template
   info <- recipe$var_info
 
-  vars <- eval_select_recipes(terms, data, info)
+  vars <- recipes_eval_select(terms, data, info)
 
   if (length(vars) == 0L) {
     rlang::warn("No columns were selected in `update_role()`.")
@@ -279,7 +276,7 @@ remove_role <- function(recipe, ..., old_role) {
   data <- recipe$template
   info <- recipe$var_info
 
-  vars <- eval_select_recipes(terms, data, info)
+  vars <- recipes_eval_select(terms, data, info)
 
   if (length(vars) == 0L) {
     rlang::warn("No columns were selected in `remove_role()`.")

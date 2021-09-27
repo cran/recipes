@@ -5,11 +5,6 @@
 #'  integers.
 #'
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which variables will be
-#'  converted to factors. See [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role Not used by this step since no new variables are created.
 #' @param transform A function taking a single argument `x` that can be used
 #'  to modify the numeric values prior to determining the levels (perhaps using
 #'  [base::as.integer()]). The output of a function should be an integer that
@@ -19,15 +14,11 @@
 #'  These are the numeric data converted to character and ordered. This is
 #'  modified once [prep.recipe()] is executed.
 #' @param ordered A single logical value; should the factor(s) be ordered?
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of existing steps (if any). For the `tidy` method, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `ordered`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_encodings
-#' @concept factors
+#' @template step-return
+#' @details When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `ordered` is returned.
+#' @family dummy variable and encoding steps
 #' @export
-#' @seealso [step_factor2string()], [step_string2factor()], [step_dummy()]
 #' @examples
 #' library(dplyr)
 #' library(modeldata)
@@ -135,7 +126,7 @@ get_ord_lvls_num <- function(x, foo)
 
 #' @export
 prep.step_num2factor <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -193,8 +184,7 @@ print.step_num2factor <-
   }
 
 
-#' @rdname step_num2factor
-#' @param x A `step_num2factor` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_num2factor <- function(x, ...) {
   term_names <- sel2char(x$terms)

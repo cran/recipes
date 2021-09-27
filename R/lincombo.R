@@ -5,23 +5,12 @@
 #'  linear combinations between them.
 #'
 #' @inheritParams step_center
-#' @param ... One or more selector functions to choose which
-#'  variables are affected by the step. See [selections()]
-#'  for more details. For the `tidy` method, these are not
-#'  currently used.
-#' @param role Not used by this step since no new variables are
-#'  created.
-#' @param max_steps A value.
+#' @param max_steps The number of times to apply the algorithm.
 #' @param removals A character string that contains the names of
 #'  columns that should be removed. These values are not determined
 #'  until [prep.recipe()] is called.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` which
-#'  is the columns that will be removed.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept variable_filters
+#' @template step-return
+#' @family variable filter steps
 #' @author Max Kuhn, Kirk Mettler, and Jed Wing
 #' @export
 #'
@@ -29,6 +18,10 @@
 #'  or more variables and recommends which column(s) should be
 #'  removed to resolve the issue. This algorithm may need to be
 #'  applied multiple times (as defined by `max_steps`).
+#'
+#'  When you [`tidy()`] this step, a tibble with column `terms` (the columns
+#'  that will be removed) is returned.
+#'
 #' @examples
 #' library(modeldata)
 #' data(biomass)
@@ -53,10 +46,6 @@
 #'
 #' tidy(lincomb_filter, number = 1)
 #' tidy(lincomb_filter_trained, number = 1)
-#' @seealso [step_nzv()][step_corr()]
-#'   [recipe()] [prep.recipe()]
-#'   [bake.recipe()]
-
 step_lincomb <-
   function(recipe,
            ...,
@@ -96,7 +85,7 @@ step_lincomb_new <-
 
 #' @export
 prep.step_lincomb <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_type(training[, col_names])
 
@@ -211,7 +200,6 @@ iter_lc_rm <- function(x,
 }
 
 
-#' @rdname step_lincomb
-#' @param x A `step_lincomb` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_lincomb <- tidy_filter

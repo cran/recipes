@@ -5,11 +5,15 @@
 #'  present in the new data.
 #'
 #' @inheritParams check_missing
+#' @template check-return
+#' @family checks
 #' @export
-#' @param id A character string that is unique to this step to identify it.
 #' @details This check will break the `bake` function if any of the specified
 #' columns is not present in the data. If the check passes, nothing is changed
 #'  to the data.
+#'
+#'  When you [`tidy()`] this check, a tibble with columns `terms` (the
+#'  selectors or variables selected) and `value` (the type) is returned.
 #' @examples
 #'
 #' library(modeldata)
@@ -56,7 +60,7 @@ check_cols_new <-
   }
 
 prep.check_cols <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   check_cols_new(
     terms = x$terms,
@@ -92,8 +96,7 @@ print.check_cols <-
     invisible(x)
   }
 
-#' @rdname check_cols
-#' @param x A `check_cols` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.check_cols <- function(x, ...) {
   if (is_trained(x)) {

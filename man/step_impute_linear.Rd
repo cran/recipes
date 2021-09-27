@@ -2,8 +2,7 @@
 % Please edit documentation in R/impute_linear.R
 \name{step_impute_linear}
 \alias{step_impute_linear}
-\alias{tidy.step_impute_linear}
-\title{Imputation of numeric variables via a linear model.}
+\title{Impute numeric variables via a linear model}
 \usage{
 step_impute_linear(
   recipe,
@@ -15,21 +14,18 @@ step_impute_linear(
   skip = FALSE,
   id = rand_id("impute_linear")
 )
-
-\method{tidy}{step_impute_linear}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose variables. For
-\code{step_impute_linear}, this indicates the variables to be imputed; these variables
-\strong{must} be of type \code{numeric}. When used with \code{imp_vars}, the dots indicates
-which variables are used to predict the missing data in each variable. See
-\code{\link[=selections]{selections()}} for more details. For the \code{tidy} method, these are not
-currently used.}
+\item{...}{One or more selector functions to choose variables to be imputed;
+these variables \strong{must} be of type \code{numeric}. When used with \code{imp_vars},
+these dots indicate which variables are used to predict the missing data
+in each variable. See \code{\link[=selections]{selections()}} for more details.}
 
-\item{role}{Not used by this step since no new variables are created.}
+\item{role}{Not used by this step since no new variables are
+created.}
 
 \item{trained}{A logical to indicate if the quantities for
 preprocessing have been estimated.}
@@ -48,17 +44,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_impute_linear} object.}
 }
 \value{
 An updated version of \code{recipe} with the new step added to the
-sequence of existing steps (if any). For the \code{tidy} method, a tibble with
-columns \code{terms} (the selectors or variables selected) and \code{model} (the
-bagged tree object).
+sequence of any existing operations.
 }
 \description{
 \code{step_impute_linear} creates a \emph{specification} of a recipe step that will
@@ -76,6 +68,10 @@ coerced to integer as needed).
 
 Since this is a linear regression, the imputation model only uses complete
 cases for the training set predictors.
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with
+columns \code{terms} (the selectors or variables selected) and \code{model} (the
+bagged tree object) is returned.
 }
 \examples{
 data(ames, package = "modeldata")
@@ -110,6 +106,14 @@ Kuhn, M. and Johnson, K. (2013).
 \emph{Feature Engineering and Selection}
 \url{https://bookdown.org/max/FES/handling-missing-data.html}
 }
-\concept{imputation}
-\concept{preprocessing}
-\keyword{datagen}
+\seealso{
+Other imputation steps: 
+\code{\link{step_impute_bag}()},
+\code{\link{step_impute_knn}()},
+\code{\link{step_impute_lower}()},
+\code{\link{step_impute_mean}()},
+\code{\link{step_impute_median}()},
+\code{\link{step_impute_mode}()},
+\code{\link{step_impute_roll}()}
+}
+\concept{imputation steps}

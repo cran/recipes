@@ -2,7 +2,6 @@
 % Please edit documentation in R/naomit.R
 \name{step_naomit}
 \alias{step_naomit}
-\alias{tidy.step_naomit}
 \title{Remove observations with missing values}
 \usage{
 step_naomit(
@@ -14,16 +13,13 @@ step_naomit(
   skip = FALSE,
   id = rand_id("naomit")
 )
-
-\method{tidy}{step_naomit}(x, ...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the sequence of
-operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the
+sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables will be used to remove observations containing \code{NA} or \code{NaN}
-values. See \code{\link[=selections]{selections()}} for more details.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Unused, include for consistency with other steps.}
 
@@ -40,12 +36,10 @@ conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = FALSE}.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_naomit} object.}
 }
 \value{
-An updated version of \code{recipe} with the
-new step added to the sequence of existing steps (if any).
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_naomit} creates a \emph{specification} of a recipe step that
@@ -73,5 +67,13 @@ recipe(Ozone ~ ., data = airquality) \%>\%
 
 }
 \seealso{
-\code{\link[=step_filter]{step_filter()}} \code{\link[=step_sample]{step_sample()}} \code{\link[=step_slice]{step_slice()}}
+Other row operation steps: 
+\code{\link{step_arrange}()},
+\code{\link{step_filter}()},
+\code{\link{step_impute_roll}()},
+\code{\link{step_lag}()},
+\code{\link{step_sample}()},
+\code{\link{step_shuffle}()},
+\code{\link{step_slice}()}
 }
+\concept{row operation steps}

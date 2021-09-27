@@ -5,17 +5,11 @@
 #'  into one or more numeric binary model terms for the levels of
 #'  the original data.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  _factor_ variables will be used to create the dummy variables. See
-#'  [selections()] for more details. The selected
-#'  variables must be factors. For the `tidy()` method, these are
-#'  not currently used.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
-#'  that the binary dummy variable columns created by the original
-#'  variables will be used as predictors in a model.
+#' @param ... One or more selector functions to choose variables
+#'  for this step. See [selections()] for more details. The selected
+#'  variables _must_ be factors.
 #' @param one_hot A logical. For C levels, should C dummy variables be created
 #' rather than C-1?
 #' @param preserve Use `keep_original_cols` to specify whether the selected
@@ -26,19 +20,9 @@
 #'  create dummy variables for each variable contained in
 #'  `terms`. This is `NULL` until the step is trained by
 #'  [prep.recipe()].
-#' @param keep_original_cols A logical to keep the original variables in the
-#'  output. Defaults to `FALSE`.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or original variables selected) and `columns` (the
-#'  list of corresponding binary columns).
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept dummy_variables
-#' @concept model_specification
-#' @concept dummy_variables
-#' @concept variable_encodings
+#' @template step-return
+#' @family dummy variable and encoding steps
+#' @seealso [dummy_names()]
 #' @export
 #' @details `step_dummy()` will create a set of binary dummy
 #'  variables from a factor variable. For example, if an unordered
@@ -52,19 +36,9 @@
 #'  cell) will correspond to the first level of the unordered
 #'  factor being converted.
 #'
-#' The function allows for non-standard naming of the resulting
-#'  variables. For an unordered factor named `x`, with levels `"a"`
-#'  and `"b"`, the default naming convention would be to create a
-#'  new variable called `x_b`. Note that if the factor levels are
-#'  not valid variable names (e.g. "some text with spaces"), it will
-#'  be changed by [base::make.names()] to be valid (see the example
-#'  below). The naming format can be changed using the `naming`
-#'  argument and the function [dummy_names()] is the default. This
-#'  function will also change the names of ordinal dummy variables.
-#'  Instead of values such as "`.L`", "`.Q`", or "`^4`", ordinal
-#'  dummy variables are given simple integer suffixes such as
-#'  "`_1`", "`_2`", etc.
+#' @template dummy-naming
 #'
+#' @details
 #' To change the type of contrast being used, change the global
 #' contrast option via `options`.
 #'
@@ -88,10 +62,10 @@
 #' The [package vignette for dummy variables](https://recipes.tidymodels.org/articles/Dummies.html)
 #' and interactions has more information.
 #'
-#' @seealso [step_factor2string()], [step_string2factor()],
-#'  [dummy_names()], [step_regex()], [step_count()],
-#'  [step_ordinalscore()], [step_unorder()], [step_other()]
-#'  [step_novel()]
+#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or original variables selected) and `columns` (the
+#'  list of corresponding binary columns) is returned.
+#'
 #' @examples
 #' library(modeldata)
 #' data(okc)
@@ -144,7 +118,7 @@ step_dummy <-
            id = rand_id("dummy")) {
 
     if (lifecycle::is_present(preserve)) {
-      lifecycle::deprecate_soft(
+      lifecycle::deprecate_warn(
         "0.1.16",
         "step_dummy(preserve = )",
         "step_dummy(keep_original_cols = )"
@@ -194,7 +168,7 @@ passover <- function(cmd) {
 
 #' @export
 prep.step_dummy <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
 
   if (length(col_names) > 0) {
     fac_check <- vapply(training[, col_names], is.factor, logical(1))
@@ -228,7 +202,7 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
       }
       form <- as.formula(form_chr)
       terms <- model.frame(form,
-                           data = training,
+                           data = training[1,],
                            xlev = x$levels[[i]],
                            na.action = na.pass)
       levels[[i]] <- attr(terms, "terms")
@@ -380,8 +354,7 @@ get_dummy_columns <- function(x, one_hot) {
 }
 
 
-#' @rdname step_dummy
-#' @param x A `step_dummy` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_dummy <- function(x, ...) {
   if (is_trained(x)) {

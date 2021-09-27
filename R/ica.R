@@ -4,16 +4,8 @@
 #'  that will convert numeric data into one or more independent
 #'  components.
 #'
+#' @inheritParams step_pca
 #' @inheritParams step_center
-#' @inherit step_center return
-#' @param ... One or more selector functions to choose which
-#'  variables will be used to compute the components. See
-#'  [selections()] for more details. For the `tidy`
-#'  method, these are not currently used.
-#' @param role For model terms created by this step, what analysis
-#'  role should they be assigned?. By default, the function assumes
-#'  that the new independent component columns created by the
-#'  original variables will be used as predictors in a model.
 #' @param num_comp The number of ICA components to retain as new
 #'  predictors. If `num_comp` is greater than the number of columns
 #'  or the number of possible components, a smaller value will be
@@ -25,19 +17,8 @@
 #' @param res The [fastICA::fastICA()] object is stored
 #'  here once this preprocessing step has be trained by
 #'  [prep.recipe()].
-#' @param keep_original_cols A logical to keep the original variables in the
-#'  output. Defaults to `FALSE`.
-#' @param prefix A character string that will be the prefix to the
-#'  resulting new variables. See notes below.
-#' @return An updated version of `recipe` with the new step
-#'  added to the sequence of existing steps (if any). For the
-#'  `tidy` method, a tibble with columns `terms` (the
-#'  selectors or variables selected), `value` (the loading),
-#'  and `component`.
-#' @keywords datagen
-#' @concept preprocessing
-#' @concept ica
-#' @concept projection_methods
+#' @template step-return
+#' @family multivariate transformation steps
 #' @export
 #' @details Independent component analysis (ICA) is a
 #'  transformation of a group of variables that produces a new set
@@ -63,6 +44,10 @@
 #'  if `num_comp < 10`, their names will be `IC1` - `IC9`.
 #'  If `num_comp = 101`, the names would be `IC001` -
 #'  `IC101`.
+#'
+#' When you [`tidy()`] this step, a tibble with columns `terms` (the
+#'  selectors or variables selected), `value` (the loading),
+#'  and `component` is returned.
 #'
 #' @references Hyvarinen, A., and Oja, E. (2000). Independent
 #'  component analysis: algorithms and applications. *Neural
@@ -94,9 +79,6 @@
 #'   tidy(ica_trans, number = 3)
 #'   tidy(ica_estimates, number = 3)
 #' }
-#' @seealso [step_pca()] [step_kpca()]
-#'   [step_isomap()] [recipe()] [prep.recipe()]
-#'   [bake.recipe()]
 step_ica <-
   function(recipe,
            ...,
@@ -150,7 +132,7 @@ step_ica_new <-
 
 #' @export
 prep.step_ica <- function(x, training, info = NULL, ...) {
-  col_names <- eval_select_recipes(x$terms, training, info)
+  col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
   if (x$num_comp > 0) {
@@ -221,8 +203,7 @@ print.step_ica <-
     invisible(x)
   }
 
-#' @rdname step_ica
-#' @param x A `step_ica` object.
+#' @rdname tidy.recipe
 #' @export
 tidy.step_ica <- function(x, ...) {
   if (is_trained(x)) {
@@ -256,7 +237,7 @@ tidy.step_ica <- function(x, ...) {
 }
 
 
-#' @rdname tunable.step
+#' @rdname tunable.recipe
 #' @export
 tunable.step_ica <- function(x, ...) {
   tibble::tibble(
@@ -269,7 +250,7 @@ tunable.step_ica <- function(x, ...) {
 }
 
 
-#' @rdname required_pkgs.step
+#' @rdname required_pkgs.recipe
 #' @export
 required_pkgs.step_ica <- function(x, ...) {
   c("dimRed", "fastICA")

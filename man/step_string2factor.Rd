@@ -2,7 +2,6 @@
 % Please edit documentation in R/string2factor.R
 \name{step_string2factor}
 \alias{step_string2factor}
-\alias{tidy.step_string2factor}
 \title{Convert Strings to Factors}
 \usage{
 step_string2factor(
@@ -15,17 +14,13 @@ step_string2factor(
   skip = FALSE,
   id = rand_id("string2factor")
 )
-
-\method{tidy}{step_string2factor}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
 sequence of operations for this recipe.}
 
-\item{...}{One or more selector functions to choose which
-variables will be converted to factors. See
-\code{\link[=selections]{selections()}} for more details. For the \code{tidy}
-method, these are not currently used.}
+\item{...}{One or more selector functions to choose variables
+for this step. See \code{\link[=selections]{selections()}} for more details.}
 
 \item{role}{Not used by this step since no new variables are
 created.}
@@ -45,17 +40,13 @@ recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operatio
 when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations}
+the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_string2factor} object.}
 }
 \value{
-An updated version of \code{recipe} with the new step
-added to the sequence of existing steps (if any). For the
-\code{tidy} method, a tibble with columns \code{terms} (the
-selectors or variables selected) and \code{ordered}.
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations.
 }
 \description{
 \code{step_string2factor} will convert one or more character
@@ -70,6 +61,9 @@ Also, note that \code{prep} has an option \code{strings_as_factors} that
 defaults to \code{TRUE}. This should be changed so that raw character
 data will be applied to \code{step_string2factor}. However, this step
 can also take existing factors (but will leave them as-is).
+
+When you \code{\link[=tidy]{tidy()}} this step, a tibble with columns \code{terms} (the
+selectors or variables selected) and \code{ordered} is returned.
 }
 \examples{
 library(modeldata)
@@ -89,10 +83,23 @@ okc \%>\% head
 tidy(make_factor, number = 1)
 }
 \seealso{
-\code{\link[=step_factor2string]{step_factor2string()}} \code{\link[=step_dummy]{step_dummy()}} \code{\link[=step_other]{step_other()}}
-\code{\link[=step_novel]{step_novel()}}
+Other dummy variable and encoding steps: 
+\code{\link{step_bin2factor}()},
+\code{\link{step_count}()},
+\code{\link{step_date}()},
+\code{\link{step_dummy_multi_choice}()},
+\code{\link{step_dummy}()},
+\code{\link{step_factor2string}()},
+\code{\link{step_holiday}()},
+\code{\link{step_indicate_na}()},
+\code{\link{step_integer}()},
+\code{\link{step_novel}()},
+\code{\link{step_num2factor}()},
+\code{\link{step_ordinalscore}()},
+\code{\link{step_other}()},
+\code{\link{step_regex}()},
+\code{\link{step_relevel}()},
+\code{\link{step_unknown}()},
+\code{\link{step_unorder}()}
 }
-\concept{factors}
-\concept{preprocessing}
-\concept{variable_encodings}
-\keyword{datagen}
+\concept{dummy variable and encoding steps}
