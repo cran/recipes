@@ -9,7 +9,9 @@
 #' @param sigma A numeric value for the radial basis function parameter.
 #' @param res An S4 [kernlab::kpca()] object is stored
 #'  here once this preprocessing step has be trained by
-#'  [`prep()`][prep.recipe()].
+#'  [prep()].
+#' @param columns A character string of variable names that will
+#'  be populated elsewhere.
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
@@ -30,14 +32,14 @@
 #'   step_normalize(all_numeric_predictors()) %>%
 #'   step_kpca_rbf(all_numeric_predictors())
 #'
-#' if (require(dimRed) & require(kernlab)) {
+#' if (require(ggplot2) & require(kernlab)) {
 #'   kpca_estimates <- prep(kpca_trans, training = biomass_tr)
 #'
 #'   kpca_te <- bake(kpca_estimates, biomass_te)
 #'
-#'   rng <- extendrange(c(kpca_te$kPC1, kpca_te$kPC2))
-#'   plot(kpca_te$kPC1, kpca_te$kPC2,
-#'        xlim = rng, ylim = rng)
+#'   ggplot(kpca_te, aes(x = kPC1, y = kPC2)) +
+#'    geom_point() +
+#'    coord_equal()
 #'
 #'   tidy(kpca_trans, number = 3)
 #'   tidy(kpca_estimates, number = 3)
@@ -50,6 +52,7 @@ step_kpca_rbf <-
            trained = FALSE,
            num_comp = 5,
            res = NULL,
+           columns = NULL,
            sigma = 0.2,
            prefix = "kPC",
            keep_original_cols = FALSE,
@@ -61,11 +64,12 @@ step_kpca_rbf <-
     add_step(
       recipe,
       step_kpca_rbf_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         num_comp = num_comp,
         res = res,
+        columns = columns,
         sigma = sigma,
         prefix = prefix,
         keep_original_cols = keep_original_cols,
@@ -76,7 +80,7 @@ step_kpca_rbf <-
   }
 
 step_kpca_rbf_new <-
-  function(terms, role, trained, num_comp, res, sigma, prefix,
+  function(terms, role, trained, num_comp, res, columns, sigma, prefix,
            keep_original_cols, skip, id) {
     step(
       subclass = "kpca_rbf",
@@ -85,6 +89,7 @@ step_kpca_rbf_new <-
       trained = trained,
       num_comp = num_comp,
       res = res,
+      columns = columns,
       sigma = sigma,
       prefix = prefix,
       keep_original_cols = keep_original_cols,
@@ -98,32 +103,22 @@ prep.step_kpca_rbf <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
-  if (x$num_comp > 0) {
-    kprc <-
-      dimRed::kPCA(
-        stdpars = c(
-          list(ndim = x$num_comp),
-          list(kernel = "rbfdot", kpar = list(sigma = x$sigma)
-          )
-        )
+  if (x$num_comp > 0 && length(col_names) > 0) {
+    cl <-
+      rlang::call2(
+        "kpca",
+        .ns = "kernlab",
+        x = rlang::expr(as.matrix(training[, col_names])),
+        features = x$num_comp,
+        kernel = "rbfdot",
+        kpar = list(sigma = x$sigma)
       )
-    kprc <-
-      try(
-        suppressMessages({
-          kprc@fun(
-            dimRed::dimRedData(as.data.frame(training[, col_names, drop = FALSE])),
-            kprc@stdpars
-          )
-        }),
-        silent =  TRUE
-      )
-
+    kprc <- try(rlang::eval_tidy(cl), silent = TRUE)
     if (inherits(kprc, "try-error")) {
-      rlang::abort(paste0("`step_kpca_rbf` failed with error:\n",
-                          as.character(kprc)))
+      rlang::abort(paste0("`step_kpca_rbf` failed with error:\n", as.character(kprc)))
     }
   } else {
-    kprc <- list(x_vars = col_names)
+    kprc <- NULL
   }
 
   step_kpca_rbf_new(
@@ -133,6 +128,7 @@ prep.step_kpca_rbf <- function(x, training, info = NULL, ...) {
     num_comp = x$num_comp,
     sigma = x$sigma,
     res = kprc,
+    columns = col_names,
     prefix = x$prefix,
     keep_original_cols = get_keep_original_cols(x),
     skip = x$skip,
@@ -142,36 +138,33 @@ prep.step_kpca_rbf <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_kpca_rbf <- function(object, new_data, ...) {
-  if (object$num_comp > 0) {
-    pca_vars <- colnames(environment(object$res@apply)$indata)
-    comps <- object$res@apply(
-      dimRed::dimRedData(as.data.frame(new_data[, pca_vars, drop = FALSE]))
-    )@data
+  uses_dim_red(object)
+
+  if (object$num_comp > 0 && length(object$columns) > 0) {
+    cl <-
+      rlang::call2(
+        "predict",
+        .ns = "kernlab",
+        object = object$res,
+        rlang::expr(as.matrix(new_data[, object$columns]))
+      )
+    comps <- rlang::eval_tidy(cl)
     comps <- comps[, 1:object$num_comp, drop = FALSE]
+    colnames(comps) <- names0(ncol(comps), object$prefix)
     comps <- check_name(comps, new_data, object)
     new_data <- bind_cols(new_data, as_tibble(comps))
     keep_original_cols <- get_keep_original_cols(object)
 
     if (!keep_original_cols) {
-      new_data <- new_data[, !(colnames(new_data) %in% pca_vars), drop = FALSE]
+      new_data <- new_data[, !(colnames(new_data) %in% object$columns), drop = FALSE]
     }
   }
   as_tibble(new_data)
 }
 
 print.step_kpca_rbf <- function(x, width = max(20, options()$width - 40), ...) {
-  if (x$trained) {
-    if (x$num_comp == 0) {
-      cat("No kPCA components were extracted.\n")
-    } else {
-      cat("RBF kernel PCA (", x$res@pars$kernel, ") extraction with ", sep = "")
-      cat(format_ch_vec(colnames(x$res@org.data), width = width))
-    }
-  } else {
-    cat("RBF kernel PCA extraction with ", sep = "")
-    cat(format_selectors(x$terms, width = width))
-  }
-  if (x$trained) cat(" [trained]\n") else cat("\n")
+  title <- "RBF kernel PCA extraction with "
+  print_step(x$columns, x$terms, x$trained, title, width)
   invisible(x)
 }
 
@@ -179,12 +172,9 @@ print.step_kpca_rbf <- function(x, width = max(20, options()$width - 40), ...) {
 #' @rdname tidy.recipe
 #' @export
 tidy.step_kpca_rbf <- function(x, ...) {
+  uses_dim_red(x)
   if (is_trained(x)) {
-    if (x$num_comp > 0) {
-      res <- tibble(terms = colnames(x$res@org.data))
-    } else {
-      res <- tibble(terms = unname(x$res$x_vars))
-    }
+    res <- tibble(terms = unname(x$columns))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names)
@@ -193,8 +183,6 @@ tidy.step_kpca_rbf <- function(x, ...) {
   res
 }
 
-
-#' @rdname tunable.recipe
 #' @export
 tunable.step_kpca_rbf <- function(x, ...) {
   tibble::tibble(
@@ -212,5 +200,5 @@ tunable.step_kpca_rbf <- function(x, ...) {
 #' @rdname required_pkgs.recipe
 #' @export
 required_pkgs.step_kpca_rbf <- function(x, ...) {
-  c("dimRed", "kernlab")
+  c("kernlab")
 }

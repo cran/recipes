@@ -7,7 +7,7 @@
 #' @param new_level A single character value that will be assigned
 #'  to new factor levels.
 #' @param objects A list of objects that contain the information
-#'  on factor levels that will be determined by [prep.recipe()].
+#'  on factor levels that will be determined by [prep()].
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @seealso [dummy_names()]
@@ -22,8 +22,10 @@
 #' If `new_level` is already in the data given to `prep`, an error
 #'  is thrown.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected) and `value` (the factor
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected) and `value` (the factor
 #'  levels that is used for the new value) is returned.
 #'
 #' @examples
@@ -56,7 +58,7 @@ step_unknown <-
     add_step(
       recipe,
       step_unknown_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         new_level = new_level,
@@ -148,8 +150,8 @@ bake.step_unknown <- function(object, new_data, ...) {
 
 print.step_unknown <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Unknown factor level assignment for ", sep = "")
-    printer(names(x$objects), x$terms, x$trained, width = width)
+    title <- "Unknown factor level assignment for "
+    print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }
 

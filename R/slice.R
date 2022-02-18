@@ -15,8 +15,10 @@
 #'   to embed the value of the object in the expression (to
 #'   be portable between sessions). See the examples.
 #'
-#'  When you [`tidy()`] this step, a tibble with column `terms` which
-#'  contains the filtering indices is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#'  `terms` which contains the filtering indices is returned.
 #'
 #' @family row operation steps
 #' @family dplyr steps
@@ -116,12 +118,9 @@ bake.step_slice <- function(object, new_data, ...) {
 
 print.step_slice <-
   function(x, width = max(20, options()$width - 35), ...) {
-    cat("Row filtering via position")
-    if (x$trained) {
-      cat(" [trained]\n")
-    } else {
-      cat("\n")
-    }
+    title <- "Row filtering via position "
+    tr_obj = format_selectors(x$inputs, width)
+    print_step(tr_obj, x$inputs, x$trained, title, width)
     invisible(x)
   }
 
@@ -131,7 +130,7 @@ tidy.step_slice <- function(x, ...) {
   cond_expr <- map(x$inputs, quo_get_expr)
   cond_expr <- map_chr(cond_expr, quo_text, width = options()$width, nlines = 1)
   tibble(
-    terms = cond_expr,
+    terms = unname(cond_expr),
     id = rep(x$id, length(x$inputs))
   )
 }

@@ -26,8 +26,10 @@
 #'  from the data and new columns are added. The naming convention
 #'  for the new variables is `varname_bs_1` and so on.
 #'
-#'  When you [`tidy()`] this step, a tibble with column `terms` (the
-#'  columns that will be affected) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#'  `terms` (the columns that will be affected) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -60,7 +62,7 @@ step_bs <-
     add_step(
       recipe,
       step_bs_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         trained = trained,
         deg_free = deg_free,
         degree = degree,
@@ -134,8 +136,11 @@ prep.step_bs <- function(x, training, info = NULL, ...) {
   opt$df <- x$deg_free
   opt$degree <- x$degree
   obj <- lapply(training[, col_names], bs_statistics, opt)
-  for (i in seq(along.with = col_names))
+
+  for (i in seq(along.with = col_names)) {
     attr(obj[[i]], "var") <- col_names[i]
+  }
+
   step_bs_new(
     terms = x$terms,
     role = x$role,
@@ -177,8 +182,8 @@ bake.step_bs <- function(object, new_data, ...) {
 
 print.step_bs <-
   function(x, width = max(20, options()$width - 28), ...) {
-    cat("B-Splines on ")
-    printer(names(x$objects), x$terms, x$trained, width = width)
+    title <- "B-splines on "
+    print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -186,18 +191,17 @@ print.step_bs <-
 #' @export
 tidy.step_bs <- function(x, ...) {
   if (is_trained(x)) {
-    cols <- tibble(terms = names(x$objects))
+    res <- tibble(terms = names(x$objects))
   } else {
     cols <- sel2char(x$terms)
+    res <- tibble(terms = cols)
   }
-  res <- expand.grid(terms = cols, stringsAsFactors = FALSE)
   res$id <- x$id
   as_tibble(res)
 }
 
 # ------------------------------------------------------------------------------
 
-#' @rdname tunable.recipe
 #' @export
 tunable.step_bs <- function(x, ...) {
   tibble::tibble(

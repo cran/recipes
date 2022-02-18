@@ -8,7 +8,7 @@
 #' @param new_level A single character value that will be assigned
 #'  to new factor levels.
 #' @param objects A list of objects that contain the information
-#'  on factor levels that will be determined by [prep.recipe()].
+#'  on factor levels that will be determined by [prep()].
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @seealso [dummy_names()]
@@ -32,9 +32,11 @@
 #'  [hardhat::default_recipe_blueprint()]. This will allow your model to handle
 #'  new levels at prediction time, instead of throwing warnings or errors.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected) and `value` (the factor
-#'  levels that is used for the new value) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected) and `value` (the factor
+#' levels that is used for the new value) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -68,7 +70,7 @@ step_novel <-
     add_step(
       recipe,
       step_novel_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         new_level = new_level,
@@ -168,8 +170,8 @@ bake.step_novel <- function(object, new_data, ...) {
 
 print.step_novel <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Novel factor level assignment for ", sep = "")
-    printer(names(x$objects), x$terms, x$trained, width = width)
+    title <- "Novel factor level assignment for "
+    print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }
 

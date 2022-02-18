@@ -8,8 +8,12 @@
 #'  be populated (eventually) by the `terms` argument.
 #' @template step-return
 #' @family individual transformation steps
-#' @details When you [`tidy()`] this step, a tibble with column `terms` (the
-#' columns that will be affected) is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#' `terms` (the columns that will be affected) is returned.
 #' @export
 #' @examples
 #' set.seed(313)
@@ -35,7 +39,7 @@ step_sqrt <- function(recipe, ..., role = NA,
   add_step(
     recipe,
     step_sqrt_new(
-      terms = ellipse_check(...),
+      terms = enquos(...),
       role = role,
       trained = trained,
       columns = columns,
@@ -84,8 +88,8 @@ bake.step_sqrt <- function(object, new_data, ...) {
 }
 
 print.step_sqrt <- function(x, width = max(20, options()$width - 29), ...) {
-  cat("Square root transformation on ", sep = "")
-  printer(x$columns, x$terms, x$trained, width = width)
+  title <- "Square root transformation on "
+  print_step(x$columns, x$terms, x$trained, title, width)
   invisible(x)
 }
 

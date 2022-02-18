@@ -11,9 +11,13 @@
 #' @param prefix A character string that will be the prefix to the
 #'  resulting new variables. Defaults to "na_ind".
 #' @template step-return
-#' @details  When you [`tidy()`] this step, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `model` (the
-#'  median value) is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `model` (the
+#' median value) is returned.
 #' @family dummy variable and encoding steps
 #' @export
 #' @examples
@@ -48,7 +52,7 @@ step_indicate_na <-
            skip = FALSE,
            id = rand_id("indicate_na")) {
 
-    terms = ellipse_check(...)
+    terms = enquos(...)
 
     add_step(
       recipe,
@@ -97,20 +101,23 @@ prep.step_indicate_na <- function(x, training, info = NULL, ...) {
 bake.step_indicate_na <- function(object, new_data, ...) {
   col_names <- object$columns
 
-  df_ind_na <- purrr::map_dfc(
-      new_data[col_names],
-      ~ifelse(is.na(.x), 1L, 0L)
-    ) %>%
-    dplyr::rename_with(~paste0(object$prefix, "_", .x))
-  new_data <- dplyr::bind_cols(new_data, df_ind_na)
+  cols <- purrr::map(
+    new_data[col_names],
+    ~ifelse(is.na(.x), 1L, 0L)
+  )
+
+  cols <- tibble::new_tibble(cols, nrow = nrow(new_data))
+  cols <- dplyr::rename_with(cols, ~paste0(object$prefix, "_", .x))
+
+  new_data <- dplyr::bind_cols(new_data, cols)
 
   tibble::as_tibble(new_data)
 }
 
 print.step_indicate_na <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Creating missing data variable indicators for ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Creating missing data variable indicators for "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -118,7 +125,7 @@ print.step_indicate_na <-
 #' @export
 tidy.step_indicate_na <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble::tibble(terms = x$columns)
+    res <- tibble::tibble(terms = unname(x$columns))
   } else {
     res <- tibble::tibble(terms = sel2char(x$terms))
   }

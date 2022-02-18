@@ -32,11 +32,11 @@ rec_obj
 #  rec_obj <- rec_obj %>% step_{X}(arguments)
 
 ## ----imp-steps----------------------------------------------------------------
-grep("impute$", ls("package:recipes"), value = TRUE)
+grep("impute_", ls("package:recipes"), value = TRUE)
 
 ## ----dummy--------------------------------------------------------------------
 imputed <- rec_obj %>%
-  step_knnimpute(all_predictors()) 
+  step_impute_knn(all_predictors()) 
 imputed
 
 ## ----imputing-----------------------------------------------------------------
@@ -46,7 +46,7 @@ ind_vars
 
 ## ----center_scale-------------------------------------------------------------
 standardized <- ind_vars %>%
-  step_center(all_numeric_predictors())  %>%
+  step_center(all_numeric_predictors()) %>%
   step_scale(all_numeric_predictors()) 
 standardized
 

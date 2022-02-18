@@ -12,8 +12,11 @@
 #' columns is not present in the data. If the check passes, nothing is changed
 #'  to the data.
 #'
-#'  When you [`tidy()`] this check, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the type) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this check, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `value` (the type)
+#'  is returned.
 #' @examples
 #'
 #' library(modeldata)
@@ -37,7 +40,7 @@ check_cols <-
     add_check(
       recipe,
       check_cols_new(
-        terms   = ellipse_check(...),
+        terms   = enquos(...),
         role    = role,
         trained = trained,
         columns = NULL,
@@ -91,8 +94,8 @@ bake.check_cols <- function(object, new_data, ...) {
 
 print.check_cols <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Check if the following columns are present: ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Check if the following columns are present: "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -100,7 +103,7 @@ print.check_cols <-
 #' @export
 tidy.check_cols <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = x$columns)
+    res <- tibble(terms = unname(x$columns))
   } else {
     res <- tibble(terms = sel2char(x$terms))
   }

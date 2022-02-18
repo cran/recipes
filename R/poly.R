@@ -24,8 +24,10 @@
 #'  from the data and new columns are added. The naming convention
 #'  for the new variables is `varname_poly_1` and so on.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected) and `degree` is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the columns that will be affected) and `degree` is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -73,7 +75,7 @@ step_poly <-
     add_step(
       recipe,
       step_poly_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         trained = trained,
         role = role,
         objects = objects,
@@ -144,11 +146,24 @@ prep.step_poly <- function(x, training, info = NULL, ...) {
 bake.step_poly <- function(object, new_data, ...) {
   col_names <- names(object$objects)
   new_names <- purrr::map(object$objects, ~ paste(attr(.x, "var"), "poly", 1:ncol(.x), sep = "_"))
-  poly_values <-
-    purrr::map2(new_data[, col_names], object$objects, ~ predict(.y, .x)) %>%
-    purrr::map(as_tibble) %>%
-    purrr::map2_dfc(new_names, ~ setNames(.x, .y))
-  new_data <- dplyr::bind_cols(new_data, poly_values)
+
+  # Start with n-row, 0-col tibble for the empty selection case
+  new_tbl <- tibble::new_tibble(x = list(), nrow = nrow(new_data))
+
+  for (i in seq_along(col_names)) {
+    i_col_name <- col_names[[i]]
+    i_col <- new_data[[i_col_name]]
+    i_object <- object$objects[[i]]
+    i_new_names <- new_names[[i]]
+
+    new_cols <- predict(i_object, i_col)
+    colnames(new_cols) <- i_new_names
+    new_cols <- tibble::as_tibble(new_cols)
+
+    new_tbl[i_new_names] <- new_cols
+  }
+
+  new_data <- dplyr::bind_cols(new_data, new_tbl)
   new_data <- dplyr::select(new_data, -dplyr::all_of(col_names))
   new_data
 }
@@ -156,8 +171,8 @@ bake.step_poly <- function(object, new_data, ...) {
 
 print.step_poly <-
   function(x, width = max(20, options()$width - 35), ...) {
-    cat("Orthogonal polynomials on ")
-    printer(names(x$objects), x$terms, x$trained, width = width)
+    title <- "Orthogonal polynomials on "
+    print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -174,8 +189,6 @@ tidy.step_poly <- function(x, ...) {
   res
 }
 
-
-#' @rdname tunable.recipe
 #' @export
 tunable.step_poly <- function(x, ...) {
   tibble::tibble(

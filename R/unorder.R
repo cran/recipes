@@ -11,8 +11,10 @@
 #' @export
 #' @details The factors level order is preserved during the transformation.
 #'
-#' When you [`tidy()`] this step, a tibble with column `terms` (the
-#'  columns that will be affected) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#' `terms` (the columns that will be affected) is returned.
 #'
 #' @examples
 #' lmh <- c("Low", "Med", "High")
@@ -43,7 +45,7 @@ step_unorder <-
            id = rand_id("unorder")) {
     add_step(recipe,
              step_unorder_new(
-               terms = ellipse_check(...),
+               terms = enquos(...),
                role = role,
                trained = trained,
                columns = columns,
@@ -71,21 +73,17 @@ prep.step_unorder <- function(x, training, info = NULL, ...) {
   order_check <- vapply(training[, col_names],
                         is.ordered,
                         logical(1L))
-  if(all(!order_check)) {
-    rlang::abort("`step_unorder` required ordered factors.")
-  } else {
-    if(any(!order_check)) {
-      bad_cols <- names(order_check)[!order_check]
-      bad_cols <- paste0(bad_cols, collapse = ", ")
-      rlang::warn(
-        paste0(
-          "`step_unorder` requires ordered factors. Variables ",
-          bad_cols,
-          " will be ignored."
-        )
+  if(any(!order_check)) {
+    bad_cols <- names(order_check)[!order_check]
+    bad_cols <- paste0(bad_cols, collapse = ", ")
+    rlang::warn(
+      paste0(
+        "`step_unorder` requires ordered factors. Variables ",
+        bad_cols,
+        " will be ignored."
       )
-      col_names <- names(order_check)[order_check]
-    }
+    )
+    col_names <- names(order_check)[order_check]
   }
 
   step_unorder_new(
@@ -110,8 +108,8 @@ bake.step_unorder <- function(object, new_data, ...) {
 
 print.step_unorder <-
   function(x, width = max(20, options()$width - 33), ...) {
-    cat("Unordered variables ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Unordered variables "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

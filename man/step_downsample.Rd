@@ -2,7 +2,6 @@
 % Please edit documentation in R/downsample.R
 \name{step_downsample}
 \alias{step_downsample}
-\alias{tidy.step_downsample}
 \title{Down-Sample a Data Set Based on a Factor Variable}
 \usage{
 step_downsample(
@@ -18,8 +17,6 @@ step_downsample(
   seed = sample.int(10^5, 1),
   id = rand_id("downsample")
 )
-
-\method{tidy}{step_downsample}(x, ...)
 }
 \arguments{
 \item{recipe}{A recipe object. The step will be added to the
@@ -50,8 +47,8 @@ be populated (eventually) by the \code{...} selectors.}
 should not be set by the user and will be populated by \code{prep}.}
 
 \item{skip}{A logical. Should the step be skipped when the
-recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
-when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
+recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
+when \code{\link[=prep]{prep()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
 the computations for subsequent operations.}
@@ -59,8 +56,6 @@ the computations for subsequent operations.}
 \item{seed}{An integer that will be used as the seed when downsampling.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{x}{A \code{step_downsample} object.}
 }
 \value{
 An updated version of \code{recipe} with the new step added to the

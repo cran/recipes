@@ -35,6 +35,7 @@ test_that("in recipe", {
   expect_error(bake(rec1, test), NA)
   expect_warning(bake(rec1, test), NA)
 
+  skip_if(packageVersion("rlang") < "1.0.0")
   rec2 <- recipe(train) %>% check_range(x, y) %>% prep()
   expect_snapshot(error = TRUE, bake(rec2, test))
 
@@ -50,4 +51,42 @@ test_that('printing', {
     check_range(drat, cyl, am)
   expect_output(print(check_range_extract))
   expect_output(prep(check_range_extract, training = mtcars, verbose = TRUE))
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- check_range(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- check_range(rec)
+
+  expect <- tibble(terms = character(), id = character())
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("empty printing", {
+  skip_if(packageVersion("rlang") < "1.0.0")
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- check_range(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })

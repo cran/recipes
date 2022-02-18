@@ -14,7 +14,9 @@
 #'  quasiquotation (e.g. `!!`) to embed the value of the object in the
 #'  expression (to be portable between sessions).
 #'
-#'  When you [`tidy()`] this step, a tibble with
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with
 #'  columns `values` which contains the `rename` expressions as character
 #'  strings (and are not reparsable) is returned.
 #'
@@ -97,13 +99,14 @@ bake.step_rename <- function(object, new_data, ...) {
 
 print.step_rename <-
   function(x, width = max(20, options()$width - 35), ...) {
-    cat("Variable renaming for ",
-        paste0(names(x$inputs), collapse = ", "))
-    if (x$trained) {
-      cat(" [trained]\n")
-    } else {
-      cat("\n")
-    }
+    title <- "Variable renaming for "
+    trained_names <- names(x$inputs)
+
+    untrained_terms <- rlang::parse_quos(
+      trained_names %||% "",
+      rlang::current_env()
+    )
+    print_step(trained_names, untrained_terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -112,9 +115,10 @@ print.step_rename <-
 tidy.step_rename <- function(x, ...) {
   var_expr <- map(x$inputs, quo_get_expr)
   var_expr <- map_chr(var_expr, quo_text, width = options()$width, nlines = 1)
+
   tibble(
-    terms = names(x$inputs),
-    value = var_expr,
+    terms = names(x$inputs) %||% character(),
+    value = unname(var_expr) %||% character(),
     id = rep(x$id, length(x$inputs))
   )
 }

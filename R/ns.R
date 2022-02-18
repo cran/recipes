@@ -25,8 +25,10 @@
 #'  from the data and new columns are added. The naming convention
 #'  for the new variables is `varname_ns_1` and so on.
 #'
-#'  When you [`tidy()`] this step, a tibble with column `terms` (the
-#'  columns that will be affected) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#'  `terms` (the columns that will be affected) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -57,7 +59,7 @@ step_ns <-
     add_step(
       recipe,
       step_ns_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         trained = trained,
         deg_free = deg_free,
         role = role,
@@ -170,8 +172,8 @@ bake.step_ns <- function(object, new_data, ...) {
 
 print.step_ns <-
   function(x, width = max(20, options()$width - 28), ...) {
-    cat("Natural Splines on ")
-    printer(names(x$objects), x$terms, x$trained, width = width)
+    title <- "Natural splines on "
+    print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -179,18 +181,13 @@ print.step_ns <-
 #' @export
 tidy.step_ns <- function(x, ...) {
   if (is_trained(x)) {
-    cols <- tibble(terms = names(x$objects))
+    terms <- names(x$objects)
   } else {
-    cols <- sel2char(x$terms)
+    terms <- sel2char(x$terms)
   }
-  res <- expand.grid(terms = cols, stringsAsFactors = FALSE)
-  res$id <- x$id
-  as_tibble(res)
+  tibble(terms = terms, id = x$id)
 }
 
-
-
-#' @rdname tunable.recipe
 #' @export
 tunable.step_ns <- function(x, ...) {
   tibble::tibble(

@@ -15,8 +15,8 @@
 #'  be populated (eventually) by the terms argument.
 #' @param id A character string that is unique to this check to identify it.
 #' @param skip A logical. Should the check be skipped when the
-#'  recipe is baked by [bake.recipe()]? While all operations are baked
-#'  when [prep.recipe()] is run, some operations may not be able to be
+#'  recipe is baked by [bake()]? While all operations are baked
+#'  when [prep()] is run, some operations may not be able to be
 #'  conducted on new data (e.g. processing the outcome variable(s)).
 #'  Care should be taken when using `skip = TRUE` as it may affect
 #'  the computations for subsequent operations.
@@ -27,8 +27,10 @@
 #'  columns does contain `NA` values. If the check passes, nothing is changed
 #'  to the data.
 #'
-#'  When you [`tidy()`] this check, a tibble with column `terms` (the
-#'  selectors or variables selected) is returned.
+#'  # tidy() results
+#'
+#'  When you [`tidy()`][tidy.recipe()] this check, a tibble with column
+#'  `terms` (the selectors or variables selected) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -49,7 +51,7 @@
 #'   prep()
 #' }
 #'
-#' # If `new_data` contain missing values, the check will stop bake()
+#' # If `new_data` contain missing values, the check will stop `bake()`
 #'
 #' train_data <- credit_data %>% dplyr::filter(Income > 150)
 #' test_data  <- credit_data %>% dplyr::filter(Income <= 150 | is.na(Income))
@@ -73,7 +75,7 @@ check_missing <-
     add_check(
       recipe,
       check_missing_new(
-        terms   = ellipse_check(...),
+        terms   = enquos(...),
         role    = role,
         trained = trained,
         columns = columns,
@@ -121,8 +123,8 @@ bake.check_missing <- function(object, new_data, ...) {
 
 print.check_missing <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Check missing values for ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Check missing values for "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -130,7 +132,7 @@ print.check_missing <-
 #' @export
 tidy.check_missing <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = x$columns)
+    res <- tibble(terms = unname(x$columns))
   } else {
     res <- tibble(terms = sel2char(x$terms))
   }

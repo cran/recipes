@@ -10,7 +10,7 @@
 #' @param ref_first Logical. Should the first level, which replaces
 #' 1's, be the factor reference level?
 #' @param columns A vector with the selected variable names. This
-#'  is `NULL` until computed by [prep.recipe()].
+#'  is `NULL` until computed by [prep()].
 #' @template step-return
 #' @details This operation may be useful for situations where a
 #'  binary piece of information may need to be represented as
@@ -20,8 +20,10 @@
 #'  density of numeric binary data. Note that the numeric data is
 #'  only verified to be numeric (and does not count levels).
 #'
-#'  When you [`tidy()`] this step, a tibble with column `terms` (the
-#'  columns that will be affected) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#'  `terms` (the columns that will be affected) is returned.
 #'
 #' @family dummy variable and encoding steps
 #' @export
@@ -57,7 +59,7 @@ step_bin2factor <-
     add_step(
       recipe,
       step_bin2factor_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         levels = levels,
@@ -87,10 +89,11 @@ step_bin2factor_new <-
 #' @export
 prep.step_bin2factor <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
-  if (length(col_names) < 1)
-    rlang::abort("The selector should only select at least one variable")
-  if (any(info$type[info$variable %in% col_names] != "numeric"))
+
+  if (any(info$type[info$variable %in% col_names] != "numeric")) {
     rlang::abort("The variables should be numeric")
+  }
+
   step_bin2factor_new(
     terms = x$terms,
     role = x$role,
@@ -118,8 +121,8 @@ bake.step_bin2factor <- function(object, new_data, ...) {
 
 print.step_bin2factor <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Dummy variable to factor conversion for ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Dummy variable to factor conversion for "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

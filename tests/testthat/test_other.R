@@ -107,6 +107,18 @@ test_that('low threshold - no removals', {
   expect_equal(okc_te$location, as.character(others_te$location))
 })
 
+test_that('zero threshold - no removals', {
+  others <- rec %>% step_other(diet, location, threshold = 0, other = "another")
+  others <- prep(others, training = okc_tr, strings_as_factors = FALSE)
+  others_te <- bake(others, new_data = okc_te)
+
+  expect_equal(is.na(okc_te$diet), is.na(others_te$diet))
+  expect_equal(is.na(okc_te$location), is.na(others_te$location))
+
+  expect_equal(okc_te$diet, as.character(others_te$diet))
+  expect_equal(okc_te$location, as.character(others_te$location))
+})
+
 
 test_that('factor inputs', {
 
@@ -288,4 +300,43 @@ test_that('issue #415 -  strings to factor conversion', {
     regex = NA
   )
   expect_equal(names(res), names(iris[, 1:4]))
+})
+
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_other(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_other(rec)
+
+  expect <- tibble(terms = character(), retained = character(), id = character())
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("empty printing", {
+  skip_if(packageVersion("rlang") < "1.0.0")
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_other(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })

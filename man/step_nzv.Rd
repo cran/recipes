@@ -38,11 +38,11 @@ below).}
 
 \item{removals}{A character string that contains the names of
 columns that should be removed. These values are not determined
-until \code{\link[=prep.recipe]{prep.recipe()}} is called.}
+until \code{\link[=prep]{prep()}} is called.}
 
 \item{skip}{A logical. Should the step be skipped when the
-recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
-when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
+recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
+when \code{\link[=prep]{prep()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
 the computations for subsequent operations.}
@@ -59,6 +59,11 @@ that will potentially remove variables that are highly sparse
 and unbalanced.
 }
 \details{
+This step can potentially remove columns from the data set. This may
+cause issues for subsequent steps in your recipe if the missing columns are
+specifically referenced by name. To avoid this, see the advice in the
+\emph{Tips for saving recipes and filtering columns} section of \link{selections}.
+
 This step diagnoses predictors that have one unique
 value (i.e. are zero variance predictors) or predictors that have
 both of the following characteristics:
@@ -82,10 +87,12 @@ number of samples (times 100), must also be below
 
 In the above example, the frequency ratio is 999 and the unique
 value percent is 0.2\%.
-
-When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} (the columns
-that will be removed) is returned.
 }
+\section{Tidying}{
+When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
+\code{terms} (the columns that will be removed) is returned.
+}
+
 \examples{
 library(modeldata)
 data(biomass)
@@ -113,6 +120,7 @@ tidy(filter_obj, number = 1)
 \seealso{
 Other variable filter steps: 
 \code{\link{step_corr}()},
+\code{\link{step_filter_missing}()},
 \code{\link{step_lincomb}()},
 \code{\link{step_rm}()},
 \code{\link{step_select}()},

@@ -15,8 +15,10 @@
 #'  zero and one and translates them to be on the real line using
 #'  the function `f(p) = log(p/(1-p))`.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms`
-#'  (the columns that will be affected) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the columns that will be affected) is returned.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(runif(40), ncol = 2)
@@ -45,7 +47,7 @@ step_logit <-
            id = rand_id("logit")) {
     add_step(recipe,
              step_logit_new(
-               terms = ellipse_check(...),
+               terms = enquos(...),
                offset = offset,
                role = role,
                trained = trained,
@@ -106,8 +108,8 @@ bake.step_logit <- function(object, new_data, ...) {
 
 print.step_logit <-
   function(x, width = max(20, options()$width - 33), ...) {
-    cat("Logit transformation on ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Logit transformation on "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

@@ -15,8 +15,10 @@
 #'  columns does contain values it did not contain when `prep` was called
 #'  on the recipe. If the check passes, nothing is changed to the data.
 #'
-#'  When you [`tidy()`] this check, a tibble with columns `terms` (the
-#'  selectors or variables selected) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this check, a tibble with columns
+#'  `terms` (the selectors or variables selected) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -28,8 +30,8 @@
 #'   prep() %>%
 #'   bake(new_data = credit_data)
 #'
-#' # If `new_data` contains values not in `x` at the `prep()` function,
-#' # the `bake()` function will break.
+#' # If `new_data` contains values not in `x` at the [prep()] function,
+#' # the [bake()] function will break.
 #' \dontrun{
 #' recipe(credit_data %>% dplyr::filter(Home != "rent")) %>%
 #'   check_new_values(Home) %>%
@@ -64,7 +66,7 @@ check_new_values <-
     add_check(
       recipe,
       check_new_values_new(
-        terms   = ellipse_check(...),
+        terms   = enquos(...),
         role    = role,
         trained = trained,
         columns = columns,
@@ -138,8 +140,8 @@ bake.check_new_values <- function(object,
 
 print.check_new_values <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Checking no new_values for ", sep = "")
-    printer(names(x$values), x$terms, x$trained, width = width)
+    title <- "Checking no new_values for "
+    print_step(names(x$values), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -147,9 +149,10 @@ print.check_new_values <-
 #' @export
 tidy.check_new_values <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = x$columns)
+    res <- tibble(terms = unname(x$columns))
   } else {
     res <- tibble(terms = sel2char(x$terms))
   }
+  res$id <- x$id
   res
 }

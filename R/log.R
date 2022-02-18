@@ -15,8 +15,12 @@
 #' @template step-return
 #' @family individual transformation steps
 #' @export
-#' @details When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected) and `base`.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected) and `base`.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(exp(rnorm(40)), ncol = 2)
@@ -65,7 +69,7 @@ step_log <-
     add_step(
       recipe,
       step_log_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         base = base,
@@ -139,9 +143,9 @@ bake.step_log <- function(object, new_data, ...) {
 
 print.step_log <-
   function(x, width = max(20, options()$width - 31), ...) {
-    msg <- ifelse(x$signed, "Signed log ", "Log ")
-    cat(msg, "transformation on ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    msg <- ifelse(x$signed, "Signed log", "Log")
+    title <- glue::glue("{msg} transformation on ")
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

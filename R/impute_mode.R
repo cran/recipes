@@ -6,7 +6,7 @@
 #'
 #' @inheritParams step_center
 #' @param modes A named character vector of modes. This is
-#'  `NULL` until computed by [prep.recipe()].
+#'  `NULL` until computed by [prep()].
 #' @param ptype A data frame prototype to cast new data sets to. This is
 #'  commonly a 0-row slice of the training set.
 #' @template step-return
@@ -18,12 +18,14 @@
 #'  values to new data sets using these values. If the training set
 #'  data has more than one mode, one is selected at random.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `model` (the mode
-#'  value) is returned.
-#'
 #'  As of `recipes` 0.1.16, this function name changed from `step_modeimpute()`
 #'    to `step_impute_mode()`.
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `model` (the mode
+#' value) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -65,7 +67,7 @@ step_impute_mode <-
     add_step(
       recipe,
       step_impute_mode_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         modes = modes,
@@ -167,8 +169,8 @@ bake.step_modeimpute <- bake.step_impute_mode
 #' @export
 print.step_impute_mode <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Mode Imputation for ", sep = "")
-    printer(names(x$modes), x$terms, x$trained, width = width)
+    title <- "Mode imputation for "
+    print_step(names(x$modes), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -189,7 +191,7 @@ mode_est <- function(x) {
 tidy.step_impute_mode <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble(terms = names(x$modes),
-                  model = x$modes)
+                  model = unname(x$modes))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names, model = na_chr)

@@ -14,7 +14,7 @@
 #' @param other A single character value for the "other" category.
 #' @param objects A list of objects that contain the information
 #'  to pool infrequent levels that is determined by
-#'  [prep.recipe()].
+#'  [prep()].
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @seealso [dummy_names()]
@@ -26,7 +26,7 @@
 #'
 #' If no pooling is done the data are unmodified (although character data may
 #'   be changed to factors based on the value of `strings_as_factors` in
-#'   [prep.recipe()]). Otherwise, a factor is always returned with
+#'   [prep()]). Otherwise, a factor is always returned with
 #'   different factor levels.
 #'
 #' If `threshold` is less than the largest category proportion, all levels
@@ -42,9 +42,11 @@
 #' When data to be processed contains novel levels (i.e., not
 #' contained in the training set), the other category is assigned.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected) and `retained` (the factor
-#'  levels that were not pulled into "other") is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected) and `retained` (the factor
+#' levels that were not pulled into "other") is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -96,8 +98,8 @@ step_other <-
            skip = FALSE,
            id = rand_id("other")) {
     if (!is_tune(threshold) & !is_varying(threshold)) {
-      if (threshold <= 0) {
-        rlang::abort("`threshold` should be greater than zero")
+      if (threshold < 0) {
+        rlang::abort("`threshold` should be non-negative.")
       }
       if (threshold >= 1 && !is_integerish(threshold)) {
         rlang::abort("If `threshold` is greater than one it should be an integer.")
@@ -106,7 +108,7 @@ step_other <-
     add_step(
       recipe,
       step_other_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         threshold = threshold,
@@ -137,14 +139,10 @@ step_other_new <-
 prep.step_other <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
 
-  if (length(col_names) > 0) {
-    objects <- lapply(training[, col_names],
-                      keep_levels,
-                      threshold = x$threshold,
-                      other = x$other)
-  } else {
-    objects <- NULL
-  }
+  objects <- lapply(training[, col_names],
+                    keep_levels,
+                    threshold = x$threshold,
+                    other = x$other)
 
   step_other_new(
     terms = x$terms,
@@ -160,27 +158,25 @@ prep.step_other <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_other <- function(object, new_data, ...) {
-  if (!is.null(object$objects)) {
-    for (i in names(object$objects)) {
-      if (object$objects[[i]]$collapse) {
-        tmp <- if (!is.character(new_data[, i]))
-          as.character(getElement(new_data, i))
-        else
-          getElement(new_data, i)
+  for (i in names(object$objects)) {
+    if (object$objects[[i]]$collapse) {
+      tmp <- if (!is.character(new_data[, i]))
+        as.character(getElement(new_data, i))
+      else
+        getElement(new_data, i)
 
-        tmp <- ifelse(
-          !(tmp %in% object$objects[[i]]$keep) & !is.na(tmp),
-          object$objects[[i]]$other,
-          tmp
-        )
+      tmp <- ifelse(
+        !(tmp %in% object$objects[[i]]$keep) & !is.na(tmp),
+        object$objects[[i]]$other,
+        tmp
+      )
 
-        # assign other factor levels other here too.
-        tmp <- factor(tmp,
-                      levels = c(object$objects[[i]]$keep,
-                                 object$objects[[i]]$other))
+      # assign other factor levels other here too.
+      tmp <- factor(tmp,
+                    levels = c(object$objects[[i]]$keep,
+                               object$objects[[i]]$other))
 
-        new_data[, i] <- tmp
-      }
+      new_data[, i] <- tmp
     }
   }
   if (!is_tibble(new_data))
@@ -191,21 +187,16 @@ bake.step_other <- function(object, new_data, ...) {
 print.step_other <-
   function(x, width = max(20, options()$width - 30), ...) {
 
-    if (x$trained) {
-      collapsed <- map_lgl(x$objects, ~ .x$collapse)
-      collapsed <- names(collapsed)[collapsed]
-      if (length(collapsed) > 0) {
-        cat("Collapsing factor levels for ", sep = "")
-        printer(collapsed, x$terms, x$trained, width = width)
-      } else {
-        cat("No factor levels were collapsed\n")
-      }
-    } else {
-      cat("Collapsing factor levels for ", sep = "")
-      printer(names(x$objects), x$terms, x$trained, width = width)
-    }
-    invisible(x)
+  title <- "Collapsing factor levels for "
+  if (x$trained) {
+    columns <- map_lgl(x$objects, ~ .x$collapse)
+    columns <- names(columns)[columns]
+  } else {
+    columns <- names(x$objects)
   }
+  print_step(columns, x$terms, x$trained, title, width)
+  invisible(x)
+}
 
 keep_levels <- function(x, threshold = .1, other = "other") {
   if (!is.factor(x))
@@ -250,8 +241,9 @@ tidy.step_other <- function(x, ...) {
   if (is_trained(x)) {
     values <- purrr::map(x$objects, function(x) x$keep)
     n <- vapply(values, length, integer(1))
+    values <- vctrs::vec_unchop(values, ptype = character(), name_spec = rlang::zap())
     res <- tibble(terms = rep(names(n), n),
-                  retained = unname(unlist(values)))
+                  retained = values)
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names,
@@ -261,8 +253,6 @@ tidy.step_other <- function(x, ...) {
   res
 }
 
-
-#' @rdname tunable.recipe
 #' @export
 tunable.step_other <- function(x, ...) {
   tibble::tibble(

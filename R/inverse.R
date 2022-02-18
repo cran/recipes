@@ -11,8 +11,12 @@
 #' @template step-return
 #' @family individual transformation steps
 #' @export
-#' @details When you [`tidy()`] this step, a tibble with columns `terms`
-#' (the columns that will be affected) is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected) is returned.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(runif(40), ncol = 2)
@@ -41,7 +45,7 @@ step_inverse <-
            id = rand_id("inverse")) {
     add_step(recipe,
              step_inverse_new(
-               terms = ellipse_check(...),
+               terms = enquos(...),
                role = role,
                offset = offset,
                trained = trained,
@@ -93,8 +97,8 @@ bake.step_inverse <- function(object, new_data, ...) {
 
 print.step_inverse <-
   function(x, width = max(20, options()$width - 33), ...) {
-    cat("Inverse transformation on ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Inverse transformation on "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

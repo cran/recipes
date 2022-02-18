@@ -10,9 +10,9 @@
 #'  Available options are currently `nthread` and `eps`.
 #' @param ref_data A tibble of data that will reflect the data preprocessing
 #'  done up to the point of this imputation step. This is `NULL` until the step
-#'  is trained by [prep.recipe()].
+#'  is trained by [prep()].
 #' @param columns The column names that will be imputed and used for
-#'  imputation. This is `NULL` until the step is trained by [prep.recipe()].
+#'  imputation. This is `NULL` until the step is trained by [prep()].
 #' @template step-return
 #' @family imputation steps
 #' @export
@@ -30,12 +30,14 @@
 #' It is possible that missing values will still occur after imputation if a
 #'  large majority (or all) of the imputing variables are also missing.
 #'
-#' When you [`tidy()`] this step, a tibble with
-#'  columns `terms` (the selectors or variables for imputation), `predictors`
-#'  (those variables used to impute), and `neighbors` is returned.
-#'
 #' As of `recipes` 0.1.16, this function name changed from `step_knnimpute()`
 #'    to `step_impute_knn()`.
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables for imputation), `predictors`
+#' (those variables used to impute), and `neighbors` is returned.
 #'
 #' @references Gower, C. (1971) "A general coefficient of similarity and some
 #'  of its properties," Biometrics, 857-871.
@@ -112,7 +114,7 @@ step_impute_knn <-
     add_step(
       recipe,
       step_impute_knn_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         neighbors = neighbors,
@@ -272,8 +274,8 @@ print.step_impute_knn <-
   function(x, width = max(20, options()$width - 31), ...) {
     all_x_vars <- lapply(x$columns, function(x) x$x)
     all_x_vars <- unique(unlist(all_x_vars))
-    cat("K-nearest neighbor imputation for ", sep = "")
-    printer(all_x_vars, x$terms, x$trained, width = width)
+    title <- "K-nearest neighbor imputation for "
+    print_step(all_x_vars, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -285,15 +287,14 @@ print.step_knnimpute <- print.step_impute_knn
 #' @export
 tidy.step_impute_knn <- function(x, ...) {
   if (is_trained(x)) {
-    res <- purrr::map_df(x$columns,
-                         function(x)
-                           data.frame(
-                             terms = unname(x$y),
-                             predictors = unname(x$x),
-                             stringsAsFactors = FALSE
-                           )
+    terms <- purrr::map(x$columns, function(x) unname(x$y))
+    predictors <- purrr::map(x$columns, function(x) unname(x$x))
+    res <- tibble(terms = terms, predictors = predictors)
+    res <- tidyr::unchop(
+      data = res,
+      cols = tidyselect::all_of(c("terms", "predictors")),
+      ptype = list(terms = character(), predictors = character())
     )
-    res <- as_tibble(res)
     res$neighbors <- rep(x$neighbors, nrow(res))
   } else {
     term_names <- sel2char(x$terms)
@@ -307,7 +308,6 @@ tidy.step_impute_knn <- function(x, ...) {
 #' @keywords internal
 tidy.step_knnimpute <- tidy.step_impute_knn
 
-#' @rdname tunable.recipe
 #' @export
 tunable.step_impute_knn <- function(x, ...) {
   tibble::tibble(

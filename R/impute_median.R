@@ -6,7 +6,7 @@
 #'
 #' @inheritParams step_center
 #' @param medians A named numeric vector of medians. This is `NULL` until
-#'  computed by [prep.recipe()]. Note that, if the original data are integers,
+#'  computed by [prep()]. Note that, if the original data are integers,
 #'  the median will be converted to an integer to maintain the same data type.
 #' @template step-return
 #' @family imputation steps
@@ -15,12 +15,14 @@
 #'  used in the `training` argument of `prep.recipe`. `bake.recipe` then applies
 #'  the new values to new data sets using these medians.
 #'
-#' When you [`tidy()`] this step, a tibble with
-#'  columns `terms` (the selectors or variables selected) and `model` (the
-#'  median value) is returned.
-#'
 #'  As of `recipes` 0.1.16, this function name changed from
 #'    `step_medianimpute()` to `step_impute_median()`.
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with
+#' columns `terms` (the selectors or variables selected) and `model`
+#' (themedian value) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -62,7 +64,7 @@ step_impute_median <-
     add_step(
       recipe,
       step_impute_median_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         medians = medians,
@@ -151,8 +153,8 @@ bake.step_medianimpute <- bake.step_impute_median
 #' @export
 print.step_impute_median <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Median Imputation for ", sep = "")
-    printer(names(x$medians), x$terms, x$trained, width = width)
+    title <- "Median imputation for "
+    print_step(names(x$medians), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -165,7 +167,7 @@ print.step_medianimpute <- print.step_impute_median
 tidy.step_impute_median <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble(terms = names(x$medians),
-                  model = unlist(x$medians))
+                  model = vctrs::vec_unchop(unname(x$medians), ptype = double()))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names, model = na_dbl)

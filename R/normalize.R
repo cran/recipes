@@ -6,9 +6,9 @@
 #'
 #' @inheritParams step_center
 #' @param means A named numeric vector of means. This is
-#'  `NULL` until computed by [prep.recipe()].
+#'  `NULL` until computed by [prep()].
 #' @param sds A named numeric vector of standard deviations This
-#'  is `NULL` until computed by [prep.recipe()].
+#'  is `NULL` until computed by [prep()].
 #' @param na_rm A logical value indicating whether `NA`
 #'  values should be removed when computing the standard deviation and mean.
 #' @template step-return
@@ -21,9 +21,12 @@
 #'  `prep.recipe`. [`bake.recipe`] then applies the scaling to new data sets using
 #'  these estimates.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected), `value` (the standard deviations and
-#'  means), and `statistic` for the type of value is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected), `value` (the standard
+#'  deviations and means), and `statistic` for the type of value is
+#'  returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -69,7 +72,7 @@ step_normalize <-
     add_step(
       recipe,
       step_normalize_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         means = means,
@@ -127,8 +130,8 @@ bake.step_normalize <- function(object, new_data, ...) {
 
 print.step_normalize <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Centering and scaling for ", sep = "")
-    printer(names(x$sds), x$terms, x$trained, width = width)
+    title <- "Centering and scaling for "
+    print_step(names(x$sds), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -139,7 +142,7 @@ tidy.step_normalize <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble(terms = c(names(x$means), names(x$sds)),
                   statistic = rep(c("mean", "sd"), each = length(x$sds)),
-                  value = c(x$means, x$sds))
+                  value = unname(c(x$means, x$sds)))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names,

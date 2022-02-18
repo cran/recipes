@@ -1,4 +1,4 @@
-#' Create Dummy Variables using Regular Expressions
+#' Detect a regular expression
 #'
 #' `step_regex` creates a *specification* of a recipe step that will
 #'   create a new dummy variable based on a regular expression.
@@ -18,11 +18,15 @@
 #'  variable. It should be a valid column name.
 #' @param input A single character value for the name of the
 #'  variable being searched. This is `NULL` until computed by
-#'  [prep.recipe()].
+#'  [prep()].
 #' @template step-return
-#' @details When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `result` (the
-#'  new column name) is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `result` (the
+#' new column name) is returned.
 #' @family dummy variable and encoding steps
 #' @export
 #' @examples
@@ -64,9 +68,9 @@ step_regex <- function(recipe,
                         paste0(valid_args, collapse = ", ")))
   }
 
-  terms <- ellipse_check(...)
+  terms <- enquos(...)
   if (length(terms) > 1)
-    rlang::abort("For this step, only a single selector can be used.")
+    rlang::abort("For this step, at most a single selector can be used.")
 
   add_step(
     recipe,
@@ -104,8 +108,8 @@ step_regex_new <-
 prep.step_regex <- function(x, training, info = NULL, ...) {
   col_name <- recipes_eval_select(x$terms, training, info)
 
-  if (length(col_name) != 1)
-    rlang::abort("The selector should only select a single variable")
+  if (length(col_name) > 1)
+    rlang::abort("The selector should select at most a single variable")
   if (any(info$type[info$variable %in% col_name] != "nominal"))
     rlang::abort("The regular expression input should be character or factor")
 
@@ -123,6 +127,12 @@ prep.step_regex <- function(x, training, info = NULL, ...) {
 }
 
 bake.step_regex <- function(object, new_data, ...) {
+  if (length(object$input) == 0) {
+    # Handle empty selection by adding an all `0` column
+    new_data[[object$result]] <- rep(0, times = nrow(new_data))
+    return(new_data)
+  }
+
   ## sub in options
   regex <- expr(
     grepl(
@@ -143,14 +153,10 @@ bake.step_regex <- function(object, new_data, ...) {
 
 print.step_regex <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Regular expression dummy variable using `",
-        x$pattern,
-        "`",
-        sep = "")
-    if (x$trained)
-      cat(" [trained]\n")
-    else
-      cat("\n")
+    title <- "Regular expression dummy variable using "
+    pattern <- glue::glue("\"{x$pattern}\"")
+    untrained_terms <- rlang::parse_quos(pattern, rlang::current_env())
+    print_step(pattern, untrained_terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -162,7 +168,7 @@ tidy.step_regex <- function(x, ...) {
   p <- length(term_names)
   if (is_trained(x)) {
     res <- tibble(terms = term_names,
-                  result = rep(x$result, p))
+                  result = rep(unname(x$result), p))
   } else {
     res <- tibble(terms = term_names,
                   result = rep(na_chr, p))

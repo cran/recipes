@@ -21,11 +21,15 @@
 #' @param naming A function that defines the naming convention for
 #'  new ratio columns.
 #' @param columns The column names used in the ratios. This
-#'  argument is not populated until [prep.recipe()] is
+#'  argument is not populated until [prep()] is
 #'  executed.
 #' @template step-return
-#' @details When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `denom` is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `denom` is returned.
 #' @family multivariate transformation steps
 #' @export
 #' @examples
@@ -74,7 +78,7 @@ step_ratio <-
     add_step(
       recipe,
       step_ratio_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         denom = denom,
@@ -112,10 +116,9 @@ prep.step_ratio <- function(x, training, info = NULL, ...) {
     bottom = recipes_eval_select(x$denom, training, info),
     stringsAsFactors = FALSE
   )
+  col_names <- tibble::as_tibble(col_names)
   col_names <- col_names[!(col_names$top == col_names$bottom), ]
 
-  if (nrow(col_names) == 0)
-    rlang::abort("No variables were selected for making ratios")
   if (any(info$type[info$variable %in% col_names$top] != "numeric"))
     rlang::abort("The ratio variables should be numeric")
   if (any(info$type[info$variable %in% col_names$bottom] != "numeric"))
@@ -136,13 +139,19 @@ prep.step_ratio <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_ratio <- function(object, new_data, ...) {
-  res <- new_data[, object$columns$top] /
-    new_data[, object$columns$bottom]
-  colnames(res) <-
-    apply(object$columns, 1, function(x)
-      object$naming(x[1], x[2]))
-  if (!is_tibble(res))
-    res <- as_tibble(res)
+  res <- purrr::map2(
+    new_data[, object$columns$top],
+    new_data[, object$columns$bottom],
+    `/`
+  )
+
+  names(res) <- apply(
+    object$columns,
+    MARGIN = 1,
+    function(x) object$naming(x[1], x[2])
+  )
+
+  res <- tibble::new_tibble(res, nrow = nrow(new_data))
 
   keep_original_cols <- get_keep_original_cols(object)
   new_data <- bind_cols(new_data, res)
@@ -159,16 +168,9 @@ bake.step_ratio <- function(object, new_data, ...) {
 
 print.step_ratio <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Ratios from ")
-    if (x$trained) {
-      vars <- c(unique(x$columns$top), unique(x$columns$bottom))
-      cat(format_ch_vec(vars, width = width))
-    } else
-      cat(format_selectors(c(x$terms, x$denom), width = width))
-    if (x$trained)
-      cat(" [trained]\n")
-    else
-      cat("\n")
+    title <- "Ratios from "
+    vars <- c(unique(x$columns$top), unique(x$columns$bottom))
+    print_step(vars, c(x$terms, x$denom), x$trained, title, width)
     invisible(x)
   }
 

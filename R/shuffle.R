@@ -7,10 +7,14 @@
 #' @inheritParams step_center
 #' @param columns A character string that contains the names of
 #'  columns that should be shuffled. These values are not determined
-#'  until [prep.recipe()] is called.
+#'  until [prep()] is called.
 #' @template step-return
-#' @details When you [`tidy()`] this step, a tibble with column `terms` (the
-#' columns that will be permuted) is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#' `terms` (the columns that will be permuted) is returned.
 #' @family row operation steps
 #' @export
 #' @examples
@@ -37,7 +41,7 @@ step_shuffle <- function(recipe,
                          id = rand_id("shuffle")) {
   add_step(recipe,
            step_shuffle_new(
-             terms = ellipse_check(...),
+             terms = enquos(...),
              role = role,
              trained = trained,
              columns = columns,
@@ -87,8 +91,8 @@ bake.step_shuffle <- function(object, new_data, ...) {
 
 print.step_shuffle <-
   function(x, width = max(20, options()$width - 22), ...) {
-    cat("Shuffled ")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Shuffled "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

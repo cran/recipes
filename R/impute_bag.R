@@ -20,7 +20,7 @@
 #' @param seed_val An integer used to create reproducible models. The same seed
 #'  is used across all imputation models.
 #' @param models The [ipred::ipredbagg()] objects are stored here once this
-#'  bagged trees have be trained by [prep.recipe()].
+#'  bagged trees have be trained by [prep()].
 #' @template step-return
 #' @family imputation steps
 #' @export
@@ -38,11 +38,14 @@
 #'   It is possible that missing values will still occur after imputation if a
 #'  large majority (or all) of the imputing variables are also missing.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the selectors
-#'  or variables selected) and `model` (the bagged tree object) is returned.
-#'
 #'  As of `recipes` 0.1.16, this function name changed from `step_bagimpute()`
 #'    to `step_impute_bag()`.
+#'
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `model`
+#'  (the bagged tree object) is returned.
 #' @references Kuhn, M. and Johnson, K. (2013). *Applied Predictive Modeling*.
 #'  Springer Verlag.
 #' @examples
@@ -110,7 +113,7 @@ step_impute_bag <-
     add_step(
       recipe,
       step_impute_bag_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         impute_with = impute_with,
@@ -283,8 +286,8 @@ bake.step_bagimpute <- bake.step_impute_bag
 #' @export
 print.step_impute_bag <-
   function(x, width = max(20, options()$width - 31), ...) {
-    cat("Bagged tree imputation for ", sep = "")
-    printer(names(x$models), x$terms, x$trained, width = width)
+    title <- "Bagged tree imputation for "
+    print_step(names(x$models), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -301,10 +304,10 @@ imp_vars <- function(...) quos(...)
 tidy.step_impute_bag <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble(terms = names(x$models),
-                  model = x$models)
+                  model = unname(x$models))
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names, model = NA)
+    res <- tibble(terms = term_names, model = list(NULL))
   }
   res$id <- x$id
   res
@@ -316,7 +319,6 @@ tidy.step_bagimpute <- tidy.step_impute_bag
 
 # ------------------------------------------------------------------------------
 
-#' @rdname tunable.recipe
 #' @export
 tunable.step_impute_bag <- function(x, ...) {
   tibble::tibble(

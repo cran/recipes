@@ -10,7 +10,7 @@
 #' @param ref_level A single character value that will be used to
 #'  relevel the factor column(s) (if the level is present).
 #' @param objects A list of objects that contain the information
-#'  on factor levels that will be determined by [prep.recipe()].
+#'  on factor levels that will be determined by [prep()].
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @export
@@ -45,7 +45,7 @@ step_relevel <-
     add_step(
       recipe,
       step_relevel_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         ref_level = ref_level,
@@ -133,8 +133,8 @@ bake.step_relevel <- function(object, new_data, ...) {
 
 print.step_relevel <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Re-order factor level to ref_level for ", sep = "")
-    printer(names(x$objects), x$terms, x$trained, width = width)
+    title <- "Re-order factor level to ref_level for "
+    print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }
 

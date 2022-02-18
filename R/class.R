@@ -10,7 +10,7 @@
 #' @param allow_additional If `TRUE` a variable is allowed to
 #'  have additional classes to the one(s) that are checked.
 #' @param class_list A named list of column classes. This is
-#'  `NULL` until computed by [prep.recipe()].
+#'  `NULL` until computed by [prep()].
 #' @template check-return
 #'
 #' @family checks
@@ -29,8 +29,11 @@
 #'  the check will be break `bake` when `strings_as_factors` is
 #'  `TRUE`.
 #'
-#'  When you [`tidy()`] this check, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the type) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this check, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `value` (the type)
+#'  is returned.
 #'
 #' @examples
 #' library(dplyr)
@@ -83,7 +86,7 @@ check_class <-
     add_check(
       recipe,
       check_class_new(
-        terms            = ellipse_check(...),
+        terms            = enquos(...),
         trained          = trained,
         role             = role,
         class_nm         = class_nm,
@@ -188,15 +191,15 @@ bake.check_class <- function(object,
          new_data[ ,col_names],
          object$class_list,
          col_names,
-         aa = object$allow_additional)
+         MoreArgs = list(aa = object$allow_additional))
 
   as_tibble(new_data)
 }
 
 print.check_class <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Checking the class(es) for ", sep = "")
-    printer(names(x$class_list), x$terms, x$trained, width = width)
+    title <- "Checking the class(es) for "
+    print_step(names(x$class_list), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -205,13 +208,16 @@ print.check_class <-
 #' @export
 tidy.check_class <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = names(x$class_list),
-                  value = sapply(x$class_list,
-                                 function(x) paste0(x, collapse = "-")))
+    values <- vapply(
+      unname(x$class_list),
+      FUN = function(x) paste0(x, collapse = "-"),
+      FUN.VALUE = character(1)
+    )
+    res <- tibble(terms = names(x$class_list), value = values)
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names,
-                  value = na_chr)
+    res <- tibble(terms = term_names, value = na_chr)
   }
+  res$id <- x$id
   res
 }

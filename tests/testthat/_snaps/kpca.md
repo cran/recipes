@@ -40,7 +40,7 @@
       
       Operations:
       
-      Kernel PCA (rbfdot) extraction with X2, X3, X4, X5, X6 [trained]
+      Kernel PCA extraction with X2, X3, X4, X5, X6 [trained]
 
 # No kPCA comps
 
@@ -65,14 +65,49 @@
       
       Operations:
       
-      No kPCA components were extracted.
-       [trained]
+      Kernel PCA extraction with X2, X3, X4, X5, X6 [trained]
 
 # can prep recipes with no keep_original_cols
 
     Code
       kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE)
-    Warning <warning>
+    Warning <rlang_warning>
       'keep_original_cols' was added to `step_kpca()` after this recipe was created.
       Regenerate your recipe to avoid this warning.
+
+# empty printing
+
+    Code
+      rec
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+         outcome          1
+       predictor         10
+      
+      Operations:
+      
+      Kernel PCA extraction with <none>
+
+---
+
+    Code
+      rec
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+         outcome          1
+       predictor         10
+      
+      Training data contained 32 data points and no missing data.
+      
+      Operations:
+      
+      Kernel PCA extraction with <none> [trained]
 

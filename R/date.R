@@ -29,7 +29,7 @@
 #'  available for features `month` or `dow`.
 #' @param columns A character string of variables that will be
 #'  used as inputs. This field is a placeholder and will be
-#'  populated once [prep.recipe()] is used.
+#'  populated once [prep()] is used.
 #' @param keep_original_cols A logical to keep the original variables in the
 #'  output. Defaults to `TRUE`.
 #' @template step-return
@@ -39,8 +39,10 @@
 #'  remove the original date variables by default. Set `keep_original_cols`
 #'  to `FALSE` to remove them.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms`
-#'  (the selectors or variables selected), `value` (the feature
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected), `value` (the feature
 #'  names), and `ordinal` (a logical) is returned.
 #'
 #' @examples
@@ -92,7 +94,7 @@ step_date <-
   add_step(
     recipe,
     step_date_new(
-      terms = ellipse_check(...),
+      terms = enquos(...),
       role = role,
       trained = trained,
       features = features,
@@ -258,8 +260,8 @@ bake.step_date <- function(object, new_data, ...) {
 
 print.step_date <-
   function(x, width = max(20, options()$width - 29), ...) {
-    cat("Date features from ")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Date features from "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -268,7 +270,7 @@ print.step_date <-
 tidy.step_date <- function(x, ...) {
   if (is_trained(x)) {
     res <- tidyr::crossing(
-      terms = x$columns,
+      terms = unname(x$columns),
       value = x$features,
       ordinal = x$ordinal
     )

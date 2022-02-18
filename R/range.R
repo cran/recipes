@@ -11,7 +11,7 @@
 #'  range.
 #' @param ranges A character vector of variables that will be
 #'  normalized. Note that this is ignored until the values are
-#'  determined by [prep.recipe()]. Setting this value will
+#'  determined by [prep()]. Setting this value will
 #'  be ineffective.
 #' @template step-return
 #' @family normalization steps
@@ -20,8 +20,11 @@
 #'  the training set, the new values are truncated at `min` or
 #'  `max`.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected), `min`, and `max` is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected), `min`, and `max` is
+#'  returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -59,7 +62,7 @@ step_range <-
     add_step(
       recipe,
       step_range_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         min = min,
@@ -125,8 +128,8 @@ bake.step_range <- function(object, new_data, ...) {
 
 print.step_range <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Range scaling to [", x$min, ",", x$max, "] for ", sep = "")
-    printer(colnames(x$ranges), x$terms, x$trained, width = width)
+    title <- glue::glue("Range scaling to [{x$min},{x$max}] for ")
+    print_step(colnames(x$ranges), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -134,9 +137,9 @@ print.step_range <-
 #' @export
 tidy.step_range <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = colnames(x$ranges),
-                  min = x$ranges["mins",],
-                  max = x$ranges["maxs",])
+    res <- tibble(terms = colnames(x$ranges) %||% character(),
+                  min = unname(x$ranges["mins",]),
+                  max = unname(x$ranges["maxs",]))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names,

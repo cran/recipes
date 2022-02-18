@@ -7,7 +7,7 @@
 #' @inheritParams step_center
 #' @param columns A character string of variables that will be
 #'  converted. This is `NULL` until computed by
-#'  [prep.recipe()].
+#'  [prep()].
 #' @param convert A function that takes an ordinal factor vector
 #'  as an input and outputs a single numeric variable.
 #' @template step-return
@@ -21,8 +21,10 @@
 #'  a linear scale (1, 2, 3, ... `C`) but custom score
 #'  functions can also be used (see the example below).
 #'
-#' When you [`tidy()`] this step, a tibble with column `terms` (the
-#'  columns that will be affected) is returned.
+#'  # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#' `terms` (the columns that will be affected) is returned.
 #'
 #' @examples
 #' fail_lvls <- c("meh", "annoying", "really_bad")
@@ -72,7 +74,7 @@ step_ordinalscore <-
     add_step(
       recipe,
       step_ordinalscore_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         columns = columns,
@@ -131,8 +133,8 @@ bake.step_ordinalscore <- function(object, new_data, ...) {
 
 print.step_ordinalscore <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Scoring for ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Scoring for "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

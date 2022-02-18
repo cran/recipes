@@ -9,7 +9,7 @@
 #'  these columns must be non-integer numerics (i.e., double precision).
 #'  See [selections()] for more details.
 #' @param columns A named numeric vector of columns. This is
-#'  `NULL` until computed by [prep.recipe()].
+#'  `NULL` until computed by [prep()].
 #' @param window The size of the window around a point to be imputed. Should be
 #'  an odd integer greater than one. See Details below for a discussion of
 #'  points at the ends of the series.
@@ -35,11 +35,14 @@
 #'  does not know anything about previous imputations in the series
 #'  prior to the current point.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `window` (the window size) is returned.
-#'
 #'  As of `recipes` 0.1.16, this function name changed from `step_rollimpute()`
 #'    to `step_impute_roll()`.
+#'
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `window`
+#'  (the window size) is returned.
 #'
 #' @examples
 #' library(lubridate)
@@ -85,7 +88,7 @@ step_impute_roll <-
     add_step(
       recipe,
       step_impute_roll_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         columns = columns,
@@ -218,8 +221,8 @@ bake.step_rollimpute <- bake.step_impute_roll
 #' @export
 print.step_impute_roll <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Rolling Imputation for ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Rolling imputation for "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -231,10 +234,10 @@ print.step_rollimpute <- print.step_impute_roll
 #' @export
 tidy.step_impute_roll <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = unname(x$columns), window = x$window)
+    res <- tibble(terms = unname(x$columns), window = unname(x$window))
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names, window = x$window)
+    res <- tibble(terms = term_names, window = unname(x$window))
   }
   res$id <- x$id
   res
@@ -244,7 +247,6 @@ tidy.step_impute_roll <- function(x, ...) {
 #' @keywords internal
 tidy.step_rollimpute <- tidy.step_impute_roll
 
-#' @rdname tunable.recipe
 #' @export
 tunable.step_impute_roll <- function(x, ...) {
   tibble::tibble(

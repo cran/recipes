@@ -1,4 +1,4 @@
-#' Dummy Variables Creation
+#' Create traditional dummy variables
 #'
 #' `step_dummy()` creates a *specification* of a recipe
 #'  step that will convert nominal data (e.g. character or factors)
@@ -19,7 +19,7 @@
 #' @param levels A list that contains the information needed to
 #'  create dummy variables for each variable contained in
 #'  `terms`. This is `NULL` until the step is trained by
-#'  [prep.recipe()].
+#'  [prep()].
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @seealso [dummy_names()]
@@ -51,7 +51,7 @@
 #' the results. See [step_other()] for an alternative.
 #'
 #' If no columns are selected (perhaps due to an earlier `step_zv()`),
-#'  `bake()` will return the data as-is (e.g. with no dummy variables).
+#'  [bake()] will return the data as-is (e.g. with no dummy variables).
 #'
 #' Note that, by default, the new dummy variable column names obey the naming
 #' rules for columns. If there are levels such as "0", [dummy_names()] will put
@@ -62,9 +62,11 @@
 #' The [package vignette for dummy variables](https://recipes.tidymodels.org/articles/Dummies.html)
 #' and interactions has more information.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or original variables selected) and `columns` (the
-#'  list of corresponding binary columns) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or original variables selected) and `columns`
+#'  (the list of corresponding binary columns) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -129,7 +131,7 @@ step_dummy <-
     add_step(
       recipe,
       step_dummy_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         one_hot = one_hot,
@@ -161,34 +163,12 @@ step_dummy_new <-
     )
   }
 
-passover <- function(cmd) {
-  # cat("`step_dummy()` was not able to select any columns. ",
-  #     "No dummy variables will be created.\n")
-} # figure out how to return a warning() without exiting
-
 #' @export
 prep.step_dummy <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
 
   if (length(col_names) > 0) {
-    fac_check <- vapply(training[, col_names], is.factor, logical(1))
-    if (any(!fac_check))
-      rlang::warn(
-        paste0(
-        "The following variables are not factor vectors and will be ignored: ",
-        paste0("`", names(fac_check)[!fac_check], "`", collapse = ", ")
-        )
-      )
-    col_names <- col_names[fac_check]
-    if (length(col_names) == 0) {
-      rlang::abort(
-        paste0(
-        "The `terms` argument in `step_dummy` did not select ",
-        "any factor columns."
-        )
-      )
-    }
-
+    col_names <- check_factor_vars(training, col_names, "step_dummy")
 
     ## I hate doing this but currently we are going to have
     ## to save the terms object from the original (= training)
@@ -233,6 +213,29 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     skip = x$skip,
     id = x$id
   )
+}
+
+check_factor_vars <- function(data, col_names, step_name) {
+  fac_check <- vapply(data[, col_names], is.factor, logical(1))
+  if (any(!fac_check))
+    rlang::warn(
+      paste0(
+        "The following variables are not factor vectors and will be ignored: ",
+        paste0("`", names(fac_check)[!fac_check], "`", collapse = ", ")
+      )
+    )
+  col_names <- col_names[fac_check]
+  if (length(col_names) == 0) {
+    rlang::abort(
+      paste0(
+        "The `terms` argument in `",
+        step_name,
+        "` did not select ",
+        "any factor columns."
+      )
+    )
+  }
+  col_names
 }
 
 warn_new_levels <- function(dat, lvl, details = NULL) {
@@ -328,21 +331,8 @@ bake.step_dummy <- function(object, new_data, ...) {
 
 print.step_dummy <-
   function(x, width = max(20, options()$width - 20), ...) {
-    if (x$trained) {
-      if (length(x$levels) > 0) {
-        cat("Dummy variables from ")
-        cat(format_ch_vec(names(x$levels), width = width))
-      } else {
-        cat("Dummy variables were *not* created since no columns were selected.")
-      }
-    } else {
-      cat("Dummy variables from ", sep = "")
-      cat(format_selectors(x$terms, width = width))
-    }
-    if (x$trained)
-      cat(" [trained]\n")
-    else
-      cat("\n")
+    title <- "Dummy variables from "
+    print_step(names(x$levels), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -361,7 +351,7 @@ tidy.step_dummy <- function(x, ...) {
     if (length(x$levels) > 0) {
       res <- purrr::map_dfr(x$levels, get_dummy_columns, x$one_hot, .id = "terms")
     } else {
-      res <- tibble(terms = rlang::na_chr, columns = rlang::na_chr)
+      res <- tibble(terms = character(), columns = character())
     }
   } else {
     res <- tibble(terms = sel2char(x$terms), columns = rlang::na_chr)

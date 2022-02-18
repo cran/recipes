@@ -34,14 +34,16 @@
 #'  quantile method for dates.
 #' @param columns A character string that contains the names of
 #'  columns that should be fixed and their values. These values are
-#'  not determined until [prep.recipe()] is called.
+#'  not determined until [prep()] is called.
 #' @details This step is atypical in that, when baked, the
 #'  `new_data` argument is ignored; the resulting data set is
 #'  based on the fixed and profiled variable's information.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (which
-#'  is the columns that will be affected) and `type` (fixed or
-#'  profiled) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (which is the columns that will be affected) and `type` (fixed
+#'  or profiled) is returned.
 #'
 #' @template step-return
 #' @export
@@ -120,7 +122,7 @@ step_profile <- function(recipe,
 
   add_step(recipe,
            step_profile_new(
-             terms = ellipse_check(...),
+             terms = enquos(...),
              profile = profile,
              pct = pct,
              index = index,
@@ -156,8 +158,6 @@ prep.step_profile <- function(x, training, info = NULL, ...) {
   fixed_names <- recipes_eval_select(x$terms, training, info)
   profile_name <- recipes_eval_select(x$profile, training, info)
 
-  if(length(fixed_names) == 0)
-    rlang::abort("At least one variable should be fixed")
   if(length(profile_name) != 1)
     rlang::abort("Only one variable should be profiled")
   if(any(profile_name == fixed_names))
@@ -198,7 +198,7 @@ bake.step_profile <- function(object, new_data, ...) {
   keepers <- c(names(object$columns), names(object$profile))
   # Keep the predictors in the same order
   keepers <- names(new_data)[names(new_data) %in% keepers]
-  new_data <- dplyr::select(new_data,! !keepers)
+  new_data <- dplyr::select(new_data, !!keepers)
 
   for (i in names(object$columns)) {
     new_data[[i]] <- rep(object$columns[[i]], n)
@@ -209,8 +209,8 @@ bake.step_profile <- function(object, new_data, ...) {
 
 print.step_profile <-
   function(x, width = max(20, options()$width - 22), ...) {
-    cat("Profiling data set for  ")
-    printer(names(x$profile), x$profile, x$trained, width = width)
+    title <- "Profiling data set for "
+    print_step(names(x$profile), x$profile, x$trained, title, width)
     invisible(x)
   }
 

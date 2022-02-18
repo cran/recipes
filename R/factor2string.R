@@ -6,7 +6,7 @@
 #' @inheritParams step_center
 #' @param columns A character string of variables that will be
 #'  converted. This is `NULL` until computed by
-#'  [prep.recipe()].
+#'  [prep()].
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @export
@@ -15,8 +15,10 @@
 #'  option, the string(s() produced by this step will be converted
 #'  to factors after all of the steps have been prepped.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -56,7 +58,7 @@ step_factor2string <-
     add_step(
       recipe,
       step_factor2string_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         columns = columns,
@@ -104,19 +106,19 @@ prep.step_factor2string <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_factor2string <- function(object, new_data, ...) {
-  new_data[, object$columns] <-
-    map_df(new_data[, object$columns],
-           as.character)
+  new_data[, object$columns] <- map(new_data[, object$columns], as.character)
 
-  if (!is_tibble(new_data))
+  if (!is_tibble(new_data)) {
     new_data <- as_tibble(new_data)
+  }
+
   new_data
 }
 
 print.step_factor2string <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Character variables from ")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Character variables from "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

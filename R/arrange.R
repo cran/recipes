@@ -15,9 +15,12 @@
 #'   to embed the value of the object in the expression (to
 #'   be portable between sessions). See the examples.
 #'
-#'  When you [`tidy()`] this step, a tibble with column `terms` which
-#'  contains the sorting variable(s) or expression(s) is returned. The
-#'  expressions are text representations and are not parsable.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#'  `terms` which contains the sorting variable(s) or expression(s) is
+#'  returned. The expressions are text representations and are not
+#'  parsable.
 #'
 #' @family row operation steps
 #' @family dplyr steps
@@ -119,19 +122,16 @@ bake.step_arrange <- function(object, new_data, ...) {
 
 print.step_arrange <-
   function(x, width = max(20, options()$width - 35), ...) {
-    cat("Row arrangement")
-    if (x$trained) {
-      cat(" [trained]\n")
-    } else {
-      cat("\n")
-    }
+    title <- "Row arrangement using "
+    print_step(x$inputs, x$inputs, x$trained, title, width)
     invisible(x)
   }
 
 #' @rdname tidy.recipe
 #' @export
 tidy.step_arrange <- function(x, ...) {
-  cond_expr <- map(x$inputs, quo_get_expr)
+  cond_expr <- unname(x$inputs)
+  cond_expr <- map(cond_expr, quo_get_expr)
   cond_expr <- map_chr(cond_expr, quo_text, width = options()$width, nlines = 1)
   tibble(
     terms = cond_expr,

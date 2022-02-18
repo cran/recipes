@@ -9,7 +9,7 @@
 #' @param key A list that contains the information needed to
 #'  create integer variables for each variable contained in
 #'  `terms`. This is `NULL` until the step is trained by
-#'  [prep.recipe()].
+#'  [prep()].
 #' @param strict A logical for whether the values should be returned as
 #'  integers (as opposed to double).
 #' @param zero_based A logical for whether the integers should start at zero and
@@ -30,9 +30,11 @@
 #' Despite the name, the new values are returned as numeric unless
 #'  `strict = TRUE`, which will coerce the results to integers.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the selectors or
-#'  variables selected) and `value` (a _list column_ with the
-#'  conversion key) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `value`
+#' (a _list column_ with the conversion key) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -68,7 +70,7 @@ step_integer <-
     add_step(
       recipe,
       step_integer_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         strict = strict,
@@ -157,17 +159,8 @@ bake.step_integer <- function(object, new_data, ...) {
 
 print.step_integer <-
   function(x, width = max(20, options()$width - 20), ...) {
-    if (x$trained) {
-      cat("Integer encoding for ")
-      cat(format_ch_vec(names(x$key), width = width))
-    } else {
-      cat("Integer encoding for ", sep = "")
-      cat(format_selectors(x$terms, width = width))
-    }
-    if (x$trained)
-      cat(" [trained]\n")
-    else
-      cat("\n")
+    title <- "Integer encoding for "
+    print_step(names(x$key), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -175,10 +168,9 @@ print.step_integer <-
 #' @export
 tidy.step_integer <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = names(x$key), value = x$key)
+    res <- tibble(terms = names(x$key), value = unname(x$key))
   } else {
-    res <- tibble(terms = sel2char(x$terms))
-    res$value = NA
+    res <- tibble(terms = sel2char(x$terms), value = list(NULL))
   }
   res$id <- x$id
   res

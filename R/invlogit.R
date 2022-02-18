@@ -14,8 +14,10 @@
 #'  real line and translates them to be between zero and one using
 #'  the function `f(x) = 1/(1+exp(-x))`.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms`
-#'  (the columns that will be affected) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the columns that will be affected) is returned.
 #' @examples
 #' library(modeldata)
 #' data(biomass)
@@ -40,7 +42,7 @@ step_invlogit <-
            skip = FALSE, id = rand_id("invlogit")) {
     add_step(recipe,
              step_invlogit_new(
-               terms = ellipse_check(...),
+               terms = enquos(...),
                role = role,
                trained = trained,
                columns = columns,
@@ -89,8 +91,8 @@ bake.step_invlogit <- function(object, new_data, ...) {
 
 print.step_invlogit <-
   function(x, width = max(20, options()$width - 26), ...) {
-    cat("Inverse logit on ", sep = "")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- "Inverse logit on "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

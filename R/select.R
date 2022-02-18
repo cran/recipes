@@ -13,12 +13,15 @@
 #'  the value of the object in the expression (to be portable
 #'  between sessions). See the examples.
 #'
-#' When you [`tidy()`] this step, a tibble with column `terms` which
-#'  contains the `select` expressions as character strings
-#'  (and are not reparsable) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#' `terms` which contains the `select` expressions as character strings
+#' (and are not reparsable) is returned.
 #'
 #' @family variable filter steps
 #' @family dplyr steps
+#' @template filter-steps
 #' @export
 #' @examples
 #' library(dplyr)
@@ -61,7 +64,7 @@ step_select <- function(recipe,
   add_step(
     recipe,
     step_select_new(
-      terms = ellipse_check(...),
+      terms = enquos(...),
       trained = trained,
       role = role,
       skip = skip,
@@ -101,22 +104,8 @@ bake.step_select <- function(object, new_data, ...) {
 
 print.step_select <-
   function(x, width = max(20, options()$width - 35), ...) {
-    if (x$trained) {
-      cat(
-        "Variables selected ",
-        paste0(names(x$terms), collapse = ", ")
-      )
-    } else {
-      cat(
-        "Terms selected ",
-        paste0(x$terms, collapse = ", ")
-      )
-    }
-    if (x$trained) {
-      cat(" [trained]\n")
-    } else {
-      cat("\n")
-    }
+    title <- "Variables selected "
+    print_step(names(x$terms), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -128,7 +117,7 @@ tidy.step_select <- function(x, ...) {
   } else {
     var_expr <- map(x$terms, quo_get_expr)
     var_expr <- map_chr(var_expr, quo_text, width = options()$width, nlines = 1)
-    res <- tibble(terms = var_expr)
+    res <- tibble(terms = unname(var_expr))
   }
   res$id <- x$id
   res

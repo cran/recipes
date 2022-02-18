@@ -22,7 +22,7 @@
 #'  [ddalpha::depth.spatial()],
 #'  [ddalpha::depth.zonoid()].
 #' @param data The training data are stored here once after
-#'  [prep.recipe()] is executed.
+#'  [prep()] is executed.
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
@@ -52,8 +52,10 @@
 #'  replace the original values and by default have the prefix `depth_`. The
 #'  naming format can be changed using the `prefix` argument.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `class` is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `class` is returned.
 #'
 #' @examples
 #'
@@ -95,7 +97,7 @@ step_depth <-
     add_step(
       recipe,
       step_depth_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         class = class,
         role = role,
         trained = trained,
@@ -151,6 +153,11 @@ prep.step_depth <- function(x, training, info = NULL, ...) {
 }
 
 get_depth <- function(tr_dat, new_dat, metric, opts) {
+  if (ncol(new_dat) == 0L) {
+    # ddalpha can't handle 0 col inputs
+    return(rep(NA_real_, nrow(new_dat)))
+  }
+
   if (!is.matrix(new_dat))
     new_dat <- as.matrix(new_dat)
   opts$data <- tr_dat
@@ -181,13 +188,15 @@ bake.step_depth <- function(object, new_data, ...) {
 
 print.step_depth <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Data depth by ", x$class, "for ")
+    title <- glue::glue("Data depth by {x$class} for ")
 
     if (x$trained) {
-      cat(format_ch_vec(x_names, width = width))
-    } else
-      x_names <- NULL
-    printer(x_names, x$terms, x$trained, width = width)
+      x_names <- colnames(x$data[[1]])
+    } else {
+      x_names <- character()
+    }
+
+    print_step(x_names, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -197,7 +206,7 @@ print.step_depth <-
 #' @export
 tidy.step_depth <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = colnames(x$data[[1]]),
+    res <- tibble(terms = colnames(x$data[[1]]) %||% character(),
                   class = x$class)
   } else {
     term_names <- sel2char(x$terms)

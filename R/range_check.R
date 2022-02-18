@@ -10,9 +10,9 @@
 #' @param warn If `TRUE` the check will throw a warning instead
 #'   of an error when failing.
 #' @param lower A named numeric vector of minimum values in the train set.
-#'   This is `NULL` until computed by [prep.recipe()].
+#'   This is `NULL` until computed by [prep()].
 #' @param upper A named numeric vector of maximum values in the train set.
-#'   This is `NULL` until computed by [prep.recipe()].
+#'   This is `NULL` until computed by [prep()].
 #' @template check-return
 #' @family checks
 #' @export
@@ -24,8 +24,11 @@
 #'   is used to compute the allowed slack at the lower end,
 #'   the second to compute the allowed slack at the upper end.
 #'
-#'  When you [`tidy()`] this check, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the means) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this check, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `value` (the means)
+#'  is returned.
 #'
 #' @examples
 #'   slack_df <- data_frame(x = 0:100)
@@ -68,7 +71,7 @@ check_range <-
     add_check(
       recipe,
       check_range_new(
-        terms   = ellipse_check(...),
+        terms   = enquos(...),
         role    = role,
         skip    = skip,
         trained = trained,
@@ -181,8 +184,8 @@ bake.check_range <- function(object,
 
 print.check_range <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Checking range of ", sep = "")
-    printer(names(x$lower), x$terms, x$trained, width = width)
+    title <- "Checking range of "
+    print_step(names(x$lower), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -191,7 +194,7 @@ print.check_range <-
 #' @export
 tidy.check_range <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = x$columns)
+    res <- tibble(terms = names(x$lower))
   } else {
     res <- tibble(terms = sel2char(x$terms))
   }

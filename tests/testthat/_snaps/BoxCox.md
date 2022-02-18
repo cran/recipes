@@ -2,7 +2,7 @@
 
     Code
       rec_trained <- prep(rec, training = ex_dat, verbose = FALSE)
-    Warning <warning>
+    Warning <rlang_warning>
       Non-positive values in selected variable.
       Fewer than `num_unique` values in selected variable.
       No Box-Cox transformation could be estimated for: `x2`, `x3`
@@ -27,7 +27,7 @@
 
     Code
       prep(rec, training = ex_dat)
-    Warning <warning>
+    Warning <rlang_warning>
       Non-positive values in selected variable.
       Fewer than `num_unique` values in selected variable.
       No Box-Cox transformation could be estimated for: `x2`, `x3`
@@ -44,4 +44,40 @@
       Operations:
       
       Box-Cox transformation on x1, x4 [trained]
+
+# empty printing
+
+    Code
+      rec
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+         outcome          1
+       predictor         10
+      
+      Operations:
+      
+      Box-Cox transformation on <none>
+
+---
+
+    Code
+      rec
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+         outcome          1
+       predictor         10
+      
+      Training data contained 32 data points and no missing data.
+      
+      Operations:
+      
+      Box-Cox transformation on <none> [trained]
 

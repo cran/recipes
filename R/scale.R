@@ -6,7 +6,7 @@
 #'
 #' @inheritParams step_center
 #' @param sds A named numeric vector of standard deviations. This
-#'  is `NULL` until computed by [prep.recipe()].
+#'  is `NULL` until computed by [prep()].
 #' @param factor A numeric value of either 1 or 2 that scales the
 #'  numeric inputs by one or two standard deviations. By dividing
 #'  by two standard deviations, the coefficients attached to
@@ -24,8 +24,10 @@
 #'  `bake.recipe` then applies the scaling to new data sets
 #'  using these standard deviations.
 #'
-#'  When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#'  `terms` (the selectors or variables selected) and `value` (the
 #'  standard deviations) is returned.
 #'
 #' @references Gelman, A. (2007) "Scaling regression inputs by
@@ -66,7 +68,7 @@ step_scale <-
     add_step(
       recipe,
       step_scale_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         sds = sds,
@@ -130,8 +132,8 @@ bake.step_scale <- function(object, new_data, ...) {
 
 print.step_scale <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Scaling for ", sep = "")
-    printer(names(x$sds), x$terms, x$trained, width = width)
+    title <- "Scaling for "
+    print_step(names(x$sds), x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -141,7 +143,7 @@ print.step_scale <-
 tidy.step_scale <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble(terms = names(x$sds),
-                  value = x$sds)
+                  value = unname(x$sds))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names,

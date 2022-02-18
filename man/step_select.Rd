@@ -27,8 +27,8 @@ role should they be assigned?}
 preprocessing have been estimated.}
 
 \item{skip}{A logical. Should the step be skipped when the
-recipe is baked by \code{\link[=bake.recipe]{bake.recipe()}}? While all operations are baked
-when \code{\link[=prep.recipe]{prep.recipe()}} is run, some operations may not be able to be
+recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
+when \code{\link[=prep]{prep()}} is run, some operations may not be able to be
 conducted on new data (e.g. processing the outcome variable(s)).
 Care should be taken when using \code{skip = TRUE} as it may affect
 the computations for subsequent operations.}
@@ -50,10 +50,17 @@ it is a good idea to use quasiquotation (e.g. \verb{!!}) to embed
 the value of the object in the expression (to be portable
 between sessions). See the examples.
 
-When you \code{\link[=tidy]{tidy()}} this step, a tibble with column \code{terms} which
-contains the \code{select} expressions as character strings
+This step can potentially remove columns from the data set. This may
+cause issues for subsequent steps in your recipe if the missing columns are
+specifically referenced by name. To avoid this, see the advice in the
+\emph{Tips for saving recipes and filtering columns} section of \link{selections}.
+}
+\section{Tidying}{
+When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
+\code{terms} which contains the \code{select} expressions as character strings
 (and are not reparsable) is returned.
 }
+
 \examples{
 library(dplyr)
 
@@ -90,6 +97,7 @@ qq_rec
 \seealso{
 Other variable filter steps: 
 \code{\link{step_corr}()},
+\code{\link{step_filter_missing}()},
 \code{\link{step_lincomb}()},
 \code{\link{step_nzv}()},
 \code{\link{step_rm}()},

@@ -12,7 +12,7 @@ colnames(te_dat) <- paste0("X", 1:6)
 rec <- recipe(X1 ~ ., data = tr_dat)
 
 test_that('correct kernel PCA values', {
-  skip_if_not_installed("dimRed")
+
   skip_if_not_installed("kernlab")
 
   kpca_rec <- rec %>% step_kpca(X2, X3, X4, X5, X6, id = "")
@@ -43,9 +43,10 @@ test_that('correct kernel PCA values', {
 
 
 test_that('printing', {
-  skip_if_not_installed("dimRed")
+
   skip_if_not_installed("kernlab")
 
+  skip_if(packageVersion("rlang") < "1.0.0")
   expect_snapshot(
     kpca_rec <- rec %>% step_kpca(X2, X3, X4, X5, X6)
   )
@@ -56,7 +57,7 @@ test_that('printing', {
 
 
 test_that('No kPCA comps', {
-  expect_snapshot(
+  suppressWarnings(
     pca_extract <- rec %>%
       step_kpca(X2, X3, X4, X5, X6, num_comp = 0, id = "") %>%
       prep()
@@ -66,18 +67,24 @@ test_that('No kPCA comps', {
     names(juice(pca_extract)),
     paste0("X", c(2:6, 1))
   )
-  expect_true(inherits(pca_extract$steps[[1]]$res, "list"))
-  expect_snapshot(pca_extract)
+  expect_null(pca_extract$steps[[1]]$res)
   expect_equal(
     tidy(pca_extract, 1),
     tibble::tibble(terms = paste0("X", 2:6), id = "")
   )
+  skip_if(packageVersion("rlang") < "1.0.0")
+  expect_snapshot(
+    pca_extract <- rec %>%
+      step_kpca(X2, X3, X4, X5, X6, num_comp = 0, id = "") %>%
+      prep()
+  )
+  expect_snapshot(pca_extract)
 })
 
 
 test_that('keep_original_cols works', {
 
-  skip_if_not_installed("dimRed")
+
   skip_if_not_installed("kernlab")
 
   kpca_rec <- rec %>%
@@ -96,7 +103,7 @@ test_that('keep_original_cols works', {
 })
 
 test_that('can prep recipes with no keep_original_cols', {
-  skip_if_not_installed("dimRed")
+
   skip_if_not_installed("kernlab")
 
   kpca_rec <- rec %>%
@@ -104,7 +111,7 @@ test_that('can prep recipes with no keep_original_cols', {
 
   kpca_rec$steps[[1]]$keep_original_cols <- NULL
 
-  expect_snapshot(
+  suppressWarnings(
     kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE),
   )
 
@@ -112,5 +119,46 @@ test_that('can prep recipes with no keep_original_cols', {
     pca_pred <- bake(kpca_trained, new_data = te_dat, all_predictors()),
     NA
   )
+  skip_if(packageVersion("rlang") < "1.0.0")
+  expect_snapshot(
+    kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE),
+  )
+})
 
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_kpca(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_kpca(rec, id = "potato")
+
+  expected <- tibble(terms = character(), id = character())
+
+  expect_identical(tidy(rec, number = 1), expected)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expected)
+})
+
+test_that("empty printing", {
+  skip_if(packageVersion("rlang") < "1.0.0")
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_kpca(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })

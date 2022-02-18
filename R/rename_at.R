@@ -8,10 +8,14 @@
 #' @param fn A function `fun`, a quosure style lambda `~ fun(.)`` or a list of
 #' either form (but containing only a single function, see [dplyr::rename_at()]).
 #' **Note that this argument must be named**.
-#' @param inputs A vector of column names populated by `prep()`.
+#' @param inputs A vector of column names populated by [prep()].
 #' @template step-return
-#' @details When you [`tidy()`] this step, a tibble with
-#'  columns `terms` which contains the columns being transformed is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` which contains the columns being transformed is returned.
 #' @family dplyr steps
 #' @export
 #' @examples
@@ -35,7 +39,7 @@ step_rename_at <- function(
   add_step(
     recipe,
     step_rename_at_new(
-      terms = ellipse_check(...),
+      terms = enquos(...),
       fn = fn,
       trained = trained,
       role = role,
@@ -82,8 +86,8 @@ bake.step_rename_at <- function(object, new_data, ...) {
 
 print.step_rename_at <-
   function(x, width = max(20, options()$width - 35), ...) {
-    cat("Variable renaming for ", sep = "")
-    printer(x$inputs, x$terms, x$trained, width = width)
+    title <- "Variable renaming for "
+    print_step(x$inputs, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -91,7 +95,7 @@ print.step_rename_at <-
 #' @export
 tidy.step_rename_at <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = x$inputs)
+    res <- tibble(terms = unname(x$inputs))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names)

@@ -8,7 +8,7 @@
 #'
 #' @inheritParams step_center
 #' @param threshold A named numeric vector of lower bounds. This is
-#'  `NULL` until computed by [prep.recipe()].
+#'  `NULL` until computed by [prep()].
 #' @template step-return
 #' @family imputation steps
 #' @export
@@ -17,12 +17,14 @@
 #'  `bake.recipe` then simulates a value for any data at the minimum
 #'  with a random uniform value between zero and the minimum.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` for the estimated
-#'  threshold is returned.
-#'
 #'  As of `recipes` 0.1.16, this function name changed from `step_lowerimpute()`
 #'    to `step_impute_lower()`.
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `value` for the
+#' estimated threshold is returned.
 #'
 #' @examples
 #' library(recipes)
@@ -66,7 +68,7 @@ step_impute_lower <-
     add_step(
       recipe,
       step_impute_lower_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         threshold = threshold,
@@ -163,8 +165,8 @@ bake.step_lowerimpute <- bake.step_impute_lower
 #' @export
 print.step_impute_lower <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Lower Bound Imputation for ", sep = "")
-    printer(names(x$threshold), x$terms, x$trained, width = width)
+    title <- "Lower bound imputation for "
+    print_step(names(x$threshold), x$terms, x$trained, title, width)
     invisible(x)
   }
 

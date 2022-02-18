@@ -13,8 +13,13 @@
 #' @template step-return
 #' @family individual transformation steps
 #' @export
-#' @details When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  columns that will be affected), `inverse`, and `func` is returned.
+#' @details
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the columns that will be affected), `inverse`, and `func` is
+#' returned.
 #' @examples
 #' set.seed(313)
 #' examples <- matrix(rnorm(40), ncol = 2)
@@ -45,11 +50,11 @@ step_hyperbolic <-
            id = rand_id("hyperbolic")) {
     funcs <- c("sin", "cos", "tan")
     if (!(func %in% funcs))
-      rlang::abort("`func` should be either `sin``, `cos`, or `tan`")
+      rlang::abort("`func` should be either `sin`, `cos`, or `tan`")
     add_step(
       recipe,
       step_hyperbolic_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         func = func,
@@ -111,8 +116,8 @@ print.step_hyperbolic <-
     ttl <- paste("Hyperbolic", x$func)
     if (x$inverse)
       ttl <- paste(ttl, "(inv)")
-    cat(ttl, "transformation on ")
-    printer(x$columns, x$terms, x$trained, width = width)
+    title <- glue::glue("{ttl} transformation on ")
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 

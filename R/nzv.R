@@ -11,8 +11,9 @@
 #'  below).
 #' @param removals A character string that contains the names of
 #'  columns that should be removed. These values are not determined
-#'  until [prep.recipe()] is called.
+#'  until [prep()] is called.
 #' @template step-return
+#' @template filter-steps
 #' @family variable filter steps
 #' @export
 #'
@@ -40,8 +41,10 @@
 #' In the above example, the frequency ratio is 999 and the unique
 #'  value percent is 0.2%.
 #'
-#' When you [`tidy()`] this step, a tibble with column `terms` (the columns
-#'  that will be removed) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#' `terms` (the columns that will be removed) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -92,7 +95,7 @@ step_nzv <-
     add_step(
       recipe,
       step_nzv_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         freq_cut = freq_cut,
@@ -154,19 +157,11 @@ bake.step_nzv <- function(object, new_data, ...) {
 print.step_nzv <-
   function(x, width = max(20, options()$width - 38), ...) {
     if (x$trained) {
-      if (length(x$removals) > 0) {
-        cat("Sparse, unbalanced variable filter removed ")
-        cat(format_ch_vec(x$removals, width = width))
-      } else
-        cat("Sparse, unbalanced variable filter removed no terms")
+      title <- "Sparse, unbalanced variable filter removed "
     } else {
-      cat("Sparse, unbalanced variable filter on ", sep = "")
-      cat(format_selectors(x$terms, width = width))
+      title <- "Sparse, unbalanced variable filter on "
     }
-    if (x$trained)
-      cat(" [trained]\n")
-    else
-      cat("\n")
+    print_step(x$removals, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -207,8 +202,6 @@ nzv <- function(x,
 #' @export
 tidy.step_nzv <- tidy_filter
 
-
-#' @rdname tunable.recipe
 #' @export
 tunable.step_nzv <- function(x, ...) {
   tibble::tibble(

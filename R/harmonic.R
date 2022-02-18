@@ -3,8 +3,8 @@
 #' `step_harmonic` creates a *specification* of a recipe step that
 #'   will add sin and cos terms for harmonic analysis.
 #'
-#' @inheritParams step_date
 #' @inheritParams step_pca
+#' @inheritParams step_date
 #' @inheritParams step_center
 #'
 #' @param ... One or more selector functions to choose variables
@@ -131,12 +131,13 @@
 step_harmonic <-
   function(recipe,
            ...,
-           role = NA,
+           role = "predictor",
            trained = FALSE,
            frequency = NA_real_,
            cycle_size = NA_real_,
            starting_val = NA_real_,
-           keep_original_cols = TRUE,
+           keep_original_cols = FALSE,
+           columns = NULL,
            skip = FALSE,
            id = rand_id("harmonic")) {
 
@@ -154,13 +155,14 @@ step_harmonic <-
     add_step(
       recipe,
       step_harmonic_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         trained = trained,
         role = role,
         frequency = frequency,
         cycle_size = cycle_size,
         starting_val = starting_val,
         keep_original_cols = keep_original_cols,
+        columns = columns,
         skip = skip,
         id = id
       )
@@ -181,6 +183,7 @@ step_harmonic_new <-
       cycle_size = cycle_size,
       starting_val = starting_val,
       keep_original_cols = keep_original_cols,
+      columns = columns,
       skip = skip,
       id = id
     )
@@ -238,6 +241,7 @@ prep.step_harmonic <- function(x, training, info = NULL, ...) {
     cycle_size = cycle_sizes,
     starting_val = starting_vals,
     keep_original_cols = get_keep_original_cols(x),
+    columns = col_names,
     skip = x$skip,
     id = x$id
   )
@@ -308,9 +312,8 @@ bake.step_harmonic <- function(object, new_data, ...) {
 #' @export
 print.step_harmonic <-
   function(x, width = max(20, options()$width - 30), ...) {
-    cat("Harmonic numeric variables for ", sep = "")
-    printer(tr_obj = names(x$object), untr_obj = x$terms,
-            trained = x$trained, width = width)
+    title <- "Harmonic numeric variables for "
+    print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -325,9 +328,9 @@ tidy.step_harmonic <- function(x, ...) {
 
     res <-
       tibble(terms = rep(col_names, each = n_frequency * 2L),
-             starting_val = rep(x$starting_val, each = n_frequency * 2L),
-             cycle_size = rep(x$cycle_size, each = n_frequency * 2L),
-             frequency = rep(rep(x$frequency, times = 2L), times = n_terms),
+             starting_val = rep(unname(x$starting_val), each = n_frequency * 2L),
+             cycle_size = rep(unname(x$cycle_size), each = n_frequency * 2L),
+             frequency = rep(rep(unname(x$frequency), times = 2L), times = n_terms),
       )
     res$key <- paste0(res$terms,
                       rep(rep(c('_sin_', '_cos_'), each = n_frequency),
@@ -346,7 +349,6 @@ tidy.step_harmonic <- function(x, ...) {
   res
 }
 
-#' @rdname tunable.recipe
 #' @export
 tunable.step_harmonic <- function(x, ...) {
   tibble::tibble(

@@ -6,7 +6,7 @@
 #'
 #' @inheritParams step_center
 #' @param lambdas A numeric vector of transformation values. This
-#'  is `NULL` until computed by [prep.recipe()].
+#'  is `NULL` until computed by [prep()].
 #' @param limits A length 2 numeric vector defining the range to
 #'  compute the transformation parameter lambda.
 #' @param num_unique An integer where data that have less possible
@@ -31,9 +31,11 @@
 #'  closed to the bounds, or if the optimization fails, a value of
 #'  `NA` is used and no transformation is applied.
 #'
-#' When you [`tidy()`] this step, a tibble with columns `terms` (the
-#'  selectors or variables selected) and `value` (the
-#'  lambda estimate) is returned.
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
+#' `terms` (the selectors or variables selected) and `value` (the
+#' lambda estimate) is returned.
 #'
 #' @references Yeo, I. K., and Johnson, R. A. (2000). A new family of power
 #'   transformations to improve normality or symmetry. *Biometrika*.
@@ -68,7 +70,7 @@ step_YeoJohnson <-
     add_step(
       recipe,
       step_YeoJohnson_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         lambdas = lambdas,
@@ -138,8 +140,8 @@ bake.step_YeoJohnson <- function(object, new_data, ...) {
 
 print.step_YeoJohnson <-
   function(x, width = max(20, options()$width - 39), ...) {
-    cat("Yeo-Johnson transformation on ", sep = "")
-    printer(names(x$lambdas), x$terms, x$trained, width = width)
+    title <- "Yeo-Johnson transformation on "
+    print_step(names(x$lambdas), x$terms, x$trained, title, width)
     invisible(x)
   }
 

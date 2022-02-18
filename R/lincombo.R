@@ -8,8 +8,9 @@
 #' @param max_steps The number of times to apply the algorithm.
 #' @param removals A character string that contains the names of
 #'  columns that should be removed. These values are not determined
-#'  until [prep.recipe()] is called.
+#'  until [prep()] is called.
 #' @template step-return
+#' @template filter-steps
 #' @family variable filter steps
 #' @author Max Kuhn, Kirk Mettler, and Jed Wing
 #' @export
@@ -19,8 +20,10 @@
 #'  removed to resolve the issue. This algorithm may need to be
 #'  applied multiple times (as defined by `max_steps`).
 #'
-#'  When you [`tidy()`] this step, a tibble with column `terms` (the columns
-#'  that will be removed) is returned.
+#'  # Tidying
+#'
+#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
+#'  `terms` (the columns that will be removed) is returned.
 #'
 #' @examples
 #' library(modeldata)
@@ -58,7 +61,7 @@ step_lincomb <-
     add_step(
       recipe,
       step_lincomb_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         max_steps = max_steps,
@@ -113,19 +116,11 @@ bake.step_lincomb <- function(object, new_data, ...) {
 print.step_lincomb <-
   function(x,  width = max(20, options()$width - 36), ...) {
     if (x$trained) {
-      if (length(x$removals) > 0) {
-        cat("Linear combination filter removed ")
-        cat(format_ch_vec(x$removals, width = width))
-      } else
-        cat("Linear combination filter removed no terms")
+      title <- "Linear combination filter removed "
     } else {
-      cat("Linear combination filter on ", sep = "")
-      cat(format_selectors(x$terms, width = width))
+      title <- "Linear combination filter on "
     }
-    if (x$trained)
-      cat(" [trained]\n")
-    else
-      cat("\n")
+    print_step(x$removals, x$terms, x$trained, title, width)
     invisible(x)
   }
 
@@ -167,6 +162,11 @@ recommend_rm <- function(x, eps  = 1e-6, ...) {
 iter_lc_rm <- function(x,
                        max_steps = 10,
                        verbose = FALSE) {
+  if (ncol(x) == 0L) {
+    # Empty selection
+    return(character())
+  }
+
   if (is.null(colnames(x)))
     rlang::abort("`x` should have column names")
 
