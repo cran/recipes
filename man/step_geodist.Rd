@@ -81,23 +81,31 @@ echoing the values of \code{lat}, \code{lon}, \code{ref_lat}, \code{ref_lon},
 \code{is_lat_lon}, \code{name}, and \code{id} is returned.
 }
 
-\examples{
+\section{Case weights}{
 
-library(modeldata)
-data(Smithsonian)
+
+The underlying operation does not allow for case weights.
+}
+
+\examples{
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(Smithsonian, package = "modeldata")
 
 # How close are the museums to Union Station?
-near_station <- recipe( ~ ., data = Smithsonian) \%>\%
+near_station <- recipe(~., data = Smithsonian) \%>\%
   update_role(name, new_role = "location") \%>\%
-  step_geodist(lat = latitude, lon = longitude, log = FALSE,
-               ref_lat = 38.8986312, ref_lon = -77.0062457,
-               is_lat_lon = TRUE) \%>\%
+  step_geodist(
+    lat = latitude, lon = longitude, log = FALSE,
+    ref_lat = 38.8986312, ref_lon = -77.0062457,
+    is_lat_lon = TRUE
+  ) \%>\%
   prep(training = Smithsonian)
 
 bake(near_station, new_data = NULL) \%>\%
   arrange(geo_dist)
 
 tidy(near_station, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \references{
 https://en.wikipedia.org/wiki/Haversine_formula

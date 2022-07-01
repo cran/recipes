@@ -4,12 +4,15 @@ library(tibble)
 
 lmh <- c("Low", "Med", "High")
 
-examples <- data.frame(X1 = factor(rep(letters[1:4], each = 3)),
-                       X2 = ordered(rep(lmh, each = 4),
-                                    levels = lmh))
+examples <- data.frame(
+  X1 = factor(rep(letters[1:4], each = 3)),
+  X2 = ordered(rep(lmh, each = 4),
+    levels = lmh
+  )
+)
 rec <- recipe(~ X1 + X2, data = examples)
 
-test_that('correct var', {
+test_that("correct var", {
   rec1 <- rec %>% step_unorder(X2)
 
   rec1_trained <- prep(rec1, training = examples, verbose = FALSE)
@@ -22,17 +25,17 @@ test_that('correct var', {
   expect_equal(as.character(rec1_trans$X2), as.character(examples$X2))
 })
 
-test_that('wrong vars', {
+test_that("wrong vars", {
   rec2 <- rec %>% step_unorder(X1, X2)
-  expect_warning(prep(rec2, training = examples, verbose = FALSE))
+  expect_snapshot(prep(rec2, training = examples, verbose = FALSE))
   rec3 <- rec %>% step_unorder(X1)
-  expect_warning(prep(rec3, training = examples, verbose = FALSE))
+  expect_snapshot(prep(rec3, training = examples, verbose = FALSE))
 })
 
-test_that('printing', {
+test_that("printing", {
   rec4 <- rec %>% step_unorder(X2)
-  expect_output(print(rec4))
-  expect_output(prep(rec4, training = examples, verbose = TRUE))
+  expect_snapshot(print(rec4))
+  expect_snapshot(prep(rec4))
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -72,3 +75,15 @@ test_that("empty printing", {
 
   expect_snapshot(rec)
 })
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  rec1 <- rec %>% step_unorder(X2) %>%
+    update_role(X2, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
+
+  rec1_trained <- prep(rec1, training = examples, verbose = FALSE)
+
+  expect_error(bake(rec1_trained, new_data = examples[, 1, drop = FALSE]),
+               class = "new_data_missing_column")
+})
+

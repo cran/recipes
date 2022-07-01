@@ -107,10 +107,16 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 (those variables used to impute), and \code{neighbors} is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(recipes)
-library(modeldata)
-data(biomass)
+data(biomass, package = "modeldata")
 
 biomass_tr <- biomass[biomass$dataset == "Training", ]
 biomass_te <- biomass[biomass$dataset == "Testing", ]
@@ -124,8 +130,10 @@ nitro_missing <- sample(1:nrow(biomass_te), 3)
 biomass_te$carbon[carb_missing] <- NA
 biomass_te$nitrogen[nitro_missing] <- NA
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass_tr)
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+  data = biomass_tr
+)
 
 ratio_recipe <- rec \%>\%
   step_impute_knn(all_predictors(), neighbors = 3)
@@ -134,15 +142,20 @@ imputed <- bake(ratio_recipe2, biomass_te)
 
 # how well did it work?
 summary(biomass_te_whole$carbon)
-cbind(before = biomass_te_whole$carbon[carb_missing],
-      after = imputed$carbon[carb_missing])
+cbind(
+  before = biomass_te_whole$carbon[carb_missing],
+  after = imputed$carbon[carb_missing]
+)
 
 summary(biomass_te_whole$nitrogen)
-cbind(before = biomass_te_whole$nitrogen[nitro_missing],
-      after = imputed$nitrogen[nitro_missing])
+cbind(
+  before = biomass_te_whole$nitrogen[nitro_missing],
+  after = imputed$nitrogen[nitro_missing]
+)
 
 tidy(ratio_recipe, number = 1)
 tidy(ratio_recipe2, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \references{
 Gower, C. (1971) "A general coefficient of similarity and some

@@ -38,42 +38,45 @@
 #'  (the list of corresponding columns) is returned. The `columns` is
 #'  is ordered according the frequency in the training data set.
 #'
-#' @examples
-#' library(modeldata)
-#' data(tate_text)
+#' @template case-weights-unsupervised
+#'
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(tate_text, package = "modeldata")
 #'
 #' dummies <- recipe(~ artist + medium, data = tate_text) %>%
-#'     step_dummy_extract(artist, medium, sep = ", ") %>%
-#'     prep()
+#'   step_dummy_extract(artist, medium, sep = ", ") %>%
+#'   prep()
 #'
 #' dummy_data <- bake(dummies, new_data = NULL)
 #'
 #' dummy_data %>%
-#'     select(starts_with("medium")) %>%
-#'     names()
+#'   select(starts_with("medium")) %>%
+#'   names()
 #'
 #' # More detailed splitting
-#' dummies_specific <- recipe(~ medium, data = tate_text) %>%
-#'     step_dummy_extract(medium, sep = "(, )|( and )|( on )") %>%
-#'     prep()
+#' dummies_specific <- recipe(~medium, data = tate_text) %>%
+#'   step_dummy_extract(medium, sep = "(, )|( and )|( on )") %>%
+#'   prep()
 #'
 #' dummy_data_specific <- bake(dummies_specific, new_data = NULL)
 #'
 #' dummy_data_specific %>%
-#'     select(starts_with("medium")) %>%
-#'     names()
+#'   select(starts_with("medium")) %>%
+#'   names()
 #'
 #' tidy(dummies, number = 1)
 #' tidy(dummies_specific, number = 1)
 #'
 #' # pattern argument can be useful to extract harder patterns
 #' color_examples <- tibble(
-#'   colors = c("['red', 'blue']",
-#'              "['red', 'blue', 'white']",
-#'              "['blue', 'blue', 'blue']")
+#'   colors = c(
+#'     "['red', 'blue']",
+#'     "['red', 'blue', 'white']",
+#'     "['blue', 'blue', 'blue']"
+#'   )
 #' )
 #'
-#' dummies_color <- recipe(~ colors, data = color_examples) %>%
+#' dummies_color <- recipe(~colors, data = color_examples) %>%
 #'   step_dummy_extract(colors, pattern = "(?<=')[^',]+(?=')") %>%
 #'   prep()
 #'
@@ -95,7 +98,6 @@ step_dummy_extract <-
            keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("dummy_extract")) {
-
     if (!is_tune(threshold) & !is_varying(threshold)) {
       if (threshold < 0) {
         rlang::abort("`threshold` should not be negative.")
@@ -119,14 +121,15 @@ step_dummy_extract <-
         levels = levels,
         keep_original_cols = keep_original_cols,
         skip = skip,
-        id = id
+        id = id,
+        case_weights = NULL
       )
     )
   }
 
 step_dummy_extract_new <-
   function(terms, role, trained, sep, pattern, threshold, other, naming, levels,
-           keep_original_cols, skip, id) {
+           keep_original_cols, skip, id, case_weights) {
     step(
       subclass = "dummy_extract",
       terms = terms,
@@ -140,13 +143,20 @@ step_dummy_extract_new <-
       levels = levels,
       keep_original_cols = keep_original_cols,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = case_weights
     )
   }
 
 #' @export
 prep.step_dummy_extract <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
+
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
 
   if (length(col_names) > 0) {
     col_names <- check_factor_vars(training, col_names, "step_dummy_extract")
@@ -155,14 +165,23 @@ prep.step_dummy_extract <- function(x, training, info = NULL, ...) {
     names(levels) <- col_names
     for (col_name in col_names) {
       elements <- dummy_extract(
-        training[[col_name]], sep = x$sep, pattern = x$pattern
+        training[[col_name]],
+        sep = x$sep, pattern = x$pattern
       )
 
       lvls <- map(elements, unique)
+      wts_tab <- purrr::map2(lvls, as.double(wts), ~rep(.y, length(.x)))
       lvls <- unlist(lvls)
-      lvls <- sort(table(lvls), decreasing = TRUE)
+      wts_tab <- unlist(wts_tab)
+
+      lvls <- sort(weighted_table(lvls, wts = wts_tab), decreasing = TRUE)
 
       if (x$threshold < 1) {
+        if (is.null(wts)) {
+          wts_total <- length(elements)
+        } else {
+          wts_total <- sum(as.double(wts))
+        }
         lvls <- lvls[(lvls / length(elements)) >= x$threshold]
       } else {
         lvls <- lvls[lvls >= x$threshold]
@@ -188,12 +207,14 @@ prep.step_dummy_extract <- function(x, training, info = NULL, ...) {
     levels = levels,
     keep_original_cols = get_keep_original_cols(x),
     skip = x$skip,
-    id = x$id
+    id = x$id,
+    case_weights = were_weights_used
   )
 }
 
 #' @export
 bake.step_dummy_extract <- function(object, new_data, ...) {
+  check_new_data(names(object$levels), object, new_data)
 
   # If no terms were selected
   if (length(object$levels) == 0) {
@@ -223,8 +244,6 @@ bake.step_dummy_extract <- function(object, new_data, ...) {
       new_data[, col_names[i]] <- NULL
     }
   }
-  if (!is_tibble(new_data))
-    new_data <- as_tibble(new_data)
   new_data
 }
 
@@ -261,7 +280,8 @@ list_to_dummies <- function(x, dict, other = "other") {
 print.step_dummy_extract <-
   function(x, width = max(20, options()$width - 20), ...) {
     title <- "Extract patterns from "
-    print_step(names(x$levels), x$terms, x$trained, title, width)
+    print_step(names(x$levels), x$terms, x$trained, title, width,
+               case_weights = x$case_weights)
     invisible(x)
   }
 
@@ -270,7 +290,7 @@ print.step_dummy_extract <-
 tidy.step_dummy_extract <- function(x, ...) {
   if (is_trained(x)) {
     if (length(x$levels) > 0) {
-      res <- purrr::map_dfr(x$levels, ~list(columns = .x), FALSE, .id = "terms")
+      res <- purrr::map_dfr(x$levels, ~ list(columns = .x), FALSE, .id = "terms")
     } else {
       res <- tibble(terms = character(), columns = character())
     }

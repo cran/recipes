@@ -53,12 +53,14 @@
 #'
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the interaction effects) is returned.
-#' @examples
-#' library(modeldata)
-#' data(penguins)
+#'
+#' @template case-weights-not-supported
+#'
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(penguins, package = "modeldata")
 #' penguins <- penguins %>% na.omit()
 #'
-#' rec <- recipe(flipper_length_mm ~., data = penguins)
+#' rec <- recipe(flipper_length_mm ~ ., data = penguins)
 #'
 #' int_mod_1 <- rec %>%
 #'   step_interact(terms = ~ bill_depth_mm:bill_length_mm)
@@ -79,7 +81,6 @@
 #'
 #' tidy(int_mod_1, number = 1)
 #' tidy(int_mod_2, number = 2)
-
 step_interact <-
   function(recipe,
            terms,
@@ -140,12 +141,12 @@ prep.step_interact <- function(x, training, info = NULL, ...) {
 
   ## Resolve the selectors to a expression containing an additive
   ## function of the variables
-  if(length(form_sel) > 0) {
+  if (length(form_sel) > 0) {
     form_res <- map(form_sel, recipes_eval_select_expr)
     form_res <- map(form_res, vec_2_expr)
     ## Subsitute the column names into the original interaction
     ## formula.
-    for(i in seq(along.with = form_res)) {
+    for (i in seq(along.with = form_res)) {
       x$terms <- replace_selectors(
         x$terms,
         form_sel[[i]],
@@ -163,15 +164,16 @@ prep.step_interact <- function(x, training, info = NULL, ...) {
     vars <-
       unique(unlist(lapply(make_new_formula(int_terms), all.vars)))
     var_check <- info[info$variable %in% vars, ]
-    if (any(var_check$type == "nominal"))
+    if (any(var_check$type == "nominal")) {
       rlang::warn(
         paste0(
-        "Categorical variables used in `step_interact` should probably be ",
-        "avoided;  This can lead to differences in dummy variable values that ",
-        "are produced by `step_dummy`. Please convert all involved variables ",
-        "to dummy variables first."
+          "Categorical variables used in `step_interact` should probably be ",
+          "avoided;  This can lead to differences in dummy variable values that ",
+          "are produced by `step_dummy`. Please convert all involved variables ",
+          "to dummy variables first."
         )
       )
+    }
 
     ## For each interaction, create a new formula that has main effects
     ## and only the interaction of choice (e.g. `a+b+c+a:b:c`)
@@ -196,10 +198,13 @@ prep.step_interact <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_interact <- function(object, new_data, ...) {
+  col_names <- unlist(lapply(object$objects, function(x) all.vars(rlang::f_rhs(x))))
+  check_new_data(col_names, object, new_data)
 
   # When the interaction specification failed, just move on
-  if (isTRUE(all(is.na(object$object))))
+  if (isTRUE(all(is.na(object$object)))) {
     return(new_data)
+  }
 
   ## `na.action` cannot be passed to `model.matrix` but we
   ## can change it globally for a bit
@@ -214,8 +219,9 @@ bake.step_interact <- function(object, new_data, ...) {
   on.exit(expr = NULL)
 
   res <-
-    lapply(res, function(x)
-      x[, grepl(":", colnames(x)), drop = FALSE])
+    lapply(res, function(x) {
+      x[, grepl(":", colnames(x)), drop = FALSE]
+    })
   ncols <- vapply(res, ncol, c(int = 1L))
   out <- matrix(NA, nrow = nrow(new_data), ncol = sum(ncols))
   strt <- 1
@@ -227,20 +233,20 @@ bake.step_interact <- function(object, new_data, ...) {
   colnames(out) <-
     gsub(":", object$sep, unlist(lapply(res, colnames)))
   new_data <- bind_cols(new_data, as_tibble(out))
-  if (!is_tibble(new_data))
-    new_data <- as_tibble(new_data)
   new_data
 }
 
 ## This uses the highest level of interactions
-x_fac_int <- function(x)
+x_fac_int <- function(x) {
   as.formula(
-    paste0("~",
-           paste0(x, collapse = "+"),
-           "+",
-           paste0(x, collapse = ":")
+    paste0(
+      "~",
+      paste0(x, collapse = "+"),
+      "+",
+      paste0(x, collapse = ":")
     )
   )
+}
 
 make_new_formula <- function(x) {
   splitup <- strsplit(x, ":")
@@ -253,8 +259,9 @@ make_new_formula <- function(x) {
 ## term expansion (without `.`s). This returns the factor
 ## names and would not expand dummy variables.
 get_term_names <- function(form, vnames) {
-  if (!is_formula(form))
+  if (!is_formula(form)) {
     form <- as.formula(form)
+  }
 
   ## We are going to cheat and make a small fake data set to
   ## efficiently get the full formula expansion from
@@ -320,21 +327,18 @@ map_pairlist <- function(x, f, ...) as.pairlist(lapply(x, f, ...))
 
 
 # In a formula, find the selectors (if any) and return the call(s)
-find_selectors <- function (f) {
+find_selectors <- function(f) {
   if (is.function(f)) {
     find_selectors(body(f))
-  }
-  else if (is.call(f)) {
+  } else if (is.call(f)) {
     fname <- as.character(f[[1]])
     fname <- fname[!(fname %in% c("::", "tidyselect", "dplyr", "recipes"))]
 
     res <- if (fname %in% intersect_selectors) f else list()
     c(res, unlist(lapply(f[-1], find_selectors), use.names = FALSE))
-  }
-  else if (is.name(f) || is.atomic(f)) {
+  } else if (is.name(f) || is.atomic(f)) {
     list()
-  }
-  else {
+  } else {
     # User supplied incorrect input
     rlang::abort(paste0("Don't know how to handle type ", typeof(f), "."))
   }
@@ -343,7 +347,7 @@ find_selectors <- function (f) {
 replace_selectors <- function(x, elem, value) {
   if (is.atomic(x) || is.name(x)) {
     x
-  }  else if (is.call(x)) {
+  } else if (is.call(x)) {
     if (identical(x, elem)) {
       value
     } else {
@@ -369,13 +373,11 @@ intersect_selectors <- c(
   "any_of",
   "c",
   "where",
-
   "has_role",
   "all_predictors",
   "all_numeric_predictors",
   "all_nominal_predictors",
   "all_outcomes",
-
   "has_type",
   "all_numeric",
   "all_nominal"

@@ -68,44 +68,42 @@
 #'  `terms` (the selectors or original variables selected) and `columns`
 #'  (the list of corresponding binary columns) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(okc)
-#' okc <- okc[complete.cases(okc),]
+#' @template case-weights-not-supported
 #'
-#' # Original data: diet has 18 levels
-#' length(unique(okc$diet))
-#' unique(okc$diet) %>% sort()
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(Sacramento, package = "modeldata")
 #'
-#' rec <- recipe(~ diet + age + height, data = okc)
+#' # Original data: city has 37 levels
+#' length(unique(Sacramento$city))
+#' unique(Sacramento$city) %>% sort()
 #'
-#' # Default dummy coding: 17 dummy variables
+#' rec <- recipe(~ city + sqft + price, data = Sacramento)
+#'
+#' # Default dummy coding: 36 dummy variables
 #' dummies <- rec %>%
-#'     step_dummy(diet) %>%
-#'     prep(training = okc)
+#'   step_dummy(city) %>%
+#'   prep(training = Sacramento)
 #'
 #' dummy_data <- bake(dummies, new_data = NULL)
 #'
 #' dummy_data %>%
-#'     select(starts_with("diet")) %>%
-#'     names() # level "anything" is the reference level
+#'   select(starts_with("city")) %>%
+#'   names() # level "anything" is the reference level
 #'
-#' # Obtain the full set of 18 dummy variables using `one_hot` option
+#' # Obtain the full set of 37 dummy variables using `one_hot` option
 #' dummies_one_hot <- rec %>%
-#'     step_dummy(diet, one_hot = TRUE) %>%
-#'     prep(training = okc)
+#'   step_dummy(city, one_hot = TRUE) %>%
+#'   prep(training = Sacramento)
 #'
 #' dummy_data_one_hot <- bake(dummies_one_hot, new_data = NULL)
 #'
 #' dummy_data_one_hot %>%
-#'     select(starts_with("diet")) %>%
-#'     names() # no reference level
+#'   select(starts_with("city")) %>%
+#'   names() # no reference level
 #'
 #'
 #' tidy(dummies, number = 1)
 #' tidy(dummies_one_hot, number = 1)
-
-
 step_dummy <-
   function(recipe,
            ...,
@@ -118,9 +116,8 @@ step_dummy <-
            keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("dummy")) {
-
     if (lifecycle::is_present(preserve)) {
-      lifecycle::deprecate_warn(
+      lifecycle::deprecate_stop(
         "0.1.16",
         "step_dummy(preserve = )",
         "step_dummy(keep_original_cols = )"
@@ -176,15 +173,16 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     levels <- vector(mode = "list", length = length(col_names))
     names(levels) <- col_names
     for (i in seq_along(col_names)) {
-      form_chr <- paste0("~", col_names[i])
+      form <- rlang::new_formula(lhs = NULL, rhs = rlang::sym(col_names[i]))
       if (x$one_hot) {
-        form_chr <- paste0(form_chr, "-1")
+        form <- stats::update.formula(form, ~ . -1)
       }
-      form <- as.formula(form_chr)
-      terms <- model.frame(form,
-                           data = training[1,],
-                           xlev = x$levels[[i]],
-                           na.action = na.pass)
+      terms <- model.frame(
+        formula = form,
+        data = training[1, ],
+        xlev = x$levels[[i]],
+        na.action = na.pass
+      )
       levels[[i]] <- attr(terms, "terms")
 
       ## About factor levels here: once dummy variables are made,
@@ -217,13 +215,14 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
 
 check_factor_vars <- function(data, col_names, step_name) {
   fac_check <- vapply(data[, col_names], is.factor, logical(1))
-  if (any(!fac_check))
+  if (any(!fac_check)) {
     rlang::warn(
       paste0(
         "The following variables are not factor vectors and will be ignored: ",
         paste0("`", names(fac_check)[!fac_check], "`", collapse = ", ")
       )
     )
+  }
   col_names <- col_names[fac_check]
   if (length(col_names) == 0) {
     rlang::abort(
@@ -243,17 +242,19 @@ warn_new_levels <- function(dat, lvl, details = NULL) {
   if (length(ind) > 0) {
     lvl2 <- unique(dat[ind])
     rlang::warn(
-      paste0("There are new levels in a factor: ",
-            paste0(lvl2, collapse = ", "),
-            details
-            )
+      paste0(
+        "There are new levels in a factor: ",
+        paste0(lvl2, collapse = ", "),
+        details
       )
+    )
   }
   invisible(NULL)
 }
 
 #' @export
 bake.step_dummy <- function(object, new_data, ...) {
+  check_new_data(names(object$levels), object, new_data)
 
   # If no terms were selected
   if (length(object$levels) == 0) {
@@ -275,14 +276,18 @@ bake.step_dummy <- function(object, new_data, ...) {
     orig_var <- names(object$levels)[i]
     fac_type <- attr(object$levels[[i]], "dataClasses")
 
-    if (!any(names(attributes(object$levels[[i]])) == "values"))
+    if (!any(names(attributes(object$levels[[i]])) == "values")) {
       rlang::abort("Factor level values not recorded")
+    }
 
-    if (length(attr(object$levels[[i]], "values")) == 1)
+    if (length(attr(object$levels[[i]], "values")) == 1) {
       rlang::abort(
-        paste0("Only one factor level in ", orig_var, ": ",
-               attr(object$levels[[i]], "values"))
+        paste0(
+          "Only one factor level in ", orig_var, ": ",
+          attr(object$levels[[i]], "values")
         )
+      )
+    }
 
     warn_new_levels(
       new_data[[orig_var]],
@@ -291,12 +296,13 @@ bake.step_dummy <- function(object, new_data, ...) {
 
     new_data[, orig_var] <-
       factor(getElement(new_data, orig_var),
-             levels = attr(object$levels[[i]], "values"),
-             ordered = fac_type == "ordered")
+        levels = attr(object$levels[[i]], "values"),
+        ordered = fac_type == "ordered"
+      )
 
     indicators <-
       model.frame(
-        as.formula(paste0("~", orig_var)),
+        rlang::new_formula(lhs = NULL, rhs = rlang::sym(orig_var)),
         data = new_data[, orig_var],
         xlev = attr(object$levels[[i]], "values"),
         na.action = na.pass
@@ -317,15 +323,13 @@ bake.step_dummy <- function(object, new_data, ...) {
     }
 
     ## use backticks for nonstandard factor levels here
-    used_lvl <- gsub(paste0("^", col_names[i]), "", colnames(indicators))
+    used_lvl <- gsub(paste0("^\\`?", col_names[i], "\\`?"), "", colnames(indicators))
     colnames(indicators) <- object$naming(col_names[i], used_lvl, fac_type == "ordered")
     new_data <- bind_cols(new_data, as_tibble(indicators))
     if (any(!object$preserve, !keep_original_cols)) {
       new_data[, col_names[i]] <- NULL
     }
   }
-  if (!is_tibble(new_data))
-    new_data <- as_tibble(new_data)
   new_data
 }
 

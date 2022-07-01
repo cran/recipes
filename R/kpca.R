@@ -28,15 +28,18 @@
 #'
 #' @template kpca-info
 #'
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @template case-weights-not-supported
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' @examplesIf rlang::is_installed(c("modeldata", "ggplot2", "kernlab"))
+#' data(biomass, package = "modeldata")
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'               data = biomass_tr)
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
+#'
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
 #' kpca_trans <- rec %>%
 #'   step_YeoJohnson(all_numeric_predictors()) %>%
@@ -49,8 +52,8 @@
 #'   kpca_te <- bake(kpca_estimates, biomass_te)
 #'
 #'   ggplot(kpca_te, aes(x = kPC1, y = kPC2)) +
-#'    geom_point() +
-#'    coord_equal()
+#'     geom_point() +
+#'     coord_equal()
 #'
 #'   tidy(kpca_trans, number = 3)
 #'   tidy(kpca_estimates, number = 3)
@@ -60,16 +63,17 @@ step_kpca <-
            ...,
            role = "predictor",
            trained = FALSE,
-           num_comp  = 5,
+           num_comp = 5,
            res = NULL,
            columns = NULL,
-           options = list(kernel = "rbfdot",
-                          kpar = list(sigma = 0.2)),
+           options = list(
+             kernel = "rbfdot",
+             kpar = list(sigma = 0.2)
+           ),
            prefix = "kPC",
            keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("kpca")) {
-
     recipes_pkg_check(required_pkgs.step_kpca())
 
     add_step(
@@ -88,7 +92,7 @@ step_kpca <-
         id = id
       )
     )
-}
+  }
 
 step_kpca_new <-
   function(terms, role, trained, num_comp, res, columns, options, prefix,
@@ -151,6 +155,8 @@ bake.step_kpca <- function(object, new_data, ...) {
   uses_dim_red(object)
 
   if (object$num_comp > 0 && length(object$columns) > 0) {
+    check_new_data(object$columns, object, new_data)
+
     cl <-
       rlang::call2(
         "predict",
@@ -169,7 +175,7 @@ bake.step_kpca <- function(object, new_data, ...) {
       new_data <- new_data[, !(colnames(new_data) %in% object$columns), drop = FALSE]
     }
   }
-  as_tibble(new_data)
+  new_data
 }
 
 print.step_kpca <- function(x, width = max(20, options()$width - 40), ...) {

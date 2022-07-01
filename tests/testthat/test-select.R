@@ -105,7 +105,9 @@ test_that("quasiquotation", {
   # only rec_2 works when local variable is removed
   rm(sepal_vars)
 
-  expect_error(prep(rec_1, training = iris_train))
+  expect_snapshot(error = TRUE,
+    prep(rec_1, training = iris_train)
+  )
 
   prepped_2 <- prep(rec_2, training = iris_train)
   rec_2_train <- bake(prepped_2, new_data = NULL)
@@ -115,8 +117,8 @@ test_that("quasiquotation", {
 test_that("printing", {
   rec <- recipe(~., data = iris) %>%
     step_select(Species, starts_with("Sepal"), petal_width = Petal.Width)
-  expect_output(print(rec))
-  expect_output(prep(rec, training = iris, verbose = TRUE))
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })
 
 test_that("tidying", {
@@ -127,8 +129,10 @@ test_that("tidying", {
 
   set.seed(403)
   rec <- recipe(~., data = iris) %>%
-    step_select(species = Species, starts_with("Sepal"), all_of(petal),
-                id = "select_no_qq") %>%
+    step_select(
+      species = Species, starts_with("Sepal"), all_of(petal),
+      id = "select_no_qq"
+    ) %>%
     step_select(all_of(!!petal), id = "select_qq")
   prepped <- prep(rec, training = iris_train)
 
@@ -140,4 +144,15 @@ test_that("tidying", {
     tidy(prepped, number = 1)
     tidy(prepped, number = 2)
   })
+})
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  rec <- recipe(~., data = mtcars) %>%
+    step_select(cyl) %>%
+    update_role(cyl, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE) %>%
+    prep(training = mtcars)
+
+  expect_error(bake(rec, new_data = mtcars[, c(-2)]),
+               class = "new_data_missing_column")
 })

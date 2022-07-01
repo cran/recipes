@@ -21,18 +21,17 @@
 #' Note that if the original columns are character, they will be
 #'  converted to factors by this step.
 #'
+#' @template case-weights-not-supported
 #'
-#' @examples
-#'
-#' library(modeldata)
-#' data(okc)
-#' rec <- recipe(~ diet + location, data = okc) %>%
-#'   step_unknown(diet, new_level = "UNKNOWN") %>%
-#'   step_relevel(diet, ref_level = "UNKNOWN") %>%
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(Sacramento, package = "modeldata")
+#' rec <- recipe(~ city + zip, data = Sacramento) %>%
+#'   step_unknown(city, new_level = "UNKNOWN") %>%
+#'   step_relevel(city, ref_level = "UNKNOWN") %>%
 #'   prep()
 #'
-#' data <- bake(rec, okc)
-#' levels(data$diet)
+#' data <- bake(rec, Sacramento)
+#' levels(data$city)
 step_relevel <-
   function(recipe,
            ...,
@@ -122,11 +121,9 @@ prep.step_relevel <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_relevel <- function(object, new_data, ...) {
+  check_new_data(names(object$objects), object, new_data)
   for (i in names(object$objects)) {
     new_data[[i]] <- stats::relevel(as.factor(new_data[[i]]), ref = object$ref_level)
-  }
-  if (!is_tibble(new_data)) {
-    new_data <- as_tibble(new_data)
   }
   new_data
 }

@@ -59,9 +59,15 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 median value) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data("credit_data")
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data("credit_data", package = "modeldata")
 
 ## missing data per column
 purrr::map_dbl(credit_data, function(x) mean(is.na(x)))
@@ -69,7 +75,7 @@ purrr::map_dbl(credit_data, function(x) mean(is.na(x)))
 set.seed(342)
 in_training <- sample(1:nrow(credit_data), 2000)
 
-credit_tr <- credit_data[ in_training, ]
+credit_tr <- credit_data[in_training, ]
 credit_te <- credit_data[-in_training, ]
 
 rec <- recipe(Price ~ ., data = credit_tr)
@@ -80,6 +86,7 @@ impute_rec <- rec \%>\%
 imp_models <- prep(impute_rec, training = credit_tr)
 
 imputed_te <- bake(imp_models, new_data = credit_te, everything())
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other dummy variable and encoding steps: 
@@ -99,6 +106,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

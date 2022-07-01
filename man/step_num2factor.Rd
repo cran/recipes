@@ -64,10 +64,16 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 \code{terms} (the selectors or variables selected) and \code{ordered} is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(dplyr)
-library(modeldata)
-data(attrition)
+data(attrition, package = "modeldata")
 
 attrition \%>\%
   group_by(StockOptionLevel) \%>\%
@@ -83,7 +89,9 @@ rec <-
     levels = amnt
   )
 
-encoded <- rec \%>\% prep() \%>\% bake(new_data = NULL)
+encoded <- rec \%>\%
+  prep() \%>\%
+  bake(new_data = NULL)
 
 table(encoded$StockOptionLevel, attrition$StockOptionLevel)
 
@@ -113,9 +121,12 @@ encoded <- bake(rec, new_data = NULL)
 table(encoded$MonthlyIncome, binner(attrition$MonthlyIncome))
 
 # What happens when a value is out of range?
-ceo <- attrition \%>\% slice(1) \%>\% mutate(MonthlyIncome = 10^10)
+ceo <- attrition \%>\%
+  slice(1) \%>\%
+  mutate(MonthlyIncome = 10^10)
 
 bake(rec, ceo)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other dummy variable and encoding steps: 
@@ -135,6 +146,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

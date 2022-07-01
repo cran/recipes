@@ -5,12 +5,12 @@
 #'  deviation of one and a mean of zero.
 #'
 #' @inheritParams step_center
-#' @param means A named numeric vector of means. This is
-#'  `NULL` until computed by [prep()].
-#' @param sds A named numeric vector of standard deviations This
-#'  is `NULL` until computed by [prep()].
-#' @param na_rm A logical value indicating whether `NA`
-#'  values should be removed when computing the standard deviation and mean.
+#' @param means A named numeric vector of means. This is `NULL` until computed
+#'  by [prep()].
+#' @param sds A named numeric vector of standard deviations This is `NULL` until
+#'  computed by [prep()].
+#' @param na_rm A logical value indicating whether `NA` values should be removed
+#'  when computing the standard deviation and mean.
 #' @template step-return
 #' @family normalization steps
 #' @export
@@ -28,15 +28,18 @@
 #'  deviations and means), and `statistic` for the type of value is
 #'  returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @template case-weights-unsupervised
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'               data = biomass_tr)
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
+#'
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
 #' norm_trans <- rec %>%
 #'   step_normalize(carbon, hydrogen)
@@ -58,7 +61,6 @@
 #' keep_orig_obj <- prep(norm_keep_orig, training = biomass_tr)
 #' keep_orig_te <- bake(keep_orig_obj, biomass_te)
 #' keep_orig_te
-#'
 step_normalize <-
   function(recipe,
            ...,
@@ -79,13 +81,14 @@ step_normalize <-
         sds = sds,
         na_rm = na_rm,
         skip = skip,
-        id = id
+        id = id,
+        case_weights = NULL
       )
     )
   }
 
 step_normalize_new <-
-  function(terms, role, trained, means, sds, na_rm, skip, id) {
+  function(terms, role, trained, means, sds, na_rm, skip, id, case_weights) {
     step(
       subclass = "normalize",
       terms = terms,
@@ -95,18 +98,44 @@ step_normalize_new <-
       sds = sds,
       na_rm = na_rm,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = case_weights
     )
   }
+
+sd_check <- function(x) {
+  zero_sd <- which(x < .Machine$double.eps)
+  if (length(zero_sd) > 0) {
+    glue_cols <- glue::glue_collapse(
+      glue::glue("`{names(zero_sd)}`"), sep = ", ", last = " and "
+    )
+    rlang::warn(
+      glue::glue(
+        "Column(s) have zero variance so scaling cannot be used: {glue_cols}. ",
+        "Consider using `step_zv()` to remove those columns before normalizing"
+      )
+    )
+    x[zero_sd] <- 1
+  }
+  x
+}
 
 #' @export
 prep.step_normalize <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
-
   check_type(training[, col_names])
 
-  means <- vapply(training[, col_names], mean, c(mean = 0), na.rm = x$na_rm)
-  sds <- vapply(training[, col_names], sd, c(sd = 0), na.rm = x$na_rm)
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
+
+  means <- averages(training[, col_names], wts, na_rm = x$na_rm)
+  vars <- variances(training[, col_names], wts, na_rm = x$na_rm)
+  sds <- sqrt(vars)
+  sds <- sd_check(sds)
+
   step_normalize_new(
     terms = x$terms,
     role = x$role,
@@ -115,23 +144,28 @@ prep.step_normalize <- function(x, training, info = NULL, ...) {
     sds = sds,
     na_rm = x$na_rm,
     skip = x$skip,
-    id = x$id
+    id = x$id,
+    case_weights = were_weights_used
   )
 }
 
 #' @export
 bake.step_normalize <- function(object, new_data, ...) {
-  res <- sweep(as.matrix(new_data[, names(object$means)]), 2, object$means, "-")
-  res <- sweep(res, 2, object$sds, "/")
-  res <- tibble::as_tibble(res)
-  new_data[, names(object$sds)] <- res
-  as_tibble(new_data)
+  check_new_data(names(object$means), object, new_data)
+
+  for (column in names(object$means)) {
+    mean <- object$means[column]
+    sd <- object$sds[column]
+    new_data[[column]] <- (new_data[[column]] - mean) / sd
+  }
+  new_data
 }
 
 print.step_normalize <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Centering and scaling for "
-    print_step(names(x$sds), x$terms, x$trained, title, width)
+    print_step(names(x$sds), x$terms, x$trained, title, width,
+               case_weights = x$case_weights)
     invisible(x)
   }
 
@@ -140,14 +174,18 @@ print.step_normalize <-
 #' @export
 tidy.step_normalize <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = c(names(x$means), names(x$sds)),
-                  statistic = rep(c("mean", "sd"), each = length(x$sds)),
-                  value = unname(c(x$means, x$sds)))
+    res <- tibble(
+      terms = c(names(x$means), names(x$sds)),
+      statistic = rep(c("mean", "sd"), each = length(x$sds)),
+      value = unname(c(x$means, x$sds))
+    )
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names,
-                  statistic = na_chr,
-                  value = na_dbl)
+    res <- tibble(
+      terms = term_names,
+      statistic = na_chr,
+      value = na_dbl
+    )
   }
   res$id <- x$id
   res

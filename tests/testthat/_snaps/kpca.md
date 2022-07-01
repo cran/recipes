@@ -23,11 +23,8 @@
 ---
 
     Code
-      prep(kpca_rec, training = tr_dat, verbose = TRUE)
+      prep(kpca_rec)
     Output
-      oper 1 step kpca [training] 
-      The retained training set is ~ 0.01 Mb  in memory.
-      
       Recipe
       
       Inputs:
@@ -71,7 +68,8 @@
 
     Code
       kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE)
-    Warning <rlang_warning>
+    Condition
+      Warning:
       'keep_original_cols' was added to `step_kpca()` after this recipe was created.
       Regenerate your recipe to avoid this warning.
 

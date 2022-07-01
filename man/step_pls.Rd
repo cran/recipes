@@ -120,18 +120,25 @@ above. When you \code{tidy()} this step, a tibble with columns \code{terms} (the
 selectors or variables selected), \code{components}, and \code{values} is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # requires the Bioconductor mixOmics package
 data(biomass, package = "modeldata")
 
 biom_tr <-
   biomass \%>\%
   dplyr::filter(dataset == "Training") \%>\%
-  dplyr::select(-dataset,-sample)
+  dplyr::select(-dataset, -sample)
 biom_te <-
   biomass \%>\%
-  dplyr::filter(dataset == "Testing")  \%>\%
-  dplyr::select(-dataset,-sample,-HHV)
+  dplyr::filter(dataset == "Testing") \%>\%
+  dplyr::select(-dataset, -sample, -HHV)
 
 dense_pls <-
   recipe(HHV ~ ., data = biom_tr) \%>\%
@@ -139,7 +146,7 @@ dense_pls <-
 
 sparse_pls <-
   recipe(HHV ~ ., data = biom_tr) \%>\%
-  step_pls(all_numeric_predictors(), outcome = "HHV", num_comp = 3, predictor_prop = 4/5)
+  step_pls(all_numeric_predictors(), outcome = "HHV", num_comp = 3, predictor_prop = 4 / 5)
 
 ## -----------------------------------------------------------------------------
 ## PLS discriminant analysis
@@ -152,8 +159,8 @@ cell_tr <-
   dplyr::select(-case)
 cell_te <-
   cells \%>\%
-  dplyr::filter(case == "Test")  \%>\%
-  dplyr::select(-case,-class)
+  dplyr::filter(case == "Test") \%>\%
+  dplyr::select(-case, -class)
 
 dense_plsda <-
   recipe(class ~ ., data = cell_tr) \%>\%
@@ -161,8 +168,8 @@ dense_plsda <-
 
 sparse_plsda <-
   recipe(class ~ ., data = cell_tr) \%>\%
-  step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5, predictor_prop = 1/4)
-
+  step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5, predictor_prop = 1 / 4)
+\dontshow{\}) # examplesIf}
 }
 \references{
 \url{https://en.wikipedia.org/wiki/Partial_least_squares_regression}

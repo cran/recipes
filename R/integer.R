@@ -36,27 +36,25 @@
 #' `terms` (the selectors or variables selected) and `value`
 #' (a _list column_ with the conversion key) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(okc)
+#' @template case-weights-not-supported
 #'
-#' okc$location <- factor(okc$location)
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(Sacramento, package = "modeldata")
 #'
-#' okc_tr <- okc[1:100, ]
-#' okc_tr$age[1] <- NA
+#' sacr_tr <- Sacramento[1:100, ]
+#' sacr_tr$sqft[1] <- NA
 #'
-#' okc_te <- okc[101:105, ]
-#' okc_te$age[1] <- NA
-#' okc_te$diet[1] <- "fast food"
-#' okc_te$diet[2] <- NA
+#' sacr_te <- Sacramento[101:105, ]
+#' sacr_te$sqft[1] <- NA
+#' sacr_te$city[1] <- "whoville"
+#' sacr_te$city[2] <- NA
 #'
-#' rec <- recipe(Class ~ ., data = okc_tr) %>%
+#' rec <- recipe(type ~ ., data = sacr_tr) %>%
 #'   step_integer(all_predictors()) %>%
-#'   prep(training = okc_tr)
+#'   prep(training = sacr_tr)
 #'
-#' bake(rec, okc_te, all_predictors())
+#' bake(rec, sacr_te, all_predictors())
 #' tidy(rec, number = 1)
-
 step_integer <-
   function(recipe,
            ...,
@@ -98,7 +96,7 @@ step_integer_new <-
   }
 
 get_unique_values <- function(x, zero = FALSE) {
-  if(is.factor(x)) {
+  if (is.factor(x)) {
     res <- levels(x)
   } else {
     res <- sort(unique(x))
@@ -128,8 +126,9 @@ prep.step_integer <- function(x, training, info = NULL, ...) {
 }
 
 map_key_to_int <- function(dat, key, strict = FALSE, zero = FALSE) {
-  if (is.factor(dat))
+  if (is.factor(dat)) {
     dat <- as.character(dat)
+  }
 
   res <- full_join(tibble(value = dat, .row = seq_along(dat)), key, by = "value")
   res <- dplyr::filter(res, !is.na(.row))
@@ -140,20 +139,20 @@ map_key_to_int <- function(dat, key, strict = FALSE, zero = FALSE) {
   } else {
     res$integer[is.na(res$integer) & !is.na(res$value)] <- 0
   }
-  if (strict)
+  if (strict) {
     res$integer <- as.integer(res$integer)
+  }
   res[["integer"]]
 }
 
 #' @export
 bake.step_integer <- function(object, new_data, ...) {
+  check_new_data(names(object$key), object, new_data)
 
   for (i in names(object$key)) {
     new_data[[i]] <-
       map_key_to_int(new_data[[i]], object$key[[i]], object$strict, object$zero_based)
   }
-  if (!is_tibble(new_data))
-    new_data <- as_tibble(new_data)
   new_data
 }
 

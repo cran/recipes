@@ -13,6 +13,7 @@ step_date(
   abbr = TRUE,
   label = TRUE,
   ordinal = FALSE,
+  locale = Sys.getlocale("LC_TIME"),
   columns = NULL,
   keep_original_cols = TRUE,
   skip = FALSE,
@@ -55,6 +56,10 @@ number.}
 \item{ordinal}{A logical: should factors be ordered? Only
 available for features \code{month} or \code{dow}.}
 
+\item{locale}{Locale to be used for \code{month} and \code{dow}, see \link{locales}.
+On Linux systems you can use \code{system("locale -a")} to list all the
+installed locales. Defaults to \code{Sys.getlocale("LC_TIME")}.}
+
 \item{columns}{A character string of variables that will be
 used as inputs. This field is a placeholder and will be
 populated once \code{\link[=prep]{prep()}} is used.}
@@ -84,6 +89,9 @@ numeric variables.
 Unlike some other steps, \code{step_date} does \emph{not}
 remove the original date variables by default. Set \code{keep_original_cols}
 to \code{FALSE} to remove them.
+
+See \code{\link[=step_time]{step_time()}} if you want to calculate features that are smaller than
+days.
 }
 \section{Tidying}{
 When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
@@ -91,13 +99,21 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 names), and \code{ordinal} (a logical) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 library(lubridate)
 
-examples <- data.frame(Dan = ymd("2002-03-04") + days(1:10),
-                       Stefan = ymd("2006-01-13") + days(1:10))
+examples <- data.frame(
+  Dan = ymd("2002-03-04") + days(1:10),
+  Stefan = ymd("2006-01-13") + days(1:10)
+)
 date_rec <- recipe(~ Dan + Stefan, examples) \%>\%
-   step_date(all_predictors())
+  step_date(all_predictors())
 
 tidy(date_rec, number = 1)
 
@@ -107,7 +123,6 @@ date_values <- bake(date_rec, new_data = examples)
 date_values
 
 tidy(date_rec, number = 1)
-
 }
 \seealso{
 Other dummy variable and encoding steps: 
@@ -127,6 +142,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

@@ -93,7 +93,14 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 summary function name), and \code{size} is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
+\dontshow{if (rlang::is_installed(c("RcppML", "ggplot2"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(recipes)
 library(dplyr)
 library(rlang)
@@ -108,12 +115,15 @@ sim_dat$x2 <- runif(n)
 sim_dat$x3 <- rnorm(n)
 
 rec <- recipe(y1 + y2 ~ x1 + x2 + x3, data = sim_dat) \%>\%
-  step_window(starts_with("y"), size = 7, statistic = "median",
-              names = paste0("med_7pt_", 1:2),
-              role = "outcome") \%>\%
   step_window(starts_with("y"),
-              names = paste0("mean_3pt_", 1:2),
-              role = "outcome")
+    size = 7, statistic = "median",
+    names = paste0("med_7pt_", 1:2),
+    role = "outcome"
+  ) \%>\%
+  step_window(starts_with("y"),
+    names = paste0("mean_3pt_", 1:2),
+    role = "outcome"
+  )
 rec <- prep(rec, training = sim_dat)
 
 smoothed_dat <- bake(rec, sim_dat, everything())
@@ -137,4 +147,5 @@ smoothed_dat <- bake(rec, sim_dat, everything())
 ggplot(smoothed_dat, aes(x = original, y = y1)) +
   geom_point() +
   theme_bw()
+\dontshow{\}) # examplesIf}
 }

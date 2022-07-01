@@ -70,17 +70,26 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 \code{size}, \code{replace}, and \code{id} is returned.
 }
 
+\section{Case weights}{
+
+
+This step performs an unsupervised operation that can utilize case weights.
+As a result, case weights are only used with frequency weights. For more
+information, see the documentation in \link{case_weights} and the examples on
+\code{tidymodels.org}.
+}
+
 \examples{
 
 # Uses `sample_n`
-recipe( ~ ., data = mtcars) \%>\%
+recipe(~., data = mtcars) \%>\%
   step_sample(size = 1) \%>\%
   prep(training = mtcars) \%>\%
   bake(new_data = NULL) \%>\%
   nrow()
 
 # Uses `sample_frac`
-recipe( ~ ., data = mtcars) \%>\%
+recipe(~., data = mtcars) \%>\%
   step_sample(size = 0.9999) \%>\%
   prep(training = mtcars) \%>\%
   bake(new_data = NULL) \%>\%
@@ -88,7 +97,7 @@ recipe( ~ ., data = mtcars) \%>\%
 
 # Uses `sample_n` and returns _at maximum_ 20 samples.
 smaller_cars <-
-  recipe( ~ ., data = mtcars) \%>\%
+  recipe(~., data = mtcars) \%>\%
   step_sample() \%>\%
   prep(training = mtcars \%>\% slice(1:20))
 

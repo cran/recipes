@@ -46,18 +46,20 @@
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the columns that will be removed) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @template case-weights-unsupervised
+#'
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
 #' biomass$sparse <- c(1, rep(0, nrow(biomass) - 1))
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
 #'
 #' rec <- recipe(HHV ~ carbon + hydrogen + oxygen +
-#'                     nitrogen + sulfur + sparse,
-#'               data = biomass_tr)
+#'   nitrogen + sulfur + sparse,
+#' data = biomass_tr
+#' )
 #'
 #' nzv_filter <- rec %>%
 #'   step_nzv(all_predictors())
@@ -80,7 +82,6 @@ step_nzv <-
            removals = NULL,
            skip = FALSE,
            id = rand_id("nzv")) {
-
     exp_list <- list(freq_cut = 95 / 5, unique_cut = 10)
     if (!isTRUE(all.equal(exp_list, options))) {
       freq_cut <- options$freq_cut
@@ -103,13 +104,15 @@ step_nzv <-
         options = options,
         removals = removals,
         skip = skip,
-        id = id
+        id = id,
+        case_weights = NULL
       )
     )
   }
 
 step_nzv_new <-
-  function(terms, role, trained, freq_cut, unique_cut, options, removals, skip, id) {
+  function(terms, role, trained, freq_cut, unique_cut, options,
+           removals, skip, id, case_weights) {
     step(
       subclass = "nzv",
       terms = terms,
@@ -120,7 +123,8 @@ step_nzv_new <-
       options = options,
       removals = removals,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = case_weights
     )
   }
 
@@ -128,8 +132,15 @@ step_nzv_new <-
 prep.step_nzv <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
 
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
+
   filter <- nzv(
     x = training[, col_names],
+    wts = wts,
     freq_cut = x$freq_cut,
     unique_cut = x$unique_cut
   )
@@ -143,15 +154,17 @@ prep.step_nzv <- function(x, training, info = NULL, ...) {
     options = x$options,
     removals = filter,
     skip = x$skip,
-    id = x$id
+    id = x$id,
+    case_weights = were_weights_used
   )
 }
 
 #' @export
 bake.step_nzv <- function(object, new_data, ...) {
-  if (length(object$removals) > 0)
+  if (length(object$removals) > 0) {
     new_data <- new_data[, !(colnames(new_data) %in% object$removals)]
-  as_tibble(new_data)
+  }
+  new_data
 }
 
 print.step_nzv <-
@@ -161,18 +174,21 @@ print.step_nzv <-
     } else {
       title <- "Sparse, unbalanced variable filter on "
     }
-    print_step(x$removals, x$terms, x$trained, title, width)
+    print_step(x$removals, x$terms, x$trained, title, width,
+               case_weights = x$case_weights)
     invisible(x)
   }
 
 nzv <- function(x,
+                wts,
                 freq_cut = 95 / 5,
                 unique_cut = 10) {
-  if (is.null(dim(x)))
+  if (is.null(dim(x))) {
     x <- matrix(x, ncol = 1)
+  }
 
   fr_foo <- function(data) {
-    t <- table(data[!is.na(data)])
+    t <- weighted_table(data[!is.na(data)], wts = wts)
     if (length(t) <= 1) {
       return(0)
     }
@@ -182,18 +198,20 @@ nzv <- function(x,
   }
 
   freq_ratio <- vapply(x, fr_foo, c(ratio = 0))
-  uni_foo <- function(data)
+  uni_foo <- function(data) {
     length(unique(data[!is.na(data)]))
+  }
   lunique <- vapply(x, uni_foo, c(num = 0))
   pct_unique <- 100 * lunique / vapply(x, length, c(num = 0))
 
-  zero_func <- function(data)
+  zero_func <- function(data) {
     all(is.na(data))
+  }
   zero_var <- (lunique == 1) | vapply(x, zero_func, c(zv = TRUE))
 
   out <-
-    which( (freq_ratio > freq_cut &
-             pct_unique <= unique_cut) | zero_var)
+    which((freq_ratio > freq_cut &
+      pct_unique <= unique_cut) | zero_var)
   names(out) <- NULL
   colnames(x)[out]
 }

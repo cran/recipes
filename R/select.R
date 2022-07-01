@@ -19,6 +19,8 @@
 #' `terms` which contains the `select` expressions as character strings
 #' (and are not reparsable) is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @family variable filter steps
 #' @family dplyr steps
 #' @template filter-steps
@@ -73,15 +75,15 @@ step_select <- function(recipe,
   )
 }
 step_select_new <- function(terms, role, trained, skip, id) {
-    step(
-      subclass = "select",
-      terms = terms,
-      role = role,
-      trained = trained,
-      skip = skip,
-      id = id
-    )
-  }
+  step(
+    subclass = "select",
+    terms = terms,
+    role = role,
+    trained = trained,
+    skip = skip,
+    id = id
+  )
+}
 
 #' @export
 prep.step_select <- function(x, training, info = NULL, ...) {
@@ -98,6 +100,8 @@ prep.step_select <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_select <- function(object, new_data, ...) {
+  check_new_data(object$terms, object, new_data)
+
   dplyr::select(new_data, dplyr::all_of(object$terms))
 }
 

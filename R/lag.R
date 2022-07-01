@@ -19,20 +19,25 @@
 #' @template step-return
 #' @details The step assumes that the data are already _in the proper sequential
 #'  order_ for lagging.
+#'
+#' @template case-weights-not-supported
+#'
 #' @family row operation steps
 #' @export
 #' @rdname step_lag
 #'
 #' @examples
 #' n <- 10
-#' start <- as.Date('1999/01/01')
-#' end <- as.Date('1999/01/10')
+#' start <- as.Date("1999/01/01")
+#' end <- as.Date("1999/01/10")
 #'
-#' df <- data.frame(x = runif(n),
-#'                  index = 1:n,
-#'                  day = seq(start, end, by = "day"))
+#' df <- data.frame(
+#'   x = runif(n),
+#'   index = 1:n,
+#'   day = seq(start, end, by = "day")
+#' )
 #'
-#' recipe(~ ., data = df) %>%
+#' recipe(~., data = df) %>%
 #'   step_lag(index, day, lag = 2:3) %>%
 #'   prep(df) %>%
 #'   bake(df)
@@ -96,9 +101,11 @@ prep.step_lag <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_lag <- function(object, new_data, ...) {
+  check_new_data(names(object$columns), object, new_data)
 
-  if (!all(object$lag == as.integer(object$lag)))
+  if (!all(object$lag == as.integer(object$lag))) {
     rlang::abort("step_lag requires 'lag' argument to be integer valued.")
+  }
 
   make_call <- function(col, lag_val) {
     call2(
@@ -115,7 +122,8 @@ bake.step_lag <- function(object, new_data, ...) {
   newname <- as.character(glue::glue("{object$prefix}{grid$lag_val}_{grid$col}"))
   calls <- check_name(calls, new_data, object, newname, TRUE)
 
-  as_tibble(mutate(new_data, !!!calls))
+  new_data <- mutate(new_data, !!!calls)
+  new_data
 }
 
 print.step_lag <-

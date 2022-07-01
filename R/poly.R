@@ -29,15 +29,18 @@
 #'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
 #'  `terms` (the columns that will be affected) and `degree` is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @template case-weights-not-supported
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'               data = biomass_tr)
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
+#'
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
 #' quadratic <- rec %>%
 #'   step_poly(carbon, hydrogen)
@@ -55,9 +58,8 @@ step_poly <-
            objects = NULL,
            degree = 2,
            options = list(),
-        skip = FALSE,
-        id = rand_id("poly")) {
-
+           skip = FALSE,
+           id = rand_id("poly")) {
     if (!is_tune(degree) & !is_varying(degree)) {
       degree <- as.integer(degree)
     }
@@ -145,6 +147,7 @@ prep.step_poly <- function(x, training, info = NULL, ...) {
 #' @export
 bake.step_poly <- function(object, new_data, ...) {
   col_names <- names(object$objects)
+  check_new_data(col_names, object, new_data)
   new_names <- purrr::map(object$objects, ~ paste(attr(.x, "var"), "poly", 1:ncol(.x), sep = "_"))
 
   # Start with n-row, 0-col tibble for the empty selection case

@@ -10,7 +10,7 @@ step_naomit(
   role = NA,
   trained = FALSE,
   columns = NULL,
-  skip = FALSE,
+  skip = TRUE,
   id = rand_id("naomit")
 )
 }
@@ -58,13 +58,18 @@ not be applied at all; instead, execute operations like this outside and
 before starting a preprocessing \code{\link[=recipe]{recipe()}}.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 
 recipe(Ozone ~ ., data = airquality) \%>\%
   step_naomit(Solar.R) \%>\%
   prep(airquality, verbose = FALSE) \%>\%
   bake(new_data = NULL)
-
 }
 \seealso{
 Other row operation steps: 

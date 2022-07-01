@@ -92,6 +92,15 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 of the class), and \code{class} is returned.
 }
 
+\section{Case weights}{
+
+
+This step performs an supervised operation that can utilize case weights.
+As a result, case weights are used with frequency weights as well as
+importance weights. For more information,, see the documentation in
+\link{case_weights} and the examples on \code{tidymodels.org}.
+}
+
 \examples{
 
 # in case of missing data...
@@ -99,13 +108,17 @@ mean2 <- function(x) mean(x, na.rm = TRUE)
 
 # define naming convention
 rec <- recipe(Species ~ ., data = iris) \%>\%
-  step_classdist(all_numeric_predictors(), class = "Species",
-                 pool = FALSE, mean_func = mean2, prefix = "centroid_")
+  step_classdist(all_numeric_predictors(),
+    class = "Species",
+    pool = FALSE, mean_func = mean2, prefix = "centroid_"
+  )
 
 # default naming
 rec <- recipe(Species ~ ., data = iris) \%>\%
-  step_classdist(all_numeric_predictors(), class = "Species",
-                 pool = FALSE, mean_func = mean2)
+  step_classdist(all_numeric_predictors(),
+    class = "Species",
+    pool = FALSE, mean_func = mean2
+  )
 
 rec_dists <- prep(rec, training = iris)
 

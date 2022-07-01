@@ -70,12 +70,18 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 \code{terms} (the columns that will be affected) and \code{holiday} is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 library(lubridate)
 
 examples <- data.frame(someday = ymd("2000-12-20") + days(0:40))
-holiday_rec <- recipe(~ someday, examples) \%>\%
-   step_holiday(all_predictors())
+holiday_rec <- recipe(~someday, examples) \%>\%
+  step_holiday(all_predictors())
 
 holiday_rec <- prep(holiday_rec, training = examples)
 holiday_values <- bake(holiday_rec, new_data = examples)
@@ -101,6 +107,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

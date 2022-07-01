@@ -24,9 +24,10 @@
 #' columns `terms` (the selectors or variables selected) and `model`
 #' (themedian value) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data("credit_data")
+#' @template case-weights-unsupervised
+#'
+#' @examplesIf rlang::is_installed("modeldata")
+#' data("credit_data", package = "modeldata")
 #'
 #' ## missing data per column
 #' vapply(credit_data, function(x) mean(is.na(x)), c(num = 0))
@@ -34,7 +35,7 @@
 #' set.seed(342)
 #' in_training <- sample(1:nrow(credit_data), 2000)
 #'
-#' credit_tr <- credit_data[ in_training, ]
+#' credit_tr <- credit_data[in_training, ]
 #' credit_te <- credit_data[-in_training, ]
 #' missing_examples <- c(14, 394, 565)
 #'
@@ -47,12 +48,11 @@
 #'
 #' imputed_te <- bake(imp_models, new_data = credit_te, everything())
 #'
-#' credit_te[missing_examples,]
+#' credit_te[missing_examples, ]
 #' imputed_te[missing_examples, names(credit_te)]
 #'
 #' tidy(impute_rec, number = 1)
 #' tidy(imp_models, number = 1)
-
 step_impute_median <-
   function(recipe,
            ...,
@@ -69,7 +69,8 @@ step_impute_median <-
         trained = trained,
         medians = medians,
         skip = skip,
-        id = id
+        id = id,
+        case_weights = NULL
       )
     )
   }
@@ -84,7 +85,7 @@ step_medianimpute <-
            medians = NULL,
            skip = FALSE,
            id = rand_id("impute_median")) {
-    lifecycle::deprecate_warn(
+    lifecycle::deprecate_stop(
       when = "0.1.16",
       what = "recipes::step_medianimpute()",
       with = "recipes::step_impute_median()"
@@ -101,7 +102,7 @@ step_medianimpute <-
   }
 
 step_impute_median_new <-
-  function(terms, role, trained, medians, skip, id) {
+  function(terms, role, trained, medians, skip, id, case_weights) {
     step(
       subclass = "impute_median",
       terms = terms,
@@ -109,17 +110,23 @@ step_impute_median_new <-
       trained = trained,
       medians = medians,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = case_weights
     )
   }
 
 #' @export
 prep.step_impute_median <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
-
   check_type(training[, col_names])
 
-  medians <- lapply(training[, col_names], median, na.rm = TRUE)
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
+
+  medians <- medians(training[, col_names], wts = wts)
   medians <- purrr::map2(medians, training[, col_names], cast)
 
   step_impute_median_new(
@@ -128,7 +135,8 @@ prep.step_impute_median <- function(x, training, info = NULL, ...) {
     trained = TRUE,
     medians = medians,
     skip = x$skip,
-    id = x$id
+    id = x$id,
+    case_weights = were_weights_used
   )
 }
 
@@ -138,12 +146,15 @@ prep.step_medianimpute <- prep.step_impute_median
 
 #' @export
 bake.step_impute_median <- function(object, new_data, ...) {
+  check_new_data(names(object$medians), object, new_data)
+
   for (i in names(object$medians)) {
-    if (any(is.na(new_data[[i]])))
+    if (any(is.na(new_data[[i]]))) {
       new_data[[i]] <- vec_cast(new_data[[i]], object$medians[[i]])
-      new_data[is.na(new_data[[i]]), i] <- object$medians[[i]]
+    }
+    new_data[is.na(new_data[[i]]), i] <- object$medians[[i]]
   }
-  as_tibble(new_data)
+  new_data
 }
 
 #' @export
@@ -154,7 +165,8 @@ bake.step_medianimpute <- bake.step_impute_median
 print.step_impute_median <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Median imputation for "
-    print_step(names(x$medians), x$terms, x$trained, title, width)
+    print_step(names(x$medians), x$terms, x$trained, title, width,
+               case_weights = x$case_weights)
     invisible(x)
   }
 
@@ -166,8 +178,10 @@ print.step_medianimpute <- print.step_impute_median
 #' @export
 tidy.step_impute_median <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = names(x$medians),
-                  model = vctrs::vec_unchop(unname(x$medians), ptype = double()))
+    res <- tibble(
+      terms = names(x$medians),
+      model = vctrs::vec_unchop(unname(x$medians), ptype = double())
+    )
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble(terms = term_names, model = na_dbl)

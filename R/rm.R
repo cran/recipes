@@ -15,16 +15,19 @@
 #'
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the columns that will be removed) is returned.
+#'
+#' @template case-weights-not-supported
+#'
 #' @family variable filter steps
 #' @export
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training", ]
 #' biomass_te <- biomass[biomass$dataset == "Testing", ]
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
 #'   data = biomass_tr
 #' )
 #'
@@ -89,7 +92,7 @@ bake.step_rm <- function(object, new_data, ...) {
   if (length(object$removals) > 0) {
     new_data <- new_data[, !(colnames(new_data) %in% object$removals)]
   }
-  as_tibble(new_data)
+  new_data
 }
 
 print.step_rm <-

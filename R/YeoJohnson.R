@@ -37,20 +37,22 @@
 #' `terms` (the selectors or variables selected) and `value` (the
 #' lambda estimate) is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @references Yeo, I. K., and Johnson, R. A. (2000). A new family of power
 #'   transformations to improve normality or symmetry. *Biometrika*.
-#' @examples
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
-#' library(modeldata)
-#' data(biomass)
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'               data = biomass_tr)
-#'
-#' yj_transform <- step_YeoJohnson(rec,  all_numeric())
+#' yj_transform <- step_YeoJohnson(rec, all_numeric())
 #'
 #' yj_estimates <- prep(yj_transform, training = biomass_tr)
 #'
@@ -128,14 +130,19 @@ prep.step_YeoJohnson <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_YeoJohnson <- function(object, new_data, ...) {
-  if (length(object$lambdas) == 0)
+  check_new_data(names(object$lambdas), object, new_data)
+
+  if (length(object$lambdas) == 0) {
     return(as_tibble(new_data))
+  }
   param <- names(object$lambdas)
-  for (i in seq_along(object$lambdas))
+  for (i in seq_along(object$lambdas)) {
     new_data[, param[i]] <-
-    yj_transform(getElement(new_data, param[i]),
-             lambda = object$lambdas[param[i]])
-  as_tibble(new_data)
+      yj_transform(getElement(new_data, param[i]),
+        lambda = object$lambdas[param[i]]
+      )
+  }
+  new_data
 }
 
 print.step_YeoJohnson <-
@@ -153,15 +160,17 @@ print.step_YeoJohnson <-
 #' @keywords internal
 #' @rdname recipes-internal
 yj_transform <- function(x, lambda, ind_neg = NULL, eps = 0.001) {
-  if (is.na(lambda))
+  if (is.na(lambda)) {
     return(x)
+  }
   if (!inherits(x, "tbl_df") || is.data.frame(x)) {
     x <- unlist(x, use.names = FALSE)
   } else {
-    if (!is.vector(x))
+    if (!is.vector(x)) {
       x <- as.vector(x)
+    }
   }
-
+  # TODO case weights: can we use weights here?
   if (is.null(ind_neg)) {
     dat_neg <- x < 0
     ind_neg <- list(is = which(dat_neg), not = which(!dat_neg))
@@ -169,23 +178,29 @@ yj_transform <- function(x, lambda, ind_neg = NULL, eps = 0.001) {
   not_neg <- ind_neg[["not"]]
   is_neg <- ind_neg[["is"]]
 
-  nn_trans <- function(x, lambda)
-    if (abs(lambda) < eps)
+  nn_trans <- function(x, lambda) {
+    if (abs(lambda) < eps) {
       log(x + 1)
-  else
-    ((x + 1) ^ lambda - 1) / lambda
+    } else {
+      ((x + 1)^lambda - 1) / lambda
+    }
+  }
 
-  ng_trans <- function(x, lambda)
-    if (abs(lambda - 2) < eps)
-      - log(-x + 1)
-  else
-    - ((-x + 1) ^ (2 - lambda) - 1) / (2 - lambda)
+  ng_trans <- function(x, lambda) {
+    if (abs(lambda - 2) < eps) {
+      -log(-x + 1)
+    } else {
+      -((-x + 1)^(2 - lambda) - 1) / (2 - lambda)
+    }
+  }
 
-  if (length(not_neg) > 0)
+  if (length(not_neg) > 0) {
     x[not_neg] <- nn_trans(x[not_neg], lambda)
+  }
 
-  if (length(is_neg) > 0)
+  if (length(is_neg) > 0) {
     x[is_neg] <- ng_trans(x[is_neg], lambda)
+  }
   x
 }
 
@@ -217,13 +232,14 @@ estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5, na_rm = TRUE) {
     if (na_rm) {
       dat <- dat[-na_rows]
     } else {
-      rlang::abort("Missing values in data. See `na_rm` option")
+      rlang::abort("Missing values are not allowed for the YJ transformation. See `na_rm` option")
     }
   }
 
   eps <- .001
-  if (length(unique(dat)) < num_unique)
+  if (length(unique(dat)) < num_unique) {
     return(NA)
+  }
   dat_neg <- dat < 0
   ind_neg <- list(is = which(dat_neg), not = which(!dat_neg))
 
@@ -239,8 +255,9 @@ estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5, na_rm = TRUE) {
     tol = .0001
   )
   lam <- res$maximum
-  if (abs(limits[1] - lam) <= eps | abs(limits[2] - lam) <= eps)
+  if (abs(limits[1] - lam) <= eps | abs(limits[2] - lam) <= eps) {
     lam <- NA
+  }
   lam
 }
 

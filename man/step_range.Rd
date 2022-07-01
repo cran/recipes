@@ -69,15 +69,23 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data(biomass)
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(biomass, package = "modeldata")
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
+biomass_tr <- biomass[biomass$dataset == "Training", ]
+biomass_te <- biomass[biomass$dataset == "Testing", ]
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass_tr)
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+  data = biomass_tr
+)
 
 ranged_trans <- rec \%>\%
   step_range(carbon, hydrogen)
@@ -91,6 +99,7 @@ transformed_te
 
 tidy(ranged_trans, number = 1)
 tidy(ranged_obj, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other normalization steps: 

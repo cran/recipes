@@ -39,12 +39,13 @@
 #' `terms` (the selectors or variables for imputation), `predictors`
 #' (those variables used to impute), and `neighbors` is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @references Gower, C. (1971) "A general coefficient of similarity and some
 #'  of its properties," Biometrics, 857-871.
-#' @examples
+#' @examplesIf rlang::is_installed("modeldata")
 #' library(recipes)
-#' library(modeldata)
-#' data(biomass)
+#' data(biomass, package = "modeldata")
 #'
 #' biomass_tr <- biomass[biomass$dataset == "Training", ]
 #' biomass_te <- biomass[biomass$dataset == "Testing", ]
@@ -58,8 +59,10 @@
 #' biomass_te$carbon[carb_missing] <- NA
 #' biomass_te$nitrogen[nitro_missing] <- NA
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'               data = biomass_tr)
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
 #' ratio_recipe <- rec %>%
 #'   step_impute_knn(all_predictors(), neighbors = 3)
@@ -68,16 +71,19 @@
 #'
 #' # how well did it work?
 #' summary(biomass_te_whole$carbon)
-#' cbind(before = biomass_te_whole$carbon[carb_missing],
-#'       after = imputed$carbon[carb_missing])
+#' cbind(
+#'   before = biomass_te_whole$carbon[carb_missing],
+#'   after = imputed$carbon[carb_missing]
+#' )
 #'
 #' summary(biomass_te_whole$nitrogen)
-#' cbind(before = biomass_te_whole$nitrogen[nitro_missing],
-#'       after = imputed$nitrogen[nitro_missing])
+#' cbind(
+#'   before = biomass_te_whole$nitrogen[nitro_missing],
+#'   after = imputed$nitrogen[nitro_missing]
+#' )
 #'
 #' tidy(ratio_recipe, number = 1)
 #' tidy(ratio_recipe2, number = 1)
-
 step_impute_knn <-
   function(recipe,
            ...,
@@ -94,8 +100,9 @@ step_impute_knn <-
       rlang::abort("Please list some variables in `impute_with`")
     }
 
-    if (!is.list(options))
+    if (!is.list(options)) {
       rlang::abort("`options` should be a named list.")
+    }
     opt_nms <- names(options)
     if (length(options) > 0) {
       if (any(!(opt_nms %in% c("eps", "nthread")))) {
@@ -142,7 +149,7 @@ step_knnimpute <-
            columns = NULL,
            skip = FALSE,
            id = rand_id("impute_knn")) {
-    lifecycle::deprecate_warn(
+    lifecycle::deprecate_stop(
       when = "0.1.16",
       what = "recipes::step_knnimpute()",
       with = "recipes::step_impute_knn()"
@@ -224,19 +231,26 @@ nn_pred <- function(index, dat) {
   dat <- dat[index, ]
   dat <- getElement(dat, names(dat))
   dat <- dat[!is.na(dat)]
-  est <- if (is.factor(dat) | is.character(dat))
+  est <- if (is.factor(dat) | is.character(dat)) {
     mode_est(dat)
-  else
+  } else {
     mean(dat)
+  }
   est
 }
 
 
 #' @export
 bake.step_impute_knn <- function(object, new_data, ...) {
+  col_names <- purrr::map(object$columns, function(x) unname(x$x)) %>%
+    purrr::flatten_chr() %>%
+    unique()
+  check_new_data(col_names, object, new_data)
+
   missing_rows <- !complete.cases(new_data)
-  if (!any(missing_rows))
+  if (!any(missing_rows)) {
     return(new_data)
+  }
 
   old_data <- new_data
   for (i in seq(along.with = object$columns)) {
@@ -250,10 +264,12 @@ bake.step_impute_knn <- function(object, new_data, ...) {
         rlang::warn("All predictors are missing; cannot impute")
       } else {
         imp_var_complete <- !is.na(object$ref_data[[imp_var]])
-        nn_ind <- nn_index(object$ref_data[imp_var_complete,],
-                           imp_data, preds,
-                           object$neighbors,
-                           object$options)
+        nn_ind <- nn_index(
+          object$ref_data[imp_var_complete, ],
+          imp_data, preds,
+          object$neighbors,
+          object$options
+        )
         pred_vals <-
           apply(nn_ind, 2, nn_pred, dat = object$ref_data[imp_var_complete, imp_var])
         pred_vals <- cast(pred_vals, object$ref_data[[imp_var]])
@@ -272,10 +288,10 @@ bake.step_knnimpute <- bake.step_impute_knn
 #' @export
 print.step_impute_knn <-
   function(x, width = max(20, options()$width - 31), ...) {
-    all_x_vars <- lapply(x$columns, function(x) x$x)
-    all_x_vars <- unique(unlist(all_x_vars))
+    all_y_vars <- lapply(x$columns, function(x) x$y)
+    all_y_vars <- unique(unlist(all_y_vars))
     title <- "K-nearest neighbor imputation for "
-    print_step(all_x_vars, x$terms, x$trained, title, width)
+    print_step(all_y_vars, x$terms, x$trained, title, width)
     invisible(x)
   }
 

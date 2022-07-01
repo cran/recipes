@@ -93,6 +93,12 @@ new variable called \code{x_b}. The naming format can be changed using
 the \code{naming} argument; the function \code{\link[=dummy_names]{dummy_names()}} is the
 default.
 }
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 library(tibble)
 languages <- tribble(
@@ -103,16 +109,18 @@ languages <- tribble(
   NA,         NA,        NA
 )
 
-dummy_multi_choice_rec <- recipe(~ ., data = languages) \%>\%
+dummy_multi_choice_rec <- recipe(~., data = languages) \%>\%
   step_dummy_multi_choice(starts_with("lang")) \%>\%
   prep()
 
 bake(dummy_multi_choice_rec, new_data = NULL)
 tidy(dummy_multi_choice_rec, number = 1)
 
-dummy_multi_choice_rec2 <- recipe(~ ., data = languages) \%>\%
-  step_dummy_multi_choice(starts_with("lang"), prefix = "lang",
-                         threshold = 0.2) \%>\%
+dummy_multi_choice_rec2 <- recipe(~., data = languages) \%>\%
+  step_dummy_multi_choice(starts_with("lang"),
+    prefix = "lang",
+    threshold = 0.2
+  ) \%>\%
   prep()
 
 bake(dummy_multi_choice_rec2, new_data = NULL)
@@ -136,6 +144,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

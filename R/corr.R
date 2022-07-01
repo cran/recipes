@@ -34,24 +34,29 @@
 #'  has sporadic missing values (and an inappropriate value of `use`
 #'  is chosen), some columns will also be excluded from the filter.
 #'
+#' The arguments `use` and `method` don't take effect if case weights
+#' are used in the recipe.
+#'
 #' # Tidying
 #'
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the columns that will be removed) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @template case-weights-unsupervised
+#'
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
 #' set.seed(3535)
 #' biomass$duplicate <- biomass$carbon + rnorm(nrow(biomass))
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen +
-#'                     sulfur + duplicate,
-#'               data = biomass_tr)
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur + duplicate,
+#'   data = biomass_tr
+#' )
 #'
 #' corr_filter <- rec %>%
 #'   step_corr(all_numeric_predictors(), threshold = .5)
@@ -73,8 +78,7 @@ step_corr <- function(recipe,
                       method = "pearson",
                       removals = NULL,
                       skip = FALSE,
-                      id = rand_id("corr")
-                      ) {
+                      id = rand_id("corr")) {
   add_step(
     recipe,
     step_corr_new(
@@ -86,13 +90,15 @@ step_corr <- function(recipe,
       method = method,
       removals = removals,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = NULL
     )
   )
 }
 
 step_corr_new <-
-  function(terms, role, trained, threshold, use, method, removals, skip, id) {
+  function(terms, role, trained, threshold, use, method,
+           removals, skip, id, case_weights) {
     step(
       subclass = "corr",
       terms = terms,
@@ -103,7 +109,8 @@ step_corr_new <-
       method = method,
       removals = removals,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = case_weights
     )
   }
 
@@ -112,9 +119,16 @@ prep.step_corr <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names])
 
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
+
   if (length(col_names) > 1) {
     filter <- corr_filter(
       x = training[, col_names],
+      wts = wts,
       cutoff = x$threshold,
       use = x$use,
       method = x$method
@@ -132,31 +146,34 @@ prep.step_corr <- function(x, training, info = NULL, ...) {
     method = x$method,
     removals = filter,
     skip = x$skip,
-    id = x$id
+    id = x$id,
+    case_weights = were_weights_used
   )
 }
 
 #' @export
 bake.step_corr <- function(object, new_data, ...) {
-  if (length(object$removals) > 0)
-    new_data <- new_data[,!(colnames(new_data) %in% object$removals)]
-  as_tibble(new_data)
+  if (length(object$removals) > 0) {
+    new_data <- new_data[, !(colnames(new_data) %in% object$removals)]
+  }
+  new_data
 }
 
 print.step_corr <-
-  function(x,  width = max(20, options()$width - 36), ...) {
+  function(x, width = max(20, options()$width - 36), ...) {
     title <- "Correlation filter on "
-    print_step(x$removals, x$terms, x$trained, title, width)
+    print_step(x$removals, x$terms, x$trained, title, width,
+               case_weights = x$case_weights)
     invisible(x)
   }
 
-
 corr_filter <-
   function(x,
+           wts = NULL,
            cutoff = .90,
            use = "pairwise.complete.obs",
            method = "pearson") {
-    x <- cor(x, use = use, method = method)
+    x <- correlations(x, wts = wts, use = use, method = method)
 
     if (any(!complete.cases(x))) {
       all_na <- apply(x, 2, function(x) all(is.na(x)))
@@ -165,7 +182,7 @@ corr_filter <-
         return(numeric(0))
       } else {
         na_cols <- which(all_na)
-        if (length(na_cols) >  0) {
+        if (length(na_cols) > 0) {
           x[na_cols, ] <- 0
           x[, na_cols] <- 0
           rlang::warn(
@@ -234,4 +251,3 @@ tunable.step_corr <- function(x, ...) {
     component_id = x$id
   )
 }
-

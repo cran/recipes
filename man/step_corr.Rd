@@ -77,25 +77,38 @@ When a column has a single unique value, that column will be
 excluded from the correlation analysis. Also, if the data set
 has sporadic missing values (and an inappropriate value of \code{use}
 is chosen), some columns will also be excluded from the filter.
+
+The arguments \code{use} and \code{method} don't take effect if case weights
+are used in the recipe.
 }
 \section{Tidying}{
 When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 \code{terms} (the columns that will be removed) is returned.
 }
 
+\section{Case weights}{
+
+
+This step performs an unsupervised operation that can utilize case weights.
+As a result, case weights are only used with frequency weights. For more
+information, see the documentation in \link{case_weights} and the examples on
+\code{tidymodels.org}.
+}
+
 \examples{
-library(modeldata)
-data(biomass)
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(biomass, package = "modeldata")
 
 set.seed(3535)
 biomass$duplicate <- biomass$carbon + rnorm(nrow(biomass))
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
+biomass_tr <- biomass[biomass$dataset == "Training", ]
+biomass_te <- biomass[biomass$dataset == "Testing", ]
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen +
-                    sulfur + duplicate,
-              data = biomass_tr)
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur + duplicate,
+  data = biomass_tr
+)
 
 corr_filter <- rec \%>\%
   step_corr(all_numeric_predictors(), threshold = .5)
@@ -108,6 +121,7 @@ round(abs(cor(filtered_te)), 2)
 
 tidy(corr_filter, number = 1)
 tidy(filter_obj, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other variable filter steps: 

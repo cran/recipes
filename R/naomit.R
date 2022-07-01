@@ -12,6 +12,8 @@
 #' @param columns A character string of variable names that will
 #'  be populated (eventually) by the `terms` argument.
 #'
+#' @template case-weights-not-supported
+#'
 #' @template step-return
 #' @family row operation steps
 #' @export
@@ -22,9 +24,8 @@
 #'   step_naomit(Solar.R) %>%
 #'   prep(airquality, verbose = FALSE) %>%
 #'   bake(new_data = NULL)
-#'
 step_naomit <- function(recipe, ..., role = NA, trained = FALSE,
-                        columns = NULL, skip = FALSE,
+                        columns = NULL, skip = TRUE,
                         id = rand_id("naomit")) {
   add_step(
     recipe,
@@ -78,7 +79,7 @@ print.step_naomit <-
 #' @rdname tidy.recipe
 #' @export
 tidy.step_naomit <- function(x, ...) {
-  res <-simple_terms(x, ...)
+  res <- simple_terms(x, ...)
   res$id <- x$id
   res
 }

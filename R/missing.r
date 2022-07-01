@@ -32,9 +32,8 @@
 #'  When you [`tidy()`][tidy.recipe()] this check, a tibble with column
 #'  `terms` (the selectors or variables selected) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(credit_data)
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(credit_data, package = "modeldata")
 #' is.na(credit_data) %>% colSums()
 #'
 #' # If the test passes, `new_data` is returned unaltered
@@ -44,9 +43,8 @@
 #'   bake(credit_data)
 #'
 #' # If your training set doesn't pass, prep() will stop with an error
-#'
 #' \dontrun{
-#' recipe(credit_data)  %>%
+#' recipe(credit_data) %>%
 #'   check_missing(Income) %>%
 #'   prep()
 #' }
@@ -54,7 +52,7 @@
 #' # If `new_data` contain missing values, the check will stop `bake()`
 #'
 #' train_data <- credit_data %>% dplyr::filter(Income > 150)
-#' test_data  <- credit_data %>% dplyr::filter(Income <= 150 | is.na(Income))
+#' test_data <- credit_data %>% dplyr::filter(Income <= 150 | is.na(Income))
 #'
 #' rp <- recipe(train_data) %>%
 #'   check_missing(Income) %>%
@@ -75,8 +73,8 @@ check_missing <-
     add_check(
       recipe,
       check_missing_new(
-        terms   = enquos(...),
-        role    = role,
+        terms = enquos(...),
+        role = role,
         trained = trained,
         columns = columns,
         skip = skip,
@@ -87,36 +85,42 @@ check_missing <-
 
 check_missing_new <-
   function(terms, role, trained, columns, skip, id) {
-    check(subclass = "missing",
-          prefix   = "check_",
-          terms    = terms,
-          role     = role,
-          trained  = trained,
-          columns  = columns,
-          skip     = skip,
-          id       = id)
+    check(
+      subclass = "missing",
+      prefix = "check_",
+      terms = terms,
+      role = role,
+      trained = trained,
+      columns = columns,
+      skip = skip,
+      id = id
+    )
   }
 
 prep.check_missing <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
 
-  check_missing_new(terms = x$terms,
-                    role  = x$role,
-                    trained = TRUE,
-                    columns = col_names,
-                    skip = x$skip,
-                    id = x$id)
+  check_missing_new(
+    terms = x$terms,
+    role = x$role,
+    trained = TRUE,
+    columns = col_names,
+    skip = x$skip,
+    id = x$id
+  )
 }
 
 bake.check_missing <- function(object, new_data, ...) {
-  col_names       <- object$columns
+  col_names <- object$columns
   subset_to_check <- new_data[col_names]
-  nr_na           <- colSums(is.na(subset_to_check))
+  nr_na <- colSums(is.na(subset_to_check))
   if (any(nr_na > 0)) {
-    with_na     <- names(nr_na[nr_na > 0])
+    with_na <- names(nr_na[nr_na > 0])
     with_na_str <- paste(paste0("`", with_na, "`"), collapse = ", ")
-    rlang::abort(paste0("The following columns contain missing values: ",
-                        with_na_str, "."))
+    rlang::abort(paste0(
+      "The following columns contain missing values: ",
+      with_na_str, "."
+    ))
   }
   new_data
 }

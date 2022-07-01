@@ -59,33 +59,34 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 \code{terms} (the columns that will be affected) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data(okc)
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(Sacramento, package = "modeldata")
 
-rec <- recipe(~ diet + location, data = okc)
+rec <- recipe(~ city + zip, data = Sacramento)
 
-rec <- rec \%>\%
-  step_string2factor(diet)
+make_string <- rec \%>\%
+  step_factor2string(city)
 
-factor_test <- rec \%>\%
-  prep(training = okc,
-       strings_as_factors = FALSE) \%>\%
-  juice
-# diet is a
-class(factor_test$diet)
+make_string <- prep(make_string,
+  training = Sacramento,
+  strings_as_factors = FALSE
+)
 
-rec <- rec \%>\%
-  step_factor2string(diet)
+make_string
 
-string_test <- rec \%>\%
-  prep(training = okc,
-       strings_as_factors = FALSE) \%>\%
-  juice
-# diet is a
-class(string_test$diet)
+# note that `city` is a string in recipe output
+bake(make_string, new_data = NULL) \%>\% head()
 
-tidy(rec, number = 1)
+# ...but remains a factor in the original data
+Sacramento \%>\% head()
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other dummy variable and encoding steps: 
@@ -105,6 +106,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

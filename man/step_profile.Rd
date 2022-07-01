@@ -95,15 +95,21 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 or profiled) is returned.
 }
 
-\examples{
-library(modeldata)
-data(okc)
+\section{Case weights}{
 
-# Setup a grid across date but keep the other values fixed
-recipe(~ diet + height + date, data = okc) \%>\%
-  step_profile(-date, profile = vars(date)) \%>\%
-  prep(training = okc) \%>\%
-  juice
+
+The underlying operation does not allow for case weights.
+}
+
+\examples{
+\dontshow{if (rlang::is_installed(c("modeldata", "ggplot2"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(Sacramento, package = "modeldata")
+
+# Setup a grid across beds but keep the other values fixed
+recipe(~ city + price + beds, data = Sacramento) \%>\%
+  step_profile(-beds, profile = vars(beds)) \%>\%
+  prep(training = Sacramento) \%>\%
+  juice()
 
 
 ##########
@@ -129,13 +135,17 @@ disp_grid <- recipe(~ disp + cyl + hp, data = mtcars) \%>\%
 
 grid_data <- bake(disp_grid, new_data = NULL)
 grid_data <- grid_data \%>\%
-  mutate(pred = predict(lin_mod, grid_data),
-         method = "grid")
+  mutate(
+    pred = predict(lin_mod, grid_data),
+    method = "grid"
+  )
 
 pctl_data <- bake(disp_pctl, new_data = NULL)
 pctl_data <- pctl_data \%>\%
-  mutate(pred = predict(lin_mod, pctl_data),
-         method = "percentile")
+  mutate(
+    pred = predict(lin_mod, pctl_data),
+    method = "percentile"
+  )
 
 plot_data <- bind_rows(grid_data, pctl_data)
 
@@ -143,5 +153,6 @@ library(ggplot2)
 
 ggplot(plot_data, aes(x = disp, y = pred)) +
   geom_point(alpha = .5, cex = 1) +
-  facet_wrap(~ method)
+  facet_wrap(~method)
+\dontshow{\}) # examplesIf}
 }

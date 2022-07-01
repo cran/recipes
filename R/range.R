@@ -26,15 +26,18 @@
 #'  `terms` (the selectors or variables selected), `min`, and `max` is
 #'  returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(biomass)
+#' @template case-weights-not-supported
 #'
-#' biomass_tr <- biomass[biomass$dataset == "Training",]
-#' biomass_te <- biomass[biomass$dataset == "Testing",]
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(biomass, package = "modeldata")
 #'
-#' rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'               data = biomass_tr)
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
+#'
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
 #' ranged_trans <- rec %>%
 #'   step_range(carbon, hydrogen)
@@ -48,7 +51,6 @@
 #'
 #' tidy(ranged_trans, number = 1)
 #' tidy(ranged_obj, number = 1)
-
 step_range <-
   function(recipe,
            ...,
@@ -112,18 +114,19 @@ prep.step_range <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_range <- function(object, new_data, ...) {
-  tmp <- as.matrix(new_data[, colnames(object$ranges)])
-  tmp <- sweep(tmp, 2, object$ranges[1, ], "-")
-  tmp <- tmp * (object$max - object$min)
-  tmp <- sweep(tmp, 2, object$ranges[2, ] - object$ranges[1, ], "/")
-  tmp <- tmp + object$min
+  check_new_data(colnames(object$ranges), object, new_data)
 
-  tmp[tmp < object$min] <- object$min
-  tmp[tmp > object$max] <- object$max
+  for (column in colnames(object$ranges)) {
+    min <- object$ranges["mins", column]
+    max <- object$ranges["maxs", column]
 
-  tmp <- tibble::as_tibble(tmp)
-  new_data[, colnames(object$ranges)] <- tmp
-  as_tibble(new_data)
+    new_data[[column]] <- (new_data[[column]] - min) *
+      (object$max - object$min) / (max - min) + object$min
+
+    new_data[[column]] <- pmax(new_data[[column]], object$min)
+    new_data[[column]] <- pmin(new_data[[column]], object$max)
+  }
+  new_data
 }
 
 print.step_range <-
@@ -137,14 +140,18 @@ print.step_range <-
 #' @export
 tidy.step_range <- function(x, ...) {
   if (is_trained(x)) {
-    res <- tibble(terms = colnames(x$ranges) %||% character(),
-                  min = unname(x$ranges["mins",]),
-                  max = unname(x$ranges["maxs",]))
+    res <- tibble(
+      terms = colnames(x$ranges) %||% character(),
+      min = unname(x$ranges["mins", ]),
+      max = unname(x$ranges["maxs", ])
+    )
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names,
-                  min = na_dbl,
-                  max = na_dbl)
+    res <- tibble(
+      terms = term_names,
+      min = na_dbl,
+      max = na_dbl
+    )
   }
   res$id <- x$id
   res

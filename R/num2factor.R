@@ -21,12 +21,14 @@
 #'
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
 #' `terms` (the selectors or variables selected) and `ordered` is returned.
+#'
+#' @template case-weights-not-supported
+#'
 #' @family dummy variable and encoding steps
 #' @export
-#' @examples
+#' @examplesIf rlang::is_installed("modeldata")
 #' library(dplyr)
-#' library(modeldata)
-#' data(attrition)
+#' data(attrition, package = "modeldata")
 #'
 #' attrition %>%
 #'   group_by(StockOptionLevel) %>%
@@ -42,7 +44,9 @@
 #'     levels = amnt
 #'   )
 #'
-#' encoded <- rec %>% prep() %>% bake(new_data = NULL)
+#' encoded <- rec %>%
+#'   prep() %>%
+#'   bake(new_data = NULL)
 #'
 #' table(encoded$StockOptionLevel, attrition$StockOptionLevel)
 #'
@@ -72,10 +76,11 @@
 #' table(encoded$MonthlyIncome, binner(attrition$MonthlyIncome))
 #'
 #' # What happens when a value is out of range?
-#' ceo <- attrition %>% slice(1) %>% mutate(MonthlyIncome = 10^10)
+#' ceo <- attrition %>%
+#'   slice(1) %>%
+#'   mutate(MonthlyIncome = 10^10)
 #'
 #' bake(rec, ceo)
-
 step_num2factor <-
   function(recipe,
            ...,
@@ -87,8 +92,9 @@ step_num2factor <-
            skip = FALSE,
            id = rand_id("num2factor")) {
     if (!is_tune(ordered) & !is_varying(ordered)) {
-      if (!is.logical(ordered) || length(ordered) != 1)
+      if (!is.logical(ordered) || length(ordered) != 1) {
         rlang::abort("`ordered` should be a single logical variable")
+      }
     }
 
     if (rlang::is_missing(levels) || !is.character(levels)) {
@@ -125,8 +131,9 @@ step_num2factor_new <-
     )
   }
 
-get_ord_lvls_num <- function(x, foo)
+get_ord_lvls_num <- function(x, foo) {
   sort(unique(as.character(foo(x))))
+}
 
 #' @export
 prep.step_num2factor <- function(x, training, info = NULL, ...) {
@@ -165,18 +172,18 @@ make_factor_num <- function(x, lvl, ord, foo) {
 bake.step_num2factor <- function(object, new_data, ...) {
   col_names <- names(object$ordered)
 
+  check_new_data(col_names, object, new_data)
+
   lvls <- object$levels[names(object$levels) == "..levels"]
   object$levels <- object$levels[names(object$levels) != "..levels"]
 
   new_data[, col_names] <-
     map(new_data[, col_names],
-        make_factor_num,
-        lvl = lvls[[1]],
-        ord = object$ordered[1],
-        foo = object$transform)
-
-  if (!is_tibble(new_data))
-    new_data <- as_tibble(new_data)
+      make_factor_num,
+      lvl = lvls[[1]],
+      ord = object$ordered[1],
+      foo = object$transform
+    )
   new_data
 }
 
@@ -194,13 +201,16 @@ tidy.step_num2factor <- function(x, ...) {
   term_names <- sel2char(x$terms)
   p <- length(term_names)
   if (is_trained(x)) {
-    res <- tibble(terms = term_names,
-                  ordered = rep(unname(x$ordered), p))
+    res <- tibble(
+      terms = term_names,
+      ordered = rep(unname(x$ordered), p)
+    )
   } else {
-    res <- tibble(terms = term_names,
-                  ordered = rep(unname(x$ordered), p))
+    res <- tibble(
+      terms = term_names,
+      ordered = rep(unname(x$ordered), p)
+    )
   }
   res$id <- x$id
   res
 }
-

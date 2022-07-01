@@ -72,8 +72,14 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 These expressions are text representations and are not parsable.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-rec <- recipe( ~ ., data = iris) \%>\%
+rec <- recipe(~., data = iris) \%>\%
   step_filter(Sepal.Length > 4.5, Species == "setosa")
 
 prepped <- prep(rec, training = iris \%>\% slice(1:75))
@@ -100,9 +106,9 @@ all.equal(dplyr_test, rec_test)
 values <- c("versicolor", "virginica")
 
 qq_rec <-
-  recipe( ~ ., data = iris) \%>\%
+  recipe(~., data = iris) \%>\%
   # Embed the `values` object in the call using !!
-  step_filter(Sepal.Length > 4.5, Species  \%in\% !!values)
+  step_filter(Sepal.Length > 4.5, Species \%in\% !!values)
 
 tidy(qq_rec, number = 1)
 }

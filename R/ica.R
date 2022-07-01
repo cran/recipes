@@ -51,6 +51,8 @@
 #' `terms` (the selectors or variables selected), `value` (the loading),
 #' and `component` is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @references Hyvarinen, A., and Oja, E. (2000). Independent
 #'  component analysis: algorithms and applications. *Neural
 #'  Networks*, 13(4-5), 411-430.
@@ -65,9 +67,9 @@
 #' tr <- X[1:100, ]
 #' te <- X[101:200, ]
 #'
-#' rec <- recipe( ~ ., data = tr)
+#' rec <- recipe(~., data = tr)
 #'
-#' ica_trans <- step_center(rec,  V1, V2)
+#' ica_trans <- step_center(rec, V1, V2)
 #' ica_trans <- step_scale(ica_trans, V1, V2)
 #' ica_trans <- step_ica(ica_trans, V1, V2, num_comp = 2)
 #'
@@ -86,7 +88,7 @@ step_ica <-
            ...,
            role = "predictor",
            trained = FALSE,
-           num_comp  = 5,
+           num_comp = 5,
            options = list(method = "C"),
            seed = sample.int(10000, 5),
            res = NULL,
@@ -95,8 +97,6 @@ step_ica <-
            keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("ica")) {
-
-
     recipes_pkg_check(required_pkgs.step_ica())
 
     add_step(
@@ -187,8 +187,11 @@ bake.step_ica <- function(object, new_data, ...) {
   uses_dim_red(object)
 
   if (object$num_comp > 0 && length(object$columns) > 0) {
+    check_new_data(object$columns, object, new_data)
+
     comps <- scale(as.matrix(new_data[, object$columns]),
-                   center = object$res$means, scale = FALSE)
+      center = object$res$means, scale = FALSE
+    )
     comps <- comps %*% object$res$K %*% object$res$W
     comps <- comps[, 1:object$num_comp, drop = FALSE]
     colnames(comps) <- names0(ncol(comps), object$prefix)
@@ -199,7 +202,7 @@ bake.step_ica <- function(object, new_data, ...) {
       new_data <- new_data[, !(colnames(new_data) %in% object$columns), drop = FALSE]
     }
   }
-  as_tibble(new_data)
+  new_data
 }
 
 
@@ -243,9 +246,11 @@ tidy.step_ica <- function(x, ...) {
   } else {
     term_names <- sel2char(x$terms)
     comp_names <- names0(x$num_comp, x$prefix)
-    res <- tidyr::crossing(terms = term_names,
-                           value = na_dbl,
-                           component  = comp_names)
+    res <- tidyr::crossing(
+      terms = term_names,
+      value = na_dbl,
+      component = comp_names
+    )
     res$terms <- as.character(res$terms)
     res$component <- as.character(res$component)
     res <- as_tibble(res)

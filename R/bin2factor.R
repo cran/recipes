@@ -25,16 +25,17 @@
 #'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #'  `terms` (the columns that will be affected) is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @family dummy variable and encoding steps
 #' @export
-#' @examples
-#' library(modeldata)
-#' data(covers)
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(covers, package = "modeldata")
 #'
-#' rec <- recipe(~ description, covers) %>%
-#'  step_regex(description, pattern = "(rock|stony)", result = "rocks") %>%
-#'  step_regex(description, pattern = "(rock|stony)", result = "more_rocks") %>%
-#'  step_bin2factor(rocks)
+#' rec <- recipe(~description, covers) %>%
+#'   step_regex(description, pattern = "(rock|stony)", result = "rocks") %>%
+#'   step_regex(description, pattern = "(rock|stony)", result = "more_rocks") %>%
+#'   step_bin2factor(rocks)
 #'
 #' tidy(rec, number = 3)
 #'
@@ -54,8 +55,9 @@ step_bin2factor <-
            columns = NULL,
            skip = FALSE,
            id = rand_id("bin2factor")) {
-    if (length(levels) != 2 | !is.character(levels))
+    if (length(levels) != 2 | !is.character(levels)) {
       rlang::abort("`levels` should be a two element character string")
+    }
     add_step(
       recipe,
       step_bin2factor_new(
@@ -107,15 +109,19 @@ prep.step_bin2factor <- function(x, training, info = NULL, ...) {
 }
 
 bake.step_bin2factor <- function(object, new_data, ...) {
+  check_new_data(names(object$columns), object, new_data)
+
   levs <- if (object$ref_first) object$levels else rev(object$levels)
-  for (i in seq_along(object$columns))
+  for (i in seq_along(object$columns)) {
     new_data[, object$columns[i]] <-
       factor(ifelse(
         getElement(new_data, object$columns[i]) == 1,
         object$levels[1],
         object$levels[2]
       ),
-      levels = levs)
+      levels = levs
+      )
+  }
   new_data
 }
 
@@ -130,7 +136,7 @@ print.step_bin2factor <-
 #' @rdname tidy.recipe
 #' @export
 tidy.step_bin2factor <- function(x, ...) {
-  res <-simple_terms(x, ...)
+  res <- simple_terms(x, ...)
   res$id <- x$id
   res
 }

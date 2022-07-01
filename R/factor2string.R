@@ -20,33 +20,28 @@
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
 #' `terms` (the columns that will be affected) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(okc)
+#' @template case-weights-not-supported
 #'
-#' rec <- recipe(~ diet + location, data = okc)
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(Sacramento, package = "modeldata")
 #'
-#' rec <- rec %>%
-#'   step_string2factor(diet)
+#' rec <- recipe(~ city + zip, data = Sacramento)
 #'
-#' factor_test <- rec %>%
-#'   prep(training = okc,
-#'        strings_as_factors = FALSE) %>%
-#'   juice
-#' # diet is a
-#' class(factor_test$diet)
+#' make_string <- rec %>%
+#'   step_factor2string(city)
 #'
-#' rec <- rec %>%
-#'   step_factor2string(diet)
+#' make_string <- prep(make_string,
+#'   training = Sacramento,
+#'   strings_as_factors = FALSE
+#' )
 #'
-#' string_test <- rec %>%
-#'   prep(training = okc,
-#'        strings_as_factors = FALSE) %>%
-#'   juice
-#' # diet is a
-#' class(string_test$diet)
+#' make_string
 #'
-#' tidy(rec, number = 1)
+#' # note that `city` is a string in recipe output
+#' bake(make_string, new_data = NULL) %>% head()
+#'
+#' # ...but remains a factor in the original data
+#' Sacramento %>% head()
 step_factor2string <-
   function(recipe,
            ...,
@@ -86,13 +81,14 @@ prep.step_factor2string <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   fac_check <-
     vapply(training[, col_names], is.factor, logical(1))
-  if (any(!fac_check))
+  if (any(!fac_check)) {
     rlang::abort(
       paste0(
-      "The following variables are not factor vectors: ",
-      paste0("`", names(fac_check)[!fac_check], "`", collapse = ", ")
+        "The following variables are not factor vectors: ",
+        paste0("`", names(fac_check)[!fac_check], "`", collapse = ", ")
       )
     )
+  }
 
   step_factor2string_new(
     terms = x$terms,
@@ -106,11 +102,9 @@ prep.step_factor2string <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_factor2string <- function(object, new_data, ...) {
-  new_data[, object$columns] <- map(new_data[, object$columns], as.character)
+  check_new_data(names(object$columns), object, new_data)
 
-  if (!is_tibble(new_data)) {
-    new_data <- as_tibble(new_data)
-  }
+  new_data[, object$columns] <- map(new_data[, object$columns], as.character)
 
   new_data
 }

@@ -64,6 +64,12 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 \code{terms} (the columns that will be affected) and \code{base}.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 set.seed(313)
 examples <- matrix(exp(rnorm(40)), ncol = 2)
@@ -71,7 +77,7 @@ examples <- as.data.frame(examples)
 
 rec <- recipe(~ V1 + V2, data = examples)
 
-log_trans <- rec  \%>\%
+log_trans <- rec \%>\%
   step_log(all_numeric_predictors())
 
 log_obj <- prep(log_trans, training = examples)
@@ -96,7 +102,6 @@ recipe(~ V1 + V2, data = examples2) \%>\%
   step_log(all_numeric_predictors(), signed = TRUE) \%>\%
   prep(training = examples2) \%>\%
   bake(examples2)
-
 }
 \seealso{
 Other individual transformation steps: 

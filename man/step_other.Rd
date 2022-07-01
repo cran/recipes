@@ -90,44 +90,54 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 levels that were not pulled into "other") is returned.
 }
 
+\section{Case weights}{
+
+
+This step performs an unsupervised operation that can utilize case weights.
+As a result, case weights are only used with frequency weights. For more
+information, see the documentation in \link{case_weights} and the examples on
+\code{tidymodels.org}.
+}
+
 \examples{
-library(modeldata)
-data(okc)
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(Sacramento, package = "modeldata")
 
 set.seed(19)
-in_train <- sample(1:nrow(okc), size = 30000)
+in_train <- sample(1:nrow(Sacramento), size = 800)
 
-okc_tr <- okc[ in_train,]
-okc_te <- okc[-in_train,]
+sacr_tr <- Sacramento[in_train, ]
+sacr_te <- Sacramento[-in_train, ]
 
-rec <- recipe(~ diet + location, data = okc_tr)
+rec <- recipe(~ city + zip, data = sacr_tr)
 
 
 rec <- rec \%>\%
-  step_other(diet, location, threshold = .1, other = "other values")
-rec <- prep(rec, training = okc_tr)
+  step_other(city, zip, threshold = .1, other = "other values")
+rec <- prep(rec, training = sacr_tr)
 
-collapsed <- bake(rec, okc_te)
-table(okc_te$diet, collapsed$diet, useNA = "always")
+collapsed <- bake(rec, sacr_te)
+table(sacr_te$city, collapsed$city, useNA = "always")
 
 tidy(rec, number = 1)
 
 # novel levels are also "othered"
-tahiti <- okc[1,]
-tahiti$location <- "a magical place"
+tahiti <- Sacramento[1, ]
+tahiti$zip <- "a magical place"
 bake(rec, tahiti)
 
 # threshold as a frequency
-rec <- recipe(~ diet + location, data = okc_tr)
+rec <- recipe(~ city + zip, data = sacr_tr)
 
 rec <- rec \%>\%
-  step_other(diet, location, threshold = 2000, other = "other values")
-rec <- prep(rec, training = okc_tr)
+  step_other(city, zip, threshold = 2000, other = "other values")
+rec <- prep(rec, training = sacr_tr)
 
 tidy(rec, number = 1)
 # compare it to
-# okc_tr \%>\% count(diet, sort = TRUE) \%>\% top_n(4)
-# okc_tr \%>\% count(location, sort = TRUE) \%>\% top_n(3)
+# sacr_tr \%>\% count(city, sort = TRUE) \%>\% top_n(4)
+# sacr_tr \%>\% count(zip, sort = TRUE) \%>\% top_n(3)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=dummy_names]{dummy_names()}}
@@ -149,6 +159,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

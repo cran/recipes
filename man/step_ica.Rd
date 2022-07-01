@@ -111,6 +111,12 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 and \code{component} is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 # from fastICA::fastICA
 set.seed(131)
@@ -121,9 +127,9 @@ X <- as.data.frame(S \%*\% A)
 tr <- X[1:100, ]
 te <- X[101:200, ]
 
-rec <- recipe( ~ ., data = tr)
+rec <- recipe(~., data = tr)
 
-ica_trans <- step_center(rec,  V1, V2)
+ica_trans <- step_center(rec, V1, V2)
 ica_trans <- step_scale(ica_trans, V1, V2)
 ica_trans <- step_ica(ica_trans, V1, V2, num_comp = 2)
 

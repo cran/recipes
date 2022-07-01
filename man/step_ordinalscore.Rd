@@ -67,14 +67,23 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 \code{terms} (the columns that will be affected) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 fail_lvls <- c("meh", "annoying", "really_bad")
 
 ord_data <-
-  data.frame(item = c("paperclip", "twitter", "airbag"),
-             fail_severity = factor(fail_lvls,
-                                    levels = fail_lvls,
-                                    ordered = TRUE))
+  data.frame(
+    item = c("paperclip", "twitter", "airbag"),
+    fail_severity = factor(fail_lvls,
+      levels = fail_lvls,
+      ordered = TRUE
+    )
+  )
 
 model.matrix(~fail_severity, data = ord_data)
 
@@ -121,6 +130,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

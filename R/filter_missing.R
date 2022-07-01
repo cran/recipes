@@ -26,9 +26,10 @@
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the columns that will be removed) is returned.
 #'
-#' @examples
-#' library(modeldata)
-#' data(credit_data)
+#' @template case-weights-unsupervised
+#'
+#' @examplesIf rlang::is_installed("modeldata")
+#' data(credit_data, package = "modeldata")
 #'
 #' rec <- recipe(Status ~ ., data = credit_data) %>%
 #'   step_filter_missing(all_predictors(), threshold = 0)
@@ -40,14 +41,13 @@
 #' tidy(rec, number = 1)
 #' tidy(filter_obj, number = 1)
 step_filter_missing <- function(recipe,
-                      ...,
-                      role = NA,
-                      trained = FALSE,
-                      threshold = 0.1,
-                      removals = NULL,
-                      skip = FALSE,
-                      id = rand_id("filter_missing")
-) {
+                                ...,
+                                role = NA,
+                                trained = FALSE,
+                                threshold = 0.1,
+                                removals = NULL,
+                                skip = FALSE,
+                                id = rand_id("filter_missing")) {
   add_step(
     recipe,
     step_filter_missing_new(
@@ -57,13 +57,14 @@ step_filter_missing <- function(recipe,
       threshold = threshold,
       removals = removals,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = NULL
     )
   )
 }
 
 step_filter_missing_new <-
-  function(terms, role, trained, threshold, removals, skip, id) {
+  function(terms, role, trained, threshold, removals, skip, id, case_weights) {
     step(
       subclass = "filter_missing",
       terms = terms,
@@ -72,7 +73,8 @@ step_filter_missing_new <-
       threshold = threshold,
       removals = removals,
       skip = skip,
-      id = id
+      id = id,
+      case_weights = case_weights
     )
   }
 
@@ -80,10 +82,17 @@ step_filter_missing_new <-
 prep.step_filter_missing <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
 
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
+
   if (length(col_names) > 1) {
     filter <- filter_missing_fun(
       x = training[, col_names],
-      threshold = x$threshold
+      threshold = x$threshold,
+      wts = wts
     )
   } else {
     filter <- character(0)
@@ -96,30 +105,34 @@ prep.step_filter_missing <- function(x, training, info = NULL, ...) {
     threshold = x$threshold,
     removals = filter,
     skip = x$skip,
-    id = x$id
+    id = x$id,
+    case_weights = were_weights_used
   )
 }
 
 #' @export
 bake.step_filter_missing <- function(object, new_data, ...) {
-  if (length(object$removals) > 0)
+  if (length(object$removals) > 0) {
     new_data <- new_data[, !(colnames(new_data) %in% object$removals)]
-  as_tibble(new_data)
+  }
+  new_data
 }
 
 print.step_filter_missing <-
-  function(x,  width = max(20, options()$width - 36), ...) {
+  function(x, width = max(20, options()$width - 36), ...) {
     if (x$trained) {
       title <- "Missing value column filter removed "
     } else {
       title <- "Missing value column filter on "
     }
-    print_step(x$removals, x$terms, x$trained, title, width)
+    print_step(x$removals, x$terms, x$trained, title, width,
+               case_weights = x$case_weights)
     invisible(x)
   }
 
-filter_missing_fun <- function(x, threshold) {
-  missing <- purrr::map_dbl(x, ~ mean(is.na(.x)))
+filter_missing_fun <- function(x, threshold, wts) {
+  x_na <- purrr::map_dfc(x, is.na)
+  missing <- averages(x_na, wts = wts)
   removal_ind <- which(missing > threshold)
   names(x)[removal_ind]
 }

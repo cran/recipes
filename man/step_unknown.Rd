@@ -68,23 +68,31 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 levels that is used for the new value) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data(okc)
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(Sacramento, package = "modeldata")
 
 rec <-
-  recipe(~ diet + location, data = okc) \%>\%
-  step_unknown(diet, new_level = "unknown diet") \%>\%
-  step_unknown(location, new_level = "unknown location") \%>\%
+  recipe(~ city + zip, data = Sacramento) \%>\%
+  step_unknown(city, new_level = "unknown city") \%>\%
+  step_unknown(zip, new_level = "unknown zip") \%>\%
   prep()
 
-table(bake(rec, new_data = NULL) \%>\% pull(diet),
-      okc \%>\% pull(diet),
-      useNA = "always") \%>\%
+table(bake(rec, new_data = NULL) \%>\% pull(city),
+  Sacramento \%>\% pull(city),
+  useNA = "always"
+) \%>\%
   as.data.frame() \%>\%
   dplyr::filter(Freq > 0)
 
 tidy(rec, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=dummy_names]{dummy_names()}}
@@ -107,6 +115,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unorder}()}
 }
 \concept{dummy variable and encoding steps}

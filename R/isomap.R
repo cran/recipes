@@ -50,6 +50,8 @@
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the selectors or variables selected) is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @references De Silva, V., and Tenenbaum, J. B. (2003). Global
 #'  versus local methods in nonlinear dimensionality reduction.
 #'  *Advances in Neural Information Processing Systems*.
@@ -58,41 +60,43 @@
 #' \pkg{dimRed}, a framework for dimensionality reduction,
 #'   https://github.com/gdkrmr
 #'
-#' @examples
+#' @examplesIf rlang::is_installed("modeldata")
 #' \donttest{
-#'   library(modeldata)
-#'   data(biomass)
+#' data(biomass, package = "modeldata")
 #'
-#'   biomass_tr <- biomass[biomass$dataset == "Training",]
-#'   biomass_te <- biomass[biomass$dataset == "Testing",]
+#' biomass_tr <- biomass[biomass$dataset == "Training", ]
+#' biomass_te <- biomass[biomass$dataset == "Testing", ]
 #'
-#'   rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-#'                 data = biomass_tr)
+#' rec <- recipe(
+#'   HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+#'   data = biomass_tr
+#' )
 #'
-#'   im_trans <- rec %>%
-#'     step_YeoJohnson(all_numeric_predictors()) %>%
-#'     step_normalize(all_numeric_predictors()) %>%
-#'     step_isomap(all_numeric_predictors(), neighbors = 100, num_terms = 2)
+#' im_trans <- rec %>%
+#'   step_YeoJohnson(all_numeric_predictors()) %>%
+#'   step_normalize(all_numeric_predictors()) %>%
+#'   step_isomap(all_numeric_predictors(), neighbors = 100, num_terms = 2)
 #'
-#'   if (FALSE) {
-#'     im_estimates <- prep(im_trans, training = biomass_tr)
+#' if (FALSE) {
+#'   im_estimates <- prep(im_trans, training = biomass_tr)
 #'
-#'     im_te <- bake(im_estimates, biomass_te)
+#'   im_te <- bake(im_estimates, biomass_te)
 #'
-#'     rng <- extendrange(c(im_te$Isomap1, im_te$Isomap2))
-#'     plot(im_te$Isomap1, im_te$Isomap2,
-#'          xlim = rng, ylim = rng)
+#'   rng <- extendrange(c(im_te$Isomap1, im_te$Isomap2))
+#'   plot(im_te$Isomap1, im_te$Isomap2,
+#'     xlim = rng, ylim = rng
+#'   )
 #'
-#'     tidy(im_trans, number = 3)
-#'     tidy(im_estimates, number = 3)
-#'   }
+#'   tidy(im_trans, number = 3)
+#'   tidy(im_estimates, number = 3)
+#' }
 #' }
 step_isomap <-
   function(recipe,
            ...,
            role = "predictor",
            trained = FALSE,
-           num_terms  = 5,
+           num_terms = 5,
            neighbors = 50,
            options = list(.mute = c("message", "output")),
            res = NULL,
@@ -101,7 +105,6 @@ step_isomap <-
            keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("isomap")) {
-
     recipes_pkg_check(required_pkgs.step_isomap())
 
     add_step(
@@ -163,11 +166,11 @@ prep.step_isomap <- function(x, training, info = NULL, ...) {
           ndim = x$num_terms,
           .mute = x$options$.mute
         ),
-        silent = TRUE)
+        silent = TRUE
+      )
     if (inherits(iso_map, "try-error")) {
       rlang::abort(paste0("`step_isomap` failed with error:\n", as.character(iso_map)))
     }
-
   } else {
     iso_map <- NULL
   }
@@ -190,6 +193,8 @@ prep.step_isomap <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_isomap <- function(object, new_data, ...) {
+  check_new_data(names(object$columns), object, new_data)
+
   if (object$num_terms > 0 && length(object$columns) > 0L) {
     isomap_vars <- colnames(environment(object$res@apply)$indata)
     suppressMessages({
@@ -204,15 +209,12 @@ bake.step_isomap <- function(object, new_data, ...) {
     if (!keep_original_cols) {
       new_data <- new_data[, !(colnames(new_data) %in% isomap_vars), drop = FALSE]
     }
-    if (!is_tibble(new_data))
-      new_data <- as_tibble(new_data)
   }
   new_data
 }
 
 
 print.step_isomap <- function(x, width = max(20, options()$width - 35), ...) {
-
   if (x$num_terms == 0) {
     title <- "Isomap was not conducted for "
   } else {
@@ -256,4 +258,3 @@ tunable.step_isomap <- function(x, ...) {
 required_pkgs.step_isomap <- function(x, ...) {
   c("dimRed", "RSpectra", "igraph", "RANN")
 }
-

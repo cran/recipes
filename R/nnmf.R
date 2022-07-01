@@ -6,7 +6,7 @@
 #'  that will convert numeric data into one or more non-negative
 #'  components.
 #'
-#' `r lifecycle::badge("soft-deprecated")`
+#' `r lifecycle::badge("deprecated")`
 #'
 #' Please use [step_nnmf_sparse()] instead of this step function.
 #'
@@ -50,10 +50,10 @@
 #' `terms` (the selectors or variables selected) and the number of
 #' components is returned.
 #'
-#' @examples
+#' @template case-weights-not-supported
 #'
-#' library(modeldata)
-#' data(biomass)
+#' @examplesIf rlang::is_installed(c("modeldata", "ggplot2"))
+#' data(biomass, package = "modeldata")
 #'
 #' # rec <- recipe(HHV ~ ., data = biomass) %>%
 #' #   update_role(sample, new_role = "id var") %>%
@@ -71,7 +71,7 @@ step_nnmf <-
            ...,
            role = "predictor",
            trained = FALSE,
-           num_comp  = 2,
+           num_comp = 2,
            num_run = 30,
            options = list(),
            res = NULL,
@@ -80,10 +80,9 @@ step_nnmf <-
            seed = sample.int(10^5, 1),
            keep_original_cols = FALSE,
            skip = FALSE,
-           id = rand_id("nnmf")
-           ) {
+           id = rand_id("nnmf")) {
     recipes_pkg_check(required_pkgs.step_nnmf())
-    lifecycle::deprecate_soft("0.2.0", "step_nnmf()", "step_nnmf_sparse()")
+    lifecycle::deprecate_warn("0.2.0", "step_nnmf()", "step_nnmf_sparse()")
     add_step(
       recipe,
       step_nnmf_new(
@@ -132,7 +131,6 @@ prep.step_nnmf <- function(x, training, info = NULL, ...) {
   check_type(training[, col_names])
 
   if (x$num_comp > 0 && length(col_names) > 0) {
-
     x$num_comp <- min(x$num_comp, length(col_names))
 
     nmf_opts <- list(parallel = FALSE, parallel.required = FALSE)
@@ -177,7 +175,9 @@ prep.step_nnmf <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_nnmf <- function(object, new_data, ...) {
+
   if (object$num_comp > 0 && length(object$columns) > 0) {
+    check_new_data(object$columns, object, new_data)
     nnmf_vars <- rownames(object$res@other.data$w)
     comps <-
       object$res@apply(dimred_data(new_data[, nnmf_vars, drop = FALSE]))@data
@@ -190,7 +190,7 @@ bake.step_nnmf <- function(object, new_data, ...) {
       new_data <- new_data[, !(colnames(new_data) %in% nnmf_vars), drop = FALSE]
     }
   }
-  as_tibble(new_data)
+  new_data
 }
 
 
@@ -210,16 +210,18 @@ tidy.step_nnmf <- function(x, ...) {
       var_nms <- rownames(res)
       res <- tibble::as_tibble(res)
       res$terms <- var_nms
-      res <- tidyr::pivot_longer(res, cols = c(-terms),
-                                 names_to = "component", values_to = "value")
-      res <- res[,c("terms", "value", "component")]
-      res <- res[order(res$component, res$terms),]
+      res <- tidyr::pivot_longer(res,
+        cols = c(-terms),
+        names_to = "component", values_to = "value"
+      )
+      res <- res[, c("terms", "value", "component")]
+      res <- res[order(res$component, res$terms), ]
     } else {
-      res <- tibble(terms = unname(x$columns), value = na_dbl, component  = na_dbl)
+      res <- tibble(terms = unname(x$columns), value = na_dbl, component = na_dbl)
     }
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names, value = na_dbl, component  = x$num_comp)
+    res <- tibble(terms = term_names, value = na_dbl, component = x$num_comp)
   }
   res$id <- x$id
   res
@@ -246,4 +248,3 @@ tunable.step_nnmf <- function(x, ...) {
 required_pkgs.step_nnmf <- function(x, ...) {
   c("dimRed", "NMF")
 }
-

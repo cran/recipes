@@ -83,7 +83,7 @@ sequence of any existing operations.
 that will convert numeric data into one or more non-negative
 components.
 
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#soft-deprecated}{\figure{lifecycle-soft-deprecated.svg}{options: alt='[Soft-deprecated]'}}}{\strong{[Soft-deprecated]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 
 Please use \code{\link[=step_nnmf_sparse]{step_nnmf_sparse()}} instead of this step function.
 }
@@ -107,10 +107,15 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 components is returned.
 }
 
-\examples{
+\section{Case weights}{
 
-library(modeldata)
-data(biomass)
+
+The underlying operation does not allow for case weights.
+}
+
+\examples{
+\dontshow{if (rlang::is_installed(c("modeldata", "ggplot2"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(biomass, package = "modeldata")
 
 # rec <- recipe(HHV ~ ., data = biomass) \%>\%
 #   update_role(sample, new_role = "id var") \%>\%
@@ -123,6 +128,7 @@ data(biomass)
 # library(ggplot2)
 # bake(rec, new_data = NULL) \%>\%
 #  ggplot(aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other multivariate transformation steps: 

@@ -20,10 +20,12 @@
 #'  columns `values` which contains the `rename` expressions as character
 #'  strings (and are not reparsable) is returned.
 #'
+#' @template case-weights-not-supported
+#'
 #' @family dplyr steps
 #' @export
 #' @examples
-#' recipe( ~ ., data = iris) %>%
+#' recipe(~., data = iris) %>%
 #'   step_rename(Sepal_Width = Sepal.Width) %>%
 #'   prep() %>%
 #'   bake(new_data = NULL) %>%
@@ -31,7 +33,7 @@
 #'
 #' vars <- c(var1 = "cyl", var2 = "am")
 #' car_rec <-
-#'   recipe(~ ., data = mtcars) %>%
+#'   recipe(~., data = mtcars) %>%
 #'   step_rename(!!vars)
 #'
 #' car_rec %>%
@@ -40,17 +42,12 @@
 #'
 #' car_rec %>%
 #'   tidy(number = 1)
-
-
-step_rename <- function(
-  recipe, ...,
-  role = "predictor",
-  trained = FALSE,
-  inputs = NULL,
-  skip = FALSE,
-  id = rand_id("rename")
-) {
-
+step_rename <- function(recipe, ...,
+                        role = "predictor",
+                        trained = FALSE,
+                        inputs = NULL,
+                        skip = FALSE,
+                        id = rand_id("rename")) {
   inputs <- enquos(..., .named = TRUE)
 
   add_step(

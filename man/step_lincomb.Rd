@@ -68,21 +68,32 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 \code{terms} (the columns that will be removed) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data(biomass)
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(biomass, package = "modeldata")
 
-biomass$new_1 <- with(biomass,
-                      .1*carbon - .2*hydrogen + .6*sulfur)
-biomass$new_2 <- with(biomass,
-                      .5*carbon - .2*oxygen + .6*nitrogen)
+biomass$new_1 <- with(
+  biomass,
+  .1 * carbon - .2 * hydrogen + .6 * sulfur
+)
+biomass$new_2 <- with(
+  biomass,
+  .5 * carbon - .2 * oxygen + .6 * nitrogen
+)
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
+biomass_tr <- biomass[biomass$dataset == "Training", ]
+biomass_te <- biomass[biomass$dataset == "Testing", ]
 
 rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen +
-                sulfur + new_1 + new_2,
-              data = biomass_tr)
+  sulfur + new_1 + new_2,
+data = biomass_tr
+)
 
 lincomb_filter <- rec \%>\%
   step_lincomb(all_numeric_predictors())
@@ -92,6 +103,7 @@ lincomb_filter_trained
 
 tidy(lincomb_filter, number = 1)
 tidy(lincomb_filter_trained, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other variable filter steps: 

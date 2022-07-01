@@ -37,37 +37,35 @@
 #'  `terms` (the selectors or variables selected) and the number of
 #'  components is returned.
 #'
-#' @examples
-#' if (rlang::is_installed("RcppML")) {
+#' @template case-weights-not-supported
 #'
-#'   library(Matrix)
-#'   library(modeldata)
-#'   data(biomass)
+#' @examplesIf rlang::is_installed(c("modeldata", "RcppML", "ggplot2"))
+#' library(Matrix)
+#' data(biomass, package = "modeldata")
 #'
-#'   rec <- recipe(HHV ~ ., data = biomass) %>%
-#'     update_role(sample, new_role = "id var") %>%
-#'     update_role(dataset, new_role = "split variable") %>%
-#'     step_nnmf_sparse(
-#'       all_numeric_predictors(),
-#'       num_comp = 2,
-#'       seed = 473,
-#'       penalty = 0.01
-#'     ) %>%
-#'     prep(training = biomass)
+#' rec <- recipe(HHV ~ ., data = biomass) %>%
+#'   update_role(sample, new_role = "id var") %>%
+#'   update_role(dataset, new_role = "split variable") %>%
+#'   step_nnmf_sparse(
+#'     all_numeric_predictors(),
+#'     num_comp = 2,
+#'     seed = 473,
+#'     penalty = 0.01
+#'   ) %>%
+#'   prep(training = biomass)
 #'
-#'   bake(rec, new_data = NULL)
-# '
-#'   library(ggplot2)
-#'   bake(rec, new_data = NULL) %>%
-#'     ggplot(aes(x = NNMF2, y = NNMF1, col = HHV)) + geom_point()
-#' }
-
+#' bake(rec, new_data = NULL)
+#' #'
+#' library(ggplot2)
+#' bake(rec, new_data = NULL) %>%
+#'   ggplot(aes(x = NNMF2, y = NNMF1, col = HHV)) +
+#'   geom_point()
 step_nnmf_sparse <-
   function(recipe,
            ...,
            role = "predictor",
            trained = FALSE,
-           num_comp  = 2,
+           num_comp = 2,
            penalty = 0.001,
            options = list(),
            res = NULL,
@@ -75,8 +73,7 @@ step_nnmf_sparse <-
            seed = sample.int(10^5, 1),
            keep_original_cols = FALSE,
            skip = FALSE,
-           id = rand_id("nnmf_sparse")
-  ) {
+           id = rand_id("nnmf_sparse")) {
     recipes_pkg_check(required_pkgs.step_nnmf_sparse())
     add_step(
       recipe,
@@ -166,7 +163,6 @@ prep.step_nnmf_sparse <- function(x, training, info = NULL, ...) {
         colnames(nnm$w) <- names0(ncol(nnm$w), x$prefix)
       }
     }
-
   } else {
     nnm <- list(x_vars = col_names, w = NULL)
   }
@@ -189,6 +185,8 @@ prep.step_nnmf_sparse <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_nnmf_sparse <- function(object, new_data, ...) {
+  check_new_data(object$res$x_vars, object, new_data)
+
   if (object$num_comp > 0) {
     proj_data <- as.matrix(new_data[, object$res$x_vars, drop = FALSE])
     proj_data <- proj_data %*% object$res$w
@@ -200,7 +198,7 @@ bake.step_nnmf_sparse <- function(object, new_data, ...) {
       new_data <- new_data[, !(colnames(new_data) %in% object$res$x_vars), drop = FALSE]
     }
   }
-  as_tibble(new_data)
+  new_data
 }
 
 
@@ -230,16 +228,18 @@ tidy.step_nnmf_sparse <- function(x, ...) {
       var_nms <- rownames(res)
       res <- tibble::as_tibble(res)
       res$terms <- var_nms
-      res <- tidyr::pivot_longer(res, cols = c(-terms),
-                                 names_to = "component", values_to = "value")
-      res <- res[,c("terms", "value", "component")]
-      res <- res[order(res$component, res$terms),]
+      res <- tidyr::pivot_longer(res,
+        cols = c(-terms),
+        names_to = "component", values_to = "value"
+      )
+      res <- res[, c("terms", "value", "component")]
+      res <- res[order(res$component, res$terms), ]
     } else {
-      res <- tibble(terms = x$res$x_vars, value = na_dbl, component  = na_chr)
+      res <- tibble(terms = x$res$x_vars, value = na_dbl, component = na_chr)
     }
   } else {
     term_names <- sel2char(x$terms)
-    res <- tibble(terms = term_names, value = na_dbl, component  = x$num_comp)
+    res <- tibble(terms = term_names, value = na_dbl, component = x$num_comp)
   }
   res$id <- x$id
   res
@@ -266,4 +266,3 @@ tunable.step_nnmf_sparse <- function(x, ...) {
 required_pkgs.step_nnmf_sparse <- function(x, ...) {
   c("Matrix", "RcppML")
 }
-

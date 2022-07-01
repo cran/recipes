@@ -17,7 +17,9 @@ used).}
 }
 \value{
 A tibble with columns \code{variable}, \code{type}, \code{role},
-and \code{source}.
+and \code{source}. When \code{original = TRUE}, an additional column is included
+named \code{required_to_bake} (based on the results of
+\code{\link[=update_role_requirements]{update_role_requirements()}}).
 }
 \description{
 This function prints the current set of variables/features and some of their
@@ -32,7 +34,7 @@ It is possible for variables to have multiple roles by adding them with
 row in the summary tibble.
 }
 \examples{
-rec <- recipe( ~ ., data = USArrests)
+rec <- recipe(~., data = USArrests)
 summary(rec)
 rec <- step_pca(rec, all_numeric(), num_comp = 3)
 summary(rec) # still the same since not yet trained

@@ -1,3 +1,37 @@
+# printing
+
+    Code
+      print(ints)
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+       predictor          3
+      
+      Operations:
+      
+      Integer encoding for all_predictors()
+
+---
+
+    Code
+      prep(ints)
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+       predictor          3
+      
+      Training data contained 10 data points and 2 incomplete rows. 
+      
+      Operations:
+      
+      Integer encoding for x, y, z [trained]
+
 # empty printing
 
     Code

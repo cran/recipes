@@ -1,3 +1,39 @@
+# printing
+
+    Code
+      print(with_bs)
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+         outcome          1
+       predictor          5
+      
+      Operations:
+      
+      B-splines on carbon, hydrogen
+
+---
+
+    Code
+      prep(with_bs)
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+         outcome          1
+       predictor          5
+      
+      Training data contained 456 data points and no missing data.
+      
+      Operations:
+      
+      B-splines on carbon, hydrogen [trained]
+
 # empty printing
 
     Code

@@ -103,15 +103,23 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 \code{terms} (the selectors or variables selected) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data(biomass)
+\dontshow{if (rlang::is_installed(c("modeldata", "ggplot2","kernlab"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(biomass, package = "modeldata")
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
+biomass_tr <- biomass[biomass$dataset == "Training", ]
+biomass_te <- biomass[biomass$dataset == "Testing", ]
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass_tr)
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+  data = biomass_tr
+)
 
 kpca_trans <- rec \%>\%
   step_YeoJohnson(all_numeric_predictors()) \%>\%
@@ -124,13 +132,13 @@ if (require(ggplot2) & require(kernlab)) {
   kpca_te <- bake(kpca_estimates, biomass_te)
 
   ggplot(kpca_te, aes(x = kPC1, y = kPC2)) +
-   geom_point() +
-   coord_equal()
+    geom_point() +
+    coord_equal()
 
   tidy(kpca_trans, number = 3)
   tidy(kpca_estimates, number = 3)
 }
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 Scholkopf, B., Smola, A., and Muller, K. (1997).

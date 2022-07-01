@@ -22,15 +22,14 @@
 #'   [prep()]
 #' @export
 #' @keywords internal
-#' @examples
+#' @examplesIf rlang::is_installed("modeldata")
 #' library(rlang)
-#' library(modeldata)
-#' data(okc)
-#' rec <- recipe(~ ., data = okc)
+#' data(Sacramento, package = "modeldata")
+#' rec <- recipe(~., data = Sacramento)
 #' info <- summary(rec)
 #' terms_select(info = info, quos(all_predictors()))
 terms_select <- function(terms, info, empty_fun = abort_selection) {
-  lifecycle::deprecate_soft("0.1.17", "terms_select()", "recipes_eval_select()")
+  lifecycle::deprecate_warn("0.1.17", "terms_select()", "recipes_eval_select()")
 
   # unique in case a variable has multiple roles
   vars <- unique(info$variable)
@@ -53,12 +52,12 @@ terms_select <- function(terms, info, empty_fun = abort_selection) {
   # They have to be unquoted differently
   if (is.call(terms)) {
     sel <- with_handlers(
-      tidyselect::vars_select(vars, !! terms),
+      tidyselect::vars_select(vars, !!terms),
       tidyselect_empty = empty_fun
     )
   } else {
     sel <- with_handlers(
-      tidyselect::vars_select(vars, !!! terms),
+      tidyselect::vars_select(vars, !!!terms),
       tidyselect_empty = empty_fun
     )
   }
@@ -118,5 +117,5 @@ element_check <- function(x) {
 }
 
 abort_selection <- exiting(function(cnd) {
-  abort("No variables or terms were selected.")
+  abort("No variables or terms were selected.", call = NULL)
 })

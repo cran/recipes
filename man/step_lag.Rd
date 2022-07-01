@@ -67,16 +67,24 @@ argument.
 The step assumes that the data are already \emph{in the proper sequential
 order} for lagging.
 }
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 n <- 10
-start <- as.Date('1999/01/01')
-end <- as.Date('1999/01/10')
+start <- as.Date("1999/01/01")
+end <- as.Date("1999/01/10")
 
-df <- data.frame(x = runif(n),
-                 index = 1:n,
-                 day = seq(start, end, by = "day"))
+df <- data.frame(
+  x = runif(n),
+  index = 1:n,
+  day = seq(start, end, by = "day")
+)
 
-recipe(~ ., data = df) \%>\%
+recipe(~., data = df) \%>\%
   step_lag(index, day, lag = 2:3) \%>\%
   prep(df) \%>\%
   bake(df)

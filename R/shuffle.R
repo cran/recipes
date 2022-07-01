@@ -15,6 +15,9 @@
 #'
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #' `terms` (the columns that will be permuted) is returned.
+#'
+#' @template case-weights-not-supported
+#'
 #' @family row operation steps
 #' @export
 #' @examples
@@ -31,7 +34,6 @@
 #'
 #' tidy(rec, number = 1)
 #' tidy(rand_set, number = 1)
-
 step_shuffle <- function(recipe,
                          ...,
                          role = NA,
@@ -39,15 +41,17 @@ step_shuffle <- function(recipe,
                          columns = NULL,
                          skip = FALSE,
                          id = rand_id("shuffle")) {
-  add_step(recipe,
-           step_shuffle_new(
-             terms = enquos(...),
-             role = role,
-             trained = trained,
-             columns = columns,
-             skip = skip,
-             id = id
-           ))
+  add_step(
+    recipe,
+    step_shuffle_new(
+      terms = enquos(...),
+      role = role,
+      trained = trained,
+      columns = columns,
+      skip = skip,
+      id = id
+    )
+  )
 }
 
 step_shuffle_new <- function(terms, role, trained, columns, skip, id) {
@@ -77,16 +81,20 @@ prep.step_shuffle <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_shuffle <- function(object, new_data, ...) {
+  check_new_data(names(object$columns), object, new_data)
+
   if (nrow(new_data) == 1) {
     rlang::warn("`new_data` contains a single row; unable to shuffle")
     return(new_data)
   }
 
-  if (length(object$columns) > 0)
-    for (i in seq_along(object$columns))
+  if (length(object$columns) > 0) {
+    for (i in seq_along(object$columns)) {
       new_data[, object$columns[i]] <-
         sample(getElement(new_data, object$columns[i]))
-    as_tibble(new_data)
+    }
+  }
+  new_data
 }
 
 print.step_shuffle <-
@@ -99,7 +107,7 @@ print.step_shuffle <-
 #' @rdname tidy.recipe
 #' @export
 tidy.step_shuffle <- function(x, ...) {
-  res <-simple_terms(x, ...)
+  res <- simple_terms(x, ...)
   res$id <- x$id
   res
 }

@@ -1,16 +1,16 @@
 # simple name selections
 
     Code
-      recipes_eval_select(quos = quos(log(date)), data = okc, info = info1)
-    Error <rlang_error>
-      non-numeric argument to mathematical function
-      Caused by error in `log()`:
-      ! non-numeric argument to mathematical function
+      recipes_eval_select(quos = quos(log(beds)), data = Sacramento, info = info1)
+    Condition
+      Error:
+      ! object 'beds' not found
 
 ---
 
     Code
-      recipes_eval_select(data = okc, info = info1)
-    Error <simpleError>
-      argument "quos" is missing, with no default
+      recipes_eval_select(data = Sacramento, info = info1)
+    Condition
+      Error in `enexpr()`:
+      ! argument "quos" is missing, with no default
 

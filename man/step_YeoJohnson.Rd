@@ -84,18 +84,25 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 lambda estimate) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(biomass, package = "modeldata")
 
-library(modeldata)
-data(biomass)
+biomass_tr <- biomass[biomass$dataset == "Training", ]
+biomass_te <- biomass[biomass$dataset == "Testing", ]
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+  data = biomass_tr
+)
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass_tr)
-
-yj_transform <- step_YeoJohnson(rec,  all_numeric())
+yj_transform <- step_YeoJohnson(rec, all_numeric())
 
 yj_estimates <- prep(yj_transform, training = biomass_tr)
 
@@ -106,6 +113,7 @@ plot(density(yj_te$sulfur), main = "after")
 
 tidy(yj_transform, number = 1)
 tidy(yj_estimates, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \references{
 Yeo, I. K., and Johnson, R. A. (2000). A new family of power

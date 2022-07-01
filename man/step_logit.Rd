@@ -61,6 +61,12 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 \code{terms} (the columns that will be affected) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 set.seed(313)
 examples <- matrix(runif(40), ncol = 2)
@@ -68,7 +74,7 @@ examples <- data.frame(examples)
 
 rec <- recipe(~ X1 + X2, data = examples)
 
-logit_trans <- rec  \%>\%
+logit_trans <- rec \%>\%
   step_logit(all_numeric_predictors())
 
 logit_obj <- prep(logit_trans, training = examples)

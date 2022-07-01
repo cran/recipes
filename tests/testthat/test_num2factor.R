@@ -12,9 +12,9 @@ ex_dat <- data.frame(
   z = rep(1:10, each = 20)
 )
 
-rec <- recipe(~ ., data = ex_dat)
+rec <- recipe(~., data = ex_dat)
 
-test_that('basic functionality', {
+test_that("basic functionality", {
   ex_1 <- rec %>%
     step_num2factor(z, levels = rev(LETTERS[1:10])) %>%
     prep(ex_dat) %>%
@@ -27,35 +27,33 @@ test_that('basic functionality', {
   ex_2 <- rec %>%
     step_num2factor(z, ordered = TRUE, levels = rev(LETTERS[1:10])) %>%
     prep(ex_dat) %>%
-    juice
+    juice()
   expect_true(inherits(ex_2$w, "factor"))
   expect_true(inherits(ex_2$x, "numeric"))
   expect_true(inherits(ex_2$z, "ordered"))
   expect_equal(levels(ex_1$z), rev(LETTERS[1:10]))
 })
 
-test_that('bad args', {
-  expect_error(
+test_that("bad args", {
+  expect_snapshot(error = TRUE,
     rec %>%
       step_num2factor(w, x, levels = c("one", "two")) %>%
-      prep(ex_dat),
-    "All columns selected for the step should be numeric"
+      prep(ex_dat)
   )
-  expect_error(
+  expect_snapshot(error = TRUE,
     rec %>%
       step_num2factor(w, x) %>%
-      prep(ex_dat),
-    "Please provide a character vector of"
+      prep(ex_dat)
   )
 })
 
 
-test_that('printing', {
+test_that("printing", {
   ex_3 <- rec %>%
     step_num2factor(z, levels = letters) %>%
     prep(ex_dat, strings_as_factors = FALSE)
-  expect_output(print(ex_3))
-  expect_output(prep(ex_3, training = ex_dat, verbose = TRUE))
+  expect_snapshot(print(ex_3))
+  expect_snapshot(prep(ex_3))
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -94,4 +92,16 @@ test_that("empty printing", {
   rec <- prep(rec, mtcars)
 
   expect_snapshot(rec)
+})
+
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  ex_1 <- rec %>%
+    step_num2factor(z, levels = rev(LETTERS[1:10])) %>%
+    update_role(z, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE) %>%
+    prep(ex_dat)
+
+  expect_error(bake(ex_1, new_data = ex_dat[, 1:2]),
+               class = "new_data_missing_column")
 })

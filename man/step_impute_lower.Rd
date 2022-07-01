@@ -76,10 +76,16 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 estimated threshold is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(recipes)
-library(modeldata)
-data(biomass)
+data(biomass, package = "modeldata")
 
 ## Truncate some values to emulate what a lower limit of
 ## the measurement system might look like
@@ -87,11 +93,13 @@ data(biomass)
 biomass$carbon <- ifelse(biomass$carbon > 40, biomass$carbon, 40)
 biomass$hydrogen <- ifelse(biomass$hydrogen > 5, biomass$carbon, 5)
 
-biomass_tr <- biomass[biomass$dataset == "Training",]
-biomass_te <- biomass[biomass$dataset == "Testing",]
+biomass_tr <- biomass[biomass$dataset == "Training", ]
+biomass_te <- biomass[biomass$dataset == "Testing", ]
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass_tr)
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+  data = biomass_tr
+)
 
 impute_rec <- rec \%>\%
   step_impute_lower(carbon, hydrogen)
@@ -105,7 +113,9 @@ tidy(impute_rec, number = 1)
 transformed_te <- bake(impute_rec, biomass_te)
 
 plot(transformed_te$carbon, biomass_te$carbon,
-     ylab = "pre-imputation", xlab = "imputed")
+  ylab = "pre-imputation", xlab = "imputed"
+)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other imputation steps: 

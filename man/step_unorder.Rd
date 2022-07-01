@@ -55,16 +55,25 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with column
 \code{terms} (the columns that will be affected) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 lmh <- c("Low", "Med", "High")
 
-examples <- data.frame(X1 = factor(rep(letters[1:4], each = 3)),
-                       X2 = ordered(rep(lmh, each = 4),
-                                    levels = lmh))
+examples <- data.frame(
+  X1 = factor(rep(letters[1:4], each = 3)),
+  X2 = ordered(rep(lmh, each = 4),
+    levels = lmh
+  )
+)
 
 rec <- recipe(~ X1 + X2, data = examples)
 
-factor_trans <- rec  \%>\%
+factor_trans <- rec \%>\%
   step_unorder(all_nominal_predictors())
 
 factor_obj <- prep(factor_trans, training = examples)
@@ -94,6 +103,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()}
 }
 \concept{dummy variable and encoding steps}

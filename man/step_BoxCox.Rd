@@ -81,9 +81,15 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 lambda estimate) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
 
-rec <- recipe(~ ., data = as.data.frame(state.x77))
+rec <- recipe(~., data = as.data.frame(state.x77))
 
 bc_trans <- step_BoxCox(rec, all_numeric())
 

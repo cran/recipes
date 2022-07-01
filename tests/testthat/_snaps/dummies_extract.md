@@ -2,8 +2,43 @@
 
     Code
       recipe(~medium, data = tate_text) %>% step_dummy_extract(medium) %>% prep()
-    Error <rlang_error>
-      `sep` or `pattern` must be specified.
+    Condition
+      Error in `dummy_extract()`:
+      ! `sep` or `pattern` must be specified.
+
+# printing
+
+    Code
+      print(rec)
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+       predictor          1
+      
+      Operations:
+      
+      Extract patterns from all_predictors()
+
+---
+
+    Code
+      prep(rec)
+    Output
+      Recipe
+      
+      Inputs:
+      
+            role #variables
+       predictor          1
+      
+      Training data contained 4284 data points and no missing data.
+      
+      Operations:
+      
+      Extract patterns from medium [trained]
 
 # empty printing
 
@@ -40,4 +75,42 @@
       Operations:
       
       Extract patterns from <none> [trained]
+
+# case weights
+
+    Code
+      dummy_prepped
+    Output
+      Recipe
+      
+      Inputs:
+      
+               role #variables
+       case_weights          1
+          predictor          1
+      
+      Training data contained 4 data points and no missing data.
+      
+      Operations:
+      
+      Extract patterns from medium [weighted, trained]
+
+---
+
+    Code
+      dummy_prepped
+    Output
+      Recipe
+      
+      Inputs:
+      
+               role #variables
+       case_weights          1
+          predictor          1
+      
+      Training data contained 4 data points and no missing data.
+      
+      Operations:
+      
+      Extract patterns from medium [ignored weights, trained]
 

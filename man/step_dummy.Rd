@@ -118,42 +118,48 @@ When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
 (the list of corresponding binary columns) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-library(modeldata)
-data(okc)
-okc <- okc[complete.cases(okc),]
+\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(Sacramento, package = "modeldata")
 
-# Original data: diet has 18 levels
-length(unique(okc$diet))
-unique(okc$diet) \%>\% sort()
+# Original data: city has 37 levels
+length(unique(Sacramento$city))
+unique(Sacramento$city) \%>\% sort()
 
-rec <- recipe(~ diet + age + height, data = okc)
+rec <- recipe(~ city + sqft + price, data = Sacramento)
 
-# Default dummy coding: 17 dummy variables
+# Default dummy coding: 36 dummy variables
 dummies <- rec \%>\%
-    step_dummy(diet) \%>\%
-    prep(training = okc)
+  step_dummy(city) \%>\%
+  prep(training = Sacramento)
 
 dummy_data <- bake(dummies, new_data = NULL)
 
 dummy_data \%>\%
-    select(starts_with("diet")) \%>\%
-    names() # level "anything" is the reference level
+  select(starts_with("city")) \%>\%
+  names() # level "anything" is the reference level
 
-# Obtain the full set of 18 dummy variables using `one_hot` option
+# Obtain the full set of 37 dummy variables using `one_hot` option
 dummies_one_hot <- rec \%>\%
-    step_dummy(diet, one_hot = TRUE) \%>\%
-    prep(training = okc)
+  step_dummy(city, one_hot = TRUE) \%>\%
+  prep(training = Sacramento)
 
 dummy_data_one_hot <- bake(dummies_one_hot, new_data = NULL)
 
 dummy_data_one_hot \%>\%
-    select(starts_with("diet")) \%>\%
-    names() # no reference level
+  select(starts_with("city")) \%>\%
+  names() # no reference level
 
 
 tidy(dummies, number = 1)
 tidy(dummies_one_hot, number = 1)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=dummy_names]{dummy_names()}}
@@ -175,6 +181,7 @@ Other dummy variable and encoding steps:
 \code{\link{step_regex}()},
 \code{\link{step_relevel}()},
 \code{\link{step_string2factor}()},
+\code{\link{step_time}()},
 \code{\link{step_unknown}()},
 \code{\link{step_unorder}()}
 }

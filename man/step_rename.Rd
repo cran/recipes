@@ -59,8 +59,14 @@ columns \code{values} which contains the \code{rename} expressions as character
 strings (and are not reparsable) is returned.
 }
 
+\section{Case weights}{
+
+
+The underlying operation does not allow for case weights.
+}
+
 \examples{
-recipe( ~ ., data = iris) \%>\%
+recipe(~., data = iris) \%>\%
   step_rename(Sepal_Width = Sepal.Width) \%>\%
   prep() \%>\%
   bake(new_data = NULL) \%>\%
@@ -68,7 +74,7 @@ recipe( ~ ., data = iris) \%>\%
 
 vars <- c(var1 = "cyl", var2 = "am")
 car_rec <-
-  recipe(~ ., data = mtcars) \%>\%
+  recipe(~., data = mtcars) \%>\%
   step_rename(!!vars)
 
 car_rec \%>\%
