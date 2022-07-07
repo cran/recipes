@@ -1,7 +1,7 @@
-9e0189492f65e6a6c0141c1066f25918 *DESCRIPTION
+2a3715fd66a94df66d0123479f9e23c6 *DESCRIPTION
 5bc927f9e886a6beeba29fd191879c22 *LICENSE
 3c996500d352b30c6edbed7203891951 *NAMESPACE
-481f28b9ab61e445f2ccb58be05c01bc *NEWS.md
+f90048d5739cdeb9dcd3e566f01b2f66 *NEWS.md
 4696d5437dfd03b9a87b3461364844b0 *R/0_imports.R
 cb4a91830ad38cc9c271c7364ae9b9d2 *R/BoxCox.R
 4fcdb589056671beb14c04aaa4b8a8e1 *R/YeoJohnson.R
@@ -31,7 +31,7 @@ d96851066a72f3e47d13b818e9c46eb9 *R/format.R
 87106ae8474b6b7481ecab24c104ad2a *R/geodist.R
 28d5f10223dbaf22dc5cd8b4f72a0a9b *R/harmonic.R
 acae9004b49f5c0fd4889b40dd7ae003 *R/helper.R
-42725597760e5d5a1b4827d9e6df2107 *R/holiday.R
+e24361c1966e43c4328505e5b4f9bd4d *R/holiday.R
 25ae6beb08973660c1982ec839fd5848 *R/hyperbolic.R
 3c1cc0b62175da9645874348fd5ae160 *R/ica.R
 9ed7cdaefa8e55c5ec80c8d47505d34d *R/impute_bag.R
@@ -150,7 +150,7 @@ c20d27c5518474ab685feb0f76c33ed2 *man/check_new_values.Rd
 f67c82adf8292558f3a6c6c13aafc188 *man/check_range.Rd
 0ca92bc790d90a021ce0f43312437b99 *man/check_type.Rd
 5dc97cb523968096623c4576c575eb6d *man/detect_step.Rd
-f7da7287c02328d8419e6e0c33a8369c *man/discretize.Rd
+60400093924718264d85dcf438630dbd *man/discretize.Rd
 cb1e46f469cfbbbde29c8b5113e1d789 *man/figures/lifecycle-archived.svg
 c0d2e5a54f1fa4ff02bf9533079dd1f7 *man/figures/lifecycle-defunct.svg
 a1b8c987c676c16af790f563f96cbb1f *man/figures/lifecycle-deprecated.svg
@@ -422,7 +422,7 @@ c366a74811d0057adb8bef814c49a817 *tests/testthat/test_filter.R
 9eef67a060f1c506805247fd15a3addf *tests/testthat/test_geodist.R
 08ff620b174b9338a565f7b5acd76e03 *tests/testthat/test_grouped_df.R
 6e9e18e0968dc989d4ae8dbc1fe4eaef *tests/testthat/test_harmonic.R
-aa7a3901adbfb1ee446531477a906f09 *tests/testthat/test_holiday.R
+e9aa079e89abf5f098f16f1811bed246 *tests/testthat/test_holiday.R
 9032605e118ddbbb892e902cc0dc1c8d *tests/testthat/test_hyperbolic.R
 eb276e32134a2be6500654b6b0aae336 *tests/testthat/test_ica.R
 ca3c1e6ad795302e51a8633de91df554 *tests/testthat/test_impute_bag.R
