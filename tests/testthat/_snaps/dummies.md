@@ -81,7 +81,7 @@
     Output
       # A tibble: 10 x 2
          y      x1_B
-         <fct> <dbl>
+         <fct> <int>
        1 0         0
        2 0         1
        3 1         0
@@ -92,6 +92,15 @@
        8 0         1
        9 1        NA
       10 0         0
+
+# Deprecation warning
+
+    Code
+      recipe(~., data = mtcars) %>% step_dummy(preserve = TRUE)
+    Condition
+      Error:
+      ! The `preserve` argument of `step_dummy()` was deprecated in recipes 0.1.16 and is now defunct.
+      i Please use the `keep_original_cols` argument instead.
 
 # printing
 

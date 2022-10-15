@@ -86,9 +86,7 @@ If you really aren't using \code{sample} in your recipe, we recommend that you i
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{biomass_test$sample <- NULL
 
 bake(rec, biomass_test)
-}\if{html}{\out{</div>}}
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{#> Error in `bake()`:
+#> Error in `bake()`:
 #> ! The following required columns are missing from `new_data`: "sample".
 #> i These columns have one of the following roles, which are required at `bake()` time: "id variable".
 #> i If these roles are not required at `bake()` time, use `update_role_requirements(role = "your_role", bake = FALSE)`.
