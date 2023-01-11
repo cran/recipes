@@ -21,9 +21,9 @@ test_that("basic functionality", {
       ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE,
       log = FALSE
     )
-  rec_trained <- prep(rec, traning = rand_data)
+  rec_trained <- prep(rec, training = rand_data)
 
-  tr_int <- juice(rec_trained, all_predictors())
+  tr_int <- bake(rec_trained, new_data = NULL, all_predictors())
   te_int <- bake(rec_trained, rand_data, all_predictors())
 
   expect_equal(tr_int[["geo_dist"]], dists)
@@ -34,9 +34,9 @@ test_that("basic functionality", {
       ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE,
       log = TRUE
     )
-  rec_log_trained <- prep(rec_log, traning = rand_data)
+  rec_log_trained <- prep(rec_log, training = rand_data)
 
-  tr_log_int <- juice(rec_log_trained, all_predictors())
+  tr_log_int <- bake(rec_log_trained, new_data = NULL, all_predictors())
   te_log_int <- bake(rec_log_trained, rand_data, all_predictors())
 
   expect_equal(tr_log_int[["geo_dist"]], log(dists))

@@ -47,34 +47,6 @@ filter_terms.formula <- function(formula, data, ...) {
   get_rhs_vars(formula, data)
 }
 
-
-## This function takes the default arguments of `func` and
-## replaces them with the matching ones in `options` and
-## remove any in `removals`
-sub_args <- function(func, options, removals = NULL) {
-  args <- formals(func)
-  for (i in seq_along(options)) {
-    args[[names(options)[i]]] <- options[[i]]
-  }
-  if (!is.null(removals)) {
-    args[removals] <- NULL
-  }
-  args
-}
-## Same as above but starts with a call object
-mod_call_args <- function(cl, args, removals = NULL) {
-  if (!is.null(removals)) {
-    for (i in removals) {
-      cl[[i]] <- NULL
-    }
-  }
-  arg_names <- names(args)
-  for (i in arg_names) {
-    cl[[i]] <- args[[i]]
-  }
-  cl
-}
-
 #' Naming Tools
 #'
 #' `names0` creates a series of `num` names with a common prefix.
@@ -443,30 +415,48 @@ is_qual <- function(x) {
 #'   check fails.
 #' @param dat A data frame or tibble of the training data.
 #' @param quant A logical indicating whether the data is expected to be numeric
-#'   (TRUE) or a factor/character (FALSE).
+#'   (TRUE) or a factor/character (FALSE). Is ignored if `types` is specified.
+#' @param types Character vector of allowed types. Following the same types as
+#'   [has_role()]. See details for more.
+#'
+#' @details
+#' Using `types` is a more fine-tuned way to use this. function compared to using
+#' `quant`. `types` should specify all allowed types as designated by
+#' [.get_data_types]. Suppose you want to allow doubles, integers, characters,
+#' factors and ordered factors, then you should specify
+#' `types = c("double", "integer", "string", "factor", "ordered")` to get a
+#' clear error message.
+#'
 #' @export
 #' @keywords internal
-check_type <- function(dat, quant = TRUE) {
-  if (quant) {
-    all_good <- vapply(dat, is.numeric, logical(1))
-    label <- "numeric"
+check_type <- function(dat, quant = TRUE, types = NULL, call = caller_env()) {
+  if (is.null(types)) {
+    if (quant) {
+      all_good <- vapply(dat, is.numeric, logical(1))
+      label <- "numeric"
+    } else {
+      all_good <- vapply(dat, is_qual, logical(1))
+      label <- "factor or character"
+    }
   } else {
-    all_good <- vapply(dat, is_qual, logical(1))
-    label <- "factor or character"
+    all_good <- purrr::map_lgl(get_types(dat)$type, ~ any(.x %in% types))
+    label <- glue::glue_collapse(types, sep = ", ", last = ", or ")
   }
+
   if (!all(all_good)) {
     rlang::abort(
       paste0(
         "All columns selected for the step",
         " should be ",
-        label
-      )
+        label,
+        "."
+      ),
+      call = call
     )
   }
+
   invisible(all_good)
 }
-
-
 
 ## Support functions
 
@@ -841,3 +831,38 @@ check_new_data <- function(req, object, new_data) {
   )
 }
 
+stop_recipes <- function(class = NULL,
+                         call = NULL,
+                         parent = NULL) {
+  rlang::abort(
+    class = c(class, "recipes_error"),
+    call = call,
+    parent = parent
+  )
+}
+
+stop_recipes_step <- function(call = NULL,
+                              parent = NULL) {
+  stop_recipes(
+    class = "recipes_error_step",
+    call = call,
+    parent = parent
+  )
+}
+
+recipes_error_context <- function(expr, step_name) {
+  withCallingHandlers(
+    expr = force(expr),
+    error = function(cnd) {
+      stop_recipes_step(
+        call = call(step_name),
+        parent = cnd
+      )
+    }
+  )
+}
+
+vec_paste0 <- function(..., collapse = NULL) {
+  args <- vctrs::vec_recycle_common(...)
+  rlang::inject(paste0(!!!args, collapse = collapse))
+}

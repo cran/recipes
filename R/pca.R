@@ -155,7 +155,7 @@ step_pca_new <-
 #' @export
 prep.step_pca <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
-  check_type(training[, col_names])
+  check_type(training[, col_names], types = c("double", "integer"))
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
@@ -173,7 +173,7 @@ prep.step_pca <- function(x, training, info = NULL, ...) {
           tol = NULL
         ))
       if (length(x$options) > 0) {
-        prc_call <- mod_call_args(prc_call, args = x$options)
+        prc_call <- rlang::call_modify(prc_call, !!!x$options)
       }
 
       prc_call$x <- expr(training[, col_names, drop = FALSE])

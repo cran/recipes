@@ -4,8 +4,9 @@
       recipe(~., data = example_data) %>% step_impute_roll(all_predictors(), window = 3) %>%
         prep(training = example_data)
     Condition
-      Error in `check_type()`:
-      ! All columns selected for the step should be numeric
+      Error in `step_impute_roll()`:
+      Caused by error in `prep()`:
+      ! All columns selected for the step should be double.
 
 ---
 
@@ -22,8 +23,9 @@
       recipe(~., data = example_data) %>% update_role(day, new_role = "time_index") %>%
         step_impute_roll(all_predictors(), window = 3) %>% prep(training = example_data)
     Condition
-      Error in `prep()`:
-      ! All columns must be double precision for rolling imputation
+      Error in `step_impute_roll()`:
+      Caused by error in `prep()`:
+      ! All columns selected for the step should be double.
 
 # Deprecation warning
 

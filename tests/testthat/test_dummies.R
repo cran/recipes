@@ -78,6 +78,7 @@ test_that("dummy variables with non-factor inputs", {
     mutate(city = as.character(city))
 
   expect_snapshot(
+    error = TRUE,
     recipe(sqft ~ zip + price + city, data = sacr_fac_ish) %>%
       step_dummy(city, zip, price) %>%
       prep(training = sacr_fac_ish, verbose = FALSE, strings_as_factors = FALSE)
@@ -161,7 +162,7 @@ test_that("tests for NA values in factor", {
     factors <- prep(factors, training = sacr_missing)
   )
 
-  factors_data_0 <- juice(factors)
+  factors_data_0 <- bake(factors, new_data = NULL)
   expect_snapshot(
     factors_data_1 <- bake(factors, new_data = sacr_missing)
   )
@@ -183,7 +184,7 @@ test_that("tests for NA values in ordered factor", {
     factors <- prep(factors, training = sacr_ordered)
   )
 
-  factors_data_0 <- juice(factors)
+  factors_data_0 <- bake(factors, new_data = NULL)
   expect_snapshot(
     factors_data_1 <- bake(factors, new_data = sacr_ordered)
   )

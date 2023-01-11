@@ -104,7 +104,7 @@ step_YeoJohnson_new <-
 #' @export
 prep.step_YeoJohnson <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
-  check_type(training[, col_names])
+  check_type(training[, col_names], types = c("double", "integer"))
 
   values <- vapply(
     training[, col_names],
@@ -226,13 +226,20 @@ yj_obj <- function(lam, dat, ind_neg, const) {
 #' @export
 #' @keywords internal
 #' @rdname recipes-internal
-estimate_yj <- function(dat, limits = c(-5, 5), num_unique = 5, na_rm = TRUE) {
+estimate_yj <- function(dat,
+                        limits = c(-5, 5),
+                        num_unique = 5,
+                        na_rm = TRUE,
+                        call = caller_env(2)) {
   na_rows <- which(is.na(dat))
   if (length(na_rows) > 0) {
     if (na_rm) {
       dat <- dat[-na_rows]
     } else {
-      rlang::abort("Missing values are not allowed for the YJ transformation. See `na_rm` option")
+      rlang::abort(
+        "Missing values are not allowed for the YJ transformation. See `na_rm` option",
+        call = call
+      )
     }
   }
 

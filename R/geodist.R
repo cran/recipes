@@ -143,18 +143,19 @@ check_is_lat_lon <- function(x) {
 prep.step_geodist <- function(x, training, info = NULL, ...) {
   lon_name <- recipes_eval_select(x$lon, training, info)
   lat_name <- recipes_eval_select(x$lat, training, info)
+  check_type(training[, c(lon_name, lat_name)], types = c("double", "integer"))
 
   x <- check_is_lat_lon(x)
 
   if (length(lon_name) > 1) {
     rlang::abort("`lon` should resolve to a single column name.")
   }
-  check_type(training[, lon_name])
+  check_type(training[, lon_name], types = c("double", "integer"))
 
   if (length(lat_name) > 1) {
     rlang::abort("`lat` should resolve to a single column name.")
   }
-  check_type(training[, lat_name])
+  check_type(training[, lat_name], types = c("double", "integer"))
 
 
   if (any(names(training) == x$name)) {
@@ -184,13 +185,14 @@ geo_dist_calc_xy <- function(x_1, y_1, x_2, y_2) {
 
 
 # earth_radius = 6371e3 in meters
-geo_dist_calc_lat_lon <- function(x_1, y_1, x_2, y_2, earth_radius = 6371e3) {
+geo_dist_calc_lat_lon <- function(x_1, y_1, x_2, y_2, earth_radius = 6371e3,
+                                  call = caller_env()) {
   if (any(abs(x_1) > 180.0)) {
-    rlang::abort("All `lon` values should be between -180 and 180")
+    rlang::abort("All `lon` values should be between -180 and 180", call = call)
   }
 
   if (any(abs(y_1) > 90.0)) {
-    rlang::abort("All `lat` values should be between -90 and 90")
+    rlang::abort("All `lat` values should be between -90 and 90", call = call)
   }
 
   to_rad <- pi / 180.0

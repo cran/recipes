@@ -141,6 +141,7 @@ step_other_new <-
 #' @export
 prep.step_other <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
+  check_type(training[, col_names], types = c("string", "factor", "ordered"))
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
@@ -212,7 +213,8 @@ print.step_other <-
     invisible(x)
   }
 
-keep_levels <- function(x, threshold = .1, other = "other", wts = NULL) {
+keep_levels <- function(x, threshold = .1, other = "other", wts = NULL,
+                        call = caller_env(2)) {
   if (!is.factor(x)) {
     x <- factor(x)
   }
@@ -247,7 +249,8 @@ keep_levels <- function(x, threshold = .1, other = "other", wts = NULL) {
         other,
         " is already a factor level that will be retained. ",
         "Please choose a different value."
-      )
+      ),
+      call = call
     )
   }
 
