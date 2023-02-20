@@ -263,7 +263,7 @@ merge_term_info <- function(.new, .old) {
   # the original value
   .new %>%
     dplyr::rename(new_type = type) %>%
-    dplyr::left_join(.old, by = "variable") %>%
+    dplyr::left_join(.old, by = "variable", multiple = "all") %>%
     dplyr::mutate(
       type = ifelse(is.na(type), "other", "type"),
       type = ifelse(type != new_type, new_type, type)
@@ -690,20 +690,6 @@ get_keep_original_cols <- function(object) {
 }
 
 # ------------------------------------------------------------------------------
-# From parsnip, keep synced
-
-is_varying <- function(x) {
-  if (is.null(x)) {
-    res <- FALSE
-  } else {
-    res <- if (is_quosure(x)) {
-      isTRUE(all.equal(x[[-1]], quote(varying())))
-    } else {
-      isTRUE(all.equal(x, quote(varying())))
-    }
-  }
-  res
-}
 
 # from tune package
 is_tune <- function(x) {
@@ -860,6 +846,12 @@ recipes_error_context <- function(expr, step_name) {
       )
     }
   )
+}
+
+#' @method conditionMessage recipes_error
+#' @export
+conditionMessage.recipes_error <- function(c) {
+  rlang::cnd_message(c, prefix = TRUE)
 }
 
 vec_paste0 <- function(..., collapse = NULL) {

@@ -350,22 +350,22 @@ interaction terms and contrasts.</p>
 numeric columns and a single factor column with three levels:
 <code>&#39;setosa&#39;</code>, <code>&#39;versicolor&#39;</code>, and
 <code>&#39;virginica&#39;</code>. Our initial recipe will have no outcome:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(recipes)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># make a copy for use below</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>iris <span class="ot">&lt;-</span> iris <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">original =</span> Species)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>iris_rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>( <span class="sc">~</span> ., <span class="at">data =</span> iris)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iris_rec)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 4</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variable     type      role      source  </span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width  &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width  &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 Species      &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 original     &lt;chr [3]&gt; predictor original</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(recipes)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># make a copy for use below</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>iris <span class="ot">&lt;-</span> iris <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">original =</span> Species)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>iris_rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>( <span class="sc">~</span> ., <span class="at">data =</span> iris)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">summary</span>(iris_rec)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 4</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt;   variable     type      role      source  </span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width  &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width  &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt; 5 Species      &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&gt; 6 original     &lt;chr [3]&gt; predictor original</span></span></code></pre></div>
 <p>A <a href="https://en.wikipedia.org/wiki/Contrast_(statistics)">contrast
 function</a> in R is a method for translating a column with categorical
 values into one or more numeric columns that take the place of the
@@ -376,39 +376,39 @@ parameterization function.</p>
 <em>C</em> levels of the factor, there will be <em>C</em> - 1 dummy
 variables created and all but the first factor level are made into new
 columns:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ref_cell <span class="ot">&lt;-</span> </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species) <span class="sc">%&gt;%</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(ref_cell)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 4</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variable           type      role      source  </span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;              &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length       &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width        &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length       &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width        &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 original           &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 Species_versicolor &lt;chr [2]&gt; predictor derived </span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 Species_virginica  &lt;chr [2]&gt; predictor derived</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Get a row for each factor level</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu">bake</span>(ref_cell, <span class="at">new_data =</span> <span class="cn">NULL</span>, original, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 3</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   original   Species_versicolor Species_virginica</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;                   &lt;dbl&gt;             &lt;dbl&gt;</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 setosa                      0                 0</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 versicolor                  1                 0</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 virginica                   0                 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>ref_cell <span class="ot">&lt;-</span> </span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species) <span class="sc">%&gt;%</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">summary</span>(ref_cell)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 4</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt;   variable           type      role      source  </span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;              &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length       &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width        &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length       &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width        &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 5 original           &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 6 Species_versicolor &lt;chr [2]&gt; predictor derived </span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; 7 Species_virginica  &lt;chr [2]&gt; predictor derived</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># Get a row for each factor level</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="fu">bake</span>(ref_cell, <span class="at">new_data =</span> <span class="cn">NULL</span>, original, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 3</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;   original   Species_versicolor Species_virginica</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;                   &lt;dbl&gt;             &lt;dbl&gt;</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt; 1 setosa                      0                 0</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt; 2 versicolor                  1                 0</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; 3 virginica                   0                 1</span></span></code></pre></div>
 <p>Note that the column that was used to make the new columns
 (<code>Species</code>) is no longer there. See the section below on
 obtaining the entire set of <em>C</em> columns.</p>
 <p>There are different types of contrasts that can be used for different
 types of factors. The defaults are:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>param <span class="ot">&lt;-</span> <span class="fu">getOption</span>(<span class="st">&quot;contrasts&quot;</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>param</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         unordered           ordered </span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &quot;contr.treatment&quot;      &quot;contr.poly&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>param <span class="ot">&lt;-</span> <span class="fu">getOption</span>(<span class="st">&quot;contrasts&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>param</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;         unordered           ordered </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; &quot;contr.treatment&quot;      &quot;contr.poly&quot;</span></span></code></pre></div>
 <p>Looking at <code>?contrast</code>, there are other options. One
 alternative is the little known Helmert contrast:</p>
 <blockquote>
@@ -419,38 +419,38 @@ two, and so on.</p>
 <p>To get this encoding, the global option for the contrasts can be
 changed and saved. <a href="https://recipes.tidymodels.org/reference/step_dummy.html"><code>step_dummy</code></a>
 picks up on this and makes the correct calculations:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change it:</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>go_helmert <span class="ot">&lt;-</span> param</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>go_helmert[<span class="st">&quot;unordered&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;contr.helmert&quot;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> go_helmert)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># now make dummy variables with new parameterization</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>helmert <span class="ot">&lt;-</span> </span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species) <span class="sc">%&gt;%</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(helmert)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 4</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variable     type      role      source  </span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width  &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width  &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 original     &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 Species_X1   &lt;chr [2]&gt; predictor derived </span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 Species_X2   &lt;chr [2]&gt; predictor derived</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="fu">bake</span>(helmert, <span class="at">new_data =</span> <span class="cn">NULL</span>, original, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 3</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   original   Species_X1 Species_X2</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;           &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 setosa             -1         -1</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 versicolor          1         -1</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 virginica           0          2</span></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Yuk; go back to the original method</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> param)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># change it:</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>go_helmert <span class="ot">&lt;-</span> param</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>go_helmert[<span class="st">&quot;unordered&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;contr.helmert&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> go_helmert)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co"># now make dummy variables with new parameterization</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>helmert <span class="ot">&lt;-</span> </span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species) <span class="sc">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">summary</span>(helmert)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 4</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;   variable     type      role      source  </span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;        &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width  &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width  &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; 5 original     &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; 6 Species_X1   &lt;chr [2]&gt; predictor derived </span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; 7 Species_X2   &lt;chr [2]&gt; predictor derived</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="fu">bake</span>(helmert, <span class="at">new_data =</span> <span class="cn">NULL</span>, original, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 3</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt;   original   Species_X1 Species_X2</span></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;           &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; 1 setosa             -1         -1</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; 2 versicolor          1         -1</span></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; 3 virginica           0          2</span></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co"># Yuk; go back to the original method</span></span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> param)</span></code></pre></div>
 <p>Note that the column names do not reference a specific level of the
 species variable. This contrast function has columns that can involve
 multiple levels; level-specific columns wouldn’t make sense.</p>
@@ -465,21 +465,21 @@ columns that are being used to create the dummy variables.</p>
 <h2>Interactions with Dummy Variables</h2>
 <p>Creating interactions with recipes requires the use of a model
 formula, such as</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>iris_int <span class="ot">&lt;-</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Sepal.Width<span class="sc">:</span>Sepal.Length) <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iris_int)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 4</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variable                   type      role      source  </span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                      &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length               &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width                &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length               &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width                &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 Species                    &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 original                   &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 Sepal.Width_x_Sepal.Length &lt;chr [2]&gt; predictor derived</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>iris_int <span class="ot">&lt;-</span> </span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Sepal.Width<span class="sc">:</span>Sepal.Length) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">summary</span>(iris_int)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 4</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;   variable                   type      role      source  </span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                      &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length               &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width                &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length               &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width                &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; 5 Species                    &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; 6 original                   &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; 7 Sepal.Width_x_Sepal.Length &lt;chr [2]&gt; predictor derived</span></span></code></pre></div>
 <p>In <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/formula.html">R
 model formulae</a>, using a <code>*</code> between two variables would
 expand to <code>a*b = a + b + a:b</code> so that the main effects are
@@ -493,71 +493,58 @@ categorical predictors.</p>
 <p>For example, if you were to use the standard formula interface, the
 creation of the dummy variables happens at the same time as the
 interactions are created:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model.matrix</span>(<span class="sc">~</span> Species<span class="sc">*</span>Sepal.Length, <span class="at">data =</span> iris) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># show a few specific rows</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">51</span>, <span class="dv">101</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     (Intercept) Speciesversicolor Speciesvirginica Sepal.Length</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1             1                 0                0          5.1</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 51            1                 1                0          7.0</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 101           1                 0                1          6.3</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Speciesversicolor:Sepal.Length Speciesvirginica:Sepal.Length</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1                                0                           0.0</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 51                               7                           0.0</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 101                              0                           6.3</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">model.matrix</span>(<span class="sc">~</span> Species<span class="sc">*</span>Sepal.Length, <span class="at">data =</span> iris) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="co"># show a few specific rows</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">51</span>, <span class="dv">101</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt;     (Intercept) Speciesversicolor Speciesvirginica Sepal.Length</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 1             1                 0                0          5.1</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 51            1                 1                0          7.0</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; 101           1                 0                1          6.3</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;     Speciesversicolor:Sepal.Length Speciesvirginica:Sepal.Length</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; 1                                0                           0.0</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; 51                               7                           0.0</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; 101                              0                           6.3</span></span></code></pre></div>
 <p>With recipes, you create them sequentially. This raises an issue: do
 I have to type out all of the interaction effects by their specific
 names when using dummy variable?</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Must I do this?</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>iris_rec <span class="sc">%&gt;%</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Species_versicolor<span class="sc">:</span>Sepal.Length <span class="sc">+</span> </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                   Species_virginica<span class="sc">:</span>Sepal.Length) </span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Must I do this?</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>iris_rec <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Species_versicolor<span class="sc">:</span>Sepal.Length <span class="sc">+</span> </span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                   Species_virginica<span class="sc">:</span>Sepal.Length) </span></code></pre></div>
 <p>Note only is this a pain, but it may not be obvious what dummy
 variables are available (especially when <a href="https://recipes.tidymodels.org/reference/step_other.html"><code>step_other</code></a>
 is used).</p>
 <p>The solution is to use a selector:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>iris_int <span class="ot">&lt;-</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species) <span class="sc">%&gt;%</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)<span class="sc">:</span>Sepal.Length) <span class="sc">%&gt;%</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iris_int)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 9 × 4</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variable                          type      role      source  </span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                             &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length                      &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width                       &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length                      &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width                       &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 original                          &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 Species_versicolor                &lt;chr [2]&gt; predictor derived </span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 Species_virginica                 &lt;chr [2]&gt; predictor derived </span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8 Species_versicolor_x_Sepal.Length &lt;chr [2]&gt; predictor derived </span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 9 Species_virginica_x_Sepal.Length  &lt;chr [2]&gt; predictor derived</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>iris_int <span class="ot">&lt;-</span> </span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)<span class="sc">:</span>Sepal.Length) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="fu">summary</span>(iris_int)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 9 × 4</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;   variable                          type      role      source  </span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                             &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length                      &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width                       &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length                      &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width                       &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; 5 original                          &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; 6 Species_versicolor                &lt;chr [2]&gt; predictor derived </span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; 7 Species_virginica                 &lt;chr [2]&gt; predictor derived </span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; 8 Species_versicolor_x_Sepal.Length &lt;chr [2]&gt; predictor derived </span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; 9 Species_virginica_x_Sepal.Length  &lt;chr [2]&gt; predictor derived</span></span></code></pre></div>
 <p>What happens here is that <code>starts_with(&quot;Species&quot;)</code> is
 executed on the data that are available when the previous steps have
 been applied to the data. That means that the dummy variable columns are
 present. The results of this selectors are then translated to an
 additive function of the results. In this case, that means that</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)</span></code></pre></div>
 <p>becomes</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>(Species_versicolor <span class="sc">+</span> Species_virginica)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>(Species_versicolor <span class="sc">+</span> Species_virginica)</span></code></pre></div>
 <p>The entire interaction formula is shown here:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>iris_int</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Recipe</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Inputs:</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       role #variables</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  predictor          6</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Training data contained 150 data points and no missing data.</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Operations:</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Dummy variables from Species [trained]</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Interactions with (Species_versicolor + Species_virginica):Sepal.Length [trained]</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>iris_int</span></code></pre></div>
 <p>For interactions between multiple sets of dummy variables, the
 formula could include multiple selectors
 (e.g. <code>starts_with(&quot;x_&quot;):starts_with(&quot;y_&quot;)</code>).</p>
@@ -566,22 +553,22 @@ formula could include multiple selectors
 <h2>Warning!</h2>
 <p>Would it work if I didn’t convert species to a factor and used the
 interactions step?</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>iris_int <span class="ot">&lt;-</span> </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Species<span class="sc">:</span>Sepal.Length) <span class="sc">%&gt;%</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(iris_int)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 8 × 4</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variable                         type      role      source  </span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                            &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length                     &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width                      &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length                     &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width                      &lt;chr [2]&gt; predictor original</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 Species                          &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 original                         &lt;chr [3]&gt; predictor original</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 Speciesversicolor_x_Sepal.Length &lt;chr [2]&gt; predictor derived </span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8 Speciesvirginica_x_Sepal.Length  &lt;chr [2]&gt; predictor derived</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>iris_int <span class="ot">&lt;-</span> </span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Species<span class="sc">:</span>Sepal.Length) <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="fu">summary</span>(iris_int)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 8 × 4</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt;   variable                         type      role      source  </span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;                            &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   </span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; 1 Sepal.Length                     &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; 2 Sepal.Width                      &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; 3 Petal.Length                     &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; 4 Petal.Width                      &lt;chr [2]&gt; predictor original</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; 5 Species                          &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; 6 original                         &lt;chr [3]&gt; predictor original</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; 7 Speciesversicolor_x_Sepal.Length &lt;chr [2]&gt; predictor derived </span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt; 8 Speciesvirginica_x_Sepal.Length  &lt;chr [2]&gt; predictor derived</span></span></code></pre></div>
 <p>The columns <code>Species</code> isn’t affected and a warning is
 issued. Basically, you only get half of what <code>model.matrix</code>
 does and that could really be problematic in subsequent steps.</p>
@@ -600,17 +587,17 @@ matrix like this is “less than full rank”.</p>
 this issue so you might want to get all of the columns. To do this,
 <code>step_dummy</code> has an option called <code>one_hot</code> that
 will make sure that all <em>C</em> are produced:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species, <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris) <span class="sc">%&gt;%</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bake</span>(original, <span class="at">new_data =</span> <span class="cn">NULL</span>, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   original   Species_setosa Species_versicolor Species_virginica</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;              &lt;dbl&gt;             &lt;dbl&gt;</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species, <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris) <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">bake</span>(original, <span class="at">new_data =</span> <span class="cn">NULL</span>, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt;   original   Species_setosa Species_versicolor Species_virginica</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;              &lt;dbl&gt;             &lt;dbl&gt;</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span></code></pre></div>
 <p>The option is named that way since this is that the computer
 scientists call <a href="https://www.google.com/search?q=one-hot+encoding">“one-hot
 encoding”</a>.</p>
@@ -618,38 +605,38 @@ encoding”</a>.</p>
 <p>This will give you the full set of indicators and, when you use the
 typical contrast function, it does. It might do some seemingly weird
 (but legitimate) things when used with other contrasts:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>hot_reference <span class="ot">&lt;-</span> </span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species, <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris) <span class="sc">%&gt;%</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bake</span>(original, <span class="at">new_data =</span> <span class="cn">NULL</span>, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>hot_reference</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   original   Species_setosa Species_versicolor Species_virginica</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;              &lt;dbl&gt;             &lt;dbl&gt;</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co"># from above</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> go_helmert)</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>hot_helmert <span class="ot">&lt;-</span> </span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species, <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris) <span class="sc">%&gt;%</span></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bake</span>(original, <span class="at">new_data =</span> <span class="cn">NULL</span>, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>hot_helmert</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   original   Species_setosa Species_versicolor Species_virginica</span></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;              &lt;dbl&gt;             &lt;dbl&gt;</span></span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>hot_reference <span class="ot">&lt;-</span> </span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species, <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="fu">bake</span>(original, <span class="at">new_data =</span> <span class="cn">NULL</span>, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>hot_reference</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;   original   Species_setosa Species_versicolor Species_virginica</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;              &lt;dbl&gt;             &lt;dbl&gt;</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co"># from above</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="fu">options</span>(<span class="at">contrasts =</span> go_helmert)</span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a>hot_helmert <span class="ot">&lt;-</span> </span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a>  iris_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Species, <span class="at">one_hot =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">training =</span> iris) <span class="sc">%&gt;%</span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a>  <span class="fu">bake</span>(original, <span class="at">new_data =</span> <span class="cn">NULL</span>, <span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a>hot_helmert</span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 4</span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt;   original   Species_setosa Species_versicolor Species_virginica</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;               &lt;dbl&gt;              &lt;dbl&gt;             &lt;dbl&gt;</span></span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span></code></pre></div>
 <p>Since this contrast doesn’t make sense using all <em>C</em> columns,
 it reverts back to the default encoding.</p>
 </div>
