@@ -44,6 +44,12 @@
 #'  `terms` (the selectors or variables selected) and `window`
 #'  (the window size) is returned.
 #'
+#' ```{r, echo = FALSE, results="asis"}
+#' step <- "step_impute_roll"
+#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
+#' cat(result)
+#' ```
+#'
 #' @template case-weights-not-supported
 #'
 #' @examples
@@ -259,8 +265,8 @@ tunable.step_impute_roll <- function(x, ...) {
   tibble::tibble(
     name = c("statistic", "window"),
     call_info = list(
-      list(pkg = "dials", fun = "location_stat"),
-      list(pkg = "dials", fun = "window")
+      list(pkg = "dials", fun = "summary_stat"),
+      list(pkg = "dials", fun = "window_size")
     ),
     source = "recipe",
     component = "step_impute_roll",

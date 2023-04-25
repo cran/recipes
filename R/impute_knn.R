@@ -39,6 +39,12 @@
 #' `terms` (the selectors or variables for imputation), `predictors`
 #' (those variables used to impute), and `neighbors` is returned.
 #'
+#' ```{r, echo = FALSE, results="asis"}
+#' step <- "step_impute_knn"
+#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
+#' cat(result)
+#' ```
+#'
 #' @template case-weights-not-supported
 #'
 #' @references Gower, C. (1971) "A general coefficient of similarity and some
@@ -229,7 +235,7 @@ nn_index <- function(miss_data, ref_data, vars, K, opt) {
 
 nn_pred <- function(index, dat) {
   dat <- dat[index, ]
-  dat <- getElement(dat, names(dat))
+  dat <- dat[[names(dat)]]
   dat <- dat[!is.na(dat)]
   est <- if (is.factor(dat) | is.character(dat)) {
     mode_est(dat)

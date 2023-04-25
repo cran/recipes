@@ -42,11 +42,53 @@ test_that("dummy variables with non-factor inputs", {
   expect_snapshot(error = TRUE, prep(dummy))
 })
 
+test_that("check_name() is used", {
+  dat <- iris
+  dat$Species_setosa <- dat$Species
+
+  rec <- recipe(~., data = dat) |>
+    step_dummy_multi_choice(Species)
+
+  expect_snapshot(
+    error = TRUE,
+    prep(rec, training = dat)
+  )
+})
+
 test_that("printing", {
   rec <- recipe(~., data = languages) %>%
     step_dummy_multi_choice(all_predictors())
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+test_that("tunable", {
+  rec <-
+    recipe(~., data = languages) %>%
+    step_dummy_multi_choice(all_predictors())
+  rec_param <- tunable.step_dummy_multi_choice(rec$steps[[1]])
+  expect_equal(rec_param$name, c("threshold"))
+  expect_true(all(rec_param$source == "recipe"))
+  expect_true(is.list(rec_param$call_info))
+  expect_equal(nrow(rec_param), 1)
+  expect_equal(
+    names(rec_param),
+    c("name", "call_info", "source", "component", "component_id")
+  )
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_dummy_multi_choice(
+      all_predictors(),
+      threshold = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 1L)
 })
 
 test_that("no columns selected", {

@@ -168,12 +168,11 @@ prep.step_classdist <- function(x, training, info = NULL, ...) {
     wts <- NULL
   }
 
-  x_dat <-
-    split(training[, x_names], getElement(training, class_var))
+  x_dat <- split(training[, x_names], training[[class_var]])
   if (is.null(wts)) {
     wts_split <- map(x_dat, ~NULL)
   } else {
-    wts_split <- split(as.double(wts), getElement(training, class_var))
+    wts_split <- split(as.double(wts), training[[class_var]])
   }
   if (x$pool) {
     res <- list(
@@ -255,7 +254,7 @@ bake.step_classdist <- function(object, new_data, ...) {
 
 print.step_classdist <-
   function(x, width = max(20, options()$width - 30), ...) {
-    title <- glue::glue("Distances to {x$class} for ")
+    title <- glue("Distances to {x$class} for ")
     if (x$trained) {
       x_names <- if (x$pool) {
         names(x$objects[["center"]][[1]])

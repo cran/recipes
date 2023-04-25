@@ -37,6 +37,12 @@
 #'  `terms` (the selectors or variables selected) and the number of
 #'  components is returned.
 #'
+#' ```{r, echo = FALSE, results="asis"}
+#' step <- "step_nnmf_sparse"
+#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
+#' cat(result)
+#' ```
+#'
 #' @template case-weights-not-supported
 #'
 #' @examplesIf .Platform$OS.type!= "windows"
@@ -80,7 +86,7 @@ step_nnmf_sparse <-
     add_step(
       recipe,
       step_nnmf_sparse_new(
-        terms = ellipse_check(...),
+        terms = enquos(...),
         role = role,
         trained = trained,
         num_comp = num_comp,
@@ -192,7 +198,9 @@ bake.step_nnmf_sparse <- function(object, new_data, ...) {
     proj_data <- as.matrix(new_data[, object$res$x_vars, drop = FALSE])
     proj_data <- proj_data %*% object$res$w
     colnames(proj_data) <- names0(ncol(proj_data), object$prefix)
-    new_data <- bind_cols(new_data, as_tibble(proj_data))
+    proj_data <- as_tibble(proj_data)
+    proj_data <- check_name(proj_data, new_data, object)
+    new_data <- bind_cols(new_data, proj_data)
     keep_original_cols <- get_keep_original_cols(object)
 
     if (!keep_original_cols) {

@@ -57,6 +57,12 @@
 #' above. When you `tidy()` this step, a tibble with columns `terms` (the
 #' selectors or variables selected), `components`, and `values` is returned.
 #'
+#' ```{r, echo = FALSE, results="asis"}
+#' step <- "step_pls"
+#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
+#' cat(result)
+#' ```
+#'
 #' @template case-weights-not-supported
 #'
 #' @references
@@ -285,7 +291,7 @@ old_pls_project <- function(object, x) {
   }
   input_data <- sweep(input_data, 2, object$Xmeans, "-")
   comps <- input_data %*% object$projection
-  colnames(comps) <- paste0("pls", 1:ncol(comps))
+  colnames(comps) <- paste0("pls", seq_len(ncol(comps)))
   tibble::as_tibble(comps)
 }
 
@@ -375,9 +381,10 @@ bake.step_pls <- function(object, new_data, ...) {
     }
 
     names(comps) <- names0(ncol(comps), object$prefix)
+    comps <- as_tibble(comps)
     comps <- check_name(comps, new_data, object)
 
-    new_data <- bind_cols(new_data, as_tibble(comps))
+    new_data <- bind_cols(new_data, comps)
     keep_original_cols <- get_keep_original_cols(object)
 
     # Old pls never preserved original columns,

@@ -35,6 +35,12 @@
 #'  When you [`tidy()`][tidy.recipe()] this step, a tibble with column
 #'  `terms` (the columns that will be affected) is returned.
 #'
+#' ```{r, echo = FALSE, results="asis"}
+#' step <- "step_spline_nonnegative"
+#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
+#' cat(result)
+#' ```
+#'
 #' @references
 #' Curry, H.B., Schoenberg, I.J. (1988). On Polya Frequency Functions IV: The
 #' Fundamental Spline Functions and their Limits. In: de Boor, C. (eds) I. J.
@@ -121,7 +127,7 @@ step_spline_nonnegative_new <-
   }
 
 # ------------------------------------------------------------------------------
-
+#' @export
 prep.step_spline_nonnegative <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
@@ -161,10 +167,12 @@ prep.step_spline_nonnegative <- function(x, training, info = NULL, ...) {
   )
 }
 
+#' @export
 bake.step_spline_nonnegative <- function(object, new_data, ...) {
   orig_names <- names(object$results)
   if (length(orig_names) > 0) {
     new_cols <- purrr::map2_dfc(object$results, new_data[, orig_names], spline2_apply)
+    new_cols <- check_name(new_cols, new_data, object, names(new_cols))
     new_data <- bind_cols(new_data, new_cols)
     keep_original_cols <- get_keep_original_cols(object)
     if (!keep_original_cols) {
@@ -217,7 +225,7 @@ tunable.step_spline_nonnegative <- function(x, ...) {
     name = c("deg_free", "degree"),
     call_info = list(
       list(pkg = "dials", fun = "spline_degree", range = c(2L, 15L)),
-      list(pkg = "dials", fun = "degree", range = c(0L, 3L))
+      list(pkg = "dials", fun = "degree_int", range = c(0L, 3L))
     ),
     source = "recipe",
     component = "step_spline_nonnegative",

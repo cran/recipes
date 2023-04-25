@@ -164,10 +164,11 @@ bake.step_kpca <- function(object, new_data, ...) {
         rlang::expr(as.matrix(new_data[, object$columns]))
       )
     comps <- rlang::eval_tidy(cl)
-    comps <- comps[, 1:object$num_comp, drop = FALSE]
+    comps <- comps[, seq_len(object$num_comp), drop = FALSE]
     colnames(comps) <- names0(ncol(comps), object$prefix)
+    comps <- as_tibble(comps)
     comps <- check_name(comps, new_data, object)
-    new_data <- bind_cols(new_data, as_tibble(comps))
+    new_data <- bind_cols(new_data, comps)
     keep_original_cols <- get_keep_original_cols(object)
 
     if (!keep_original_cols) {

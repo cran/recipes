@@ -113,9 +113,8 @@ bake.step_hyperbolic <- function(object, new_data, ...) {
     get(object$func)
   }
   col_names <- object$columns
-  for (i in seq_along(col_names)) {
-    new_data[, col_names[i]] <-
-      func(getElement(new_data, col_names[i]))
+  for (col_name in col_names) {
+    new_data[[col_name]] <- func(new_data[[col_name]])
   }
   new_data
 }
@@ -126,7 +125,7 @@ print.step_hyperbolic <-
     if (x$inverse) {
       ttl <- paste(ttl, "(inv)")
     }
-    title <- glue::glue("{ttl} transformation on ")
+    title <- glue("{ttl} transformation on ")
     print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }

@@ -48,6 +48,12 @@
 #' `terms` (the selectors or variables selected), `statistic` (the
 #' summary function name), and `size` is returned.
 #'
+#' ```{r, echo = FALSE, results="asis"}
+#' step <- "step_window"
+#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
+#' cat(result)
+#' ```
+#'
 #' @template case-weights-not-supported
 #'
 #' @examplesIf rlang::is_installed(c("RcppML", "ggplot2"))
@@ -237,7 +243,7 @@ roller <- function(x, stat = "mean", window = 3L, na_rm = TRUE) {
 
   ## Fill in the left-hand points. Add enough data so that the
   ## missing values at the start can be estimated and filled in
-  x2[1:gap] <- x2[gap + 1]
+  x2[seq_len(gap)] <- x2[gap + 1]
 
   ## Right-hand points
   x2[(m - gap + 1):m] <- x2[m - gap]
@@ -250,17 +256,17 @@ bake.step_window <- function(object, new_data, ...) {
 
   for (i in seq(along.with = object$columns)) {
     if (!is.null(object$names)) {
-      new_data[, object$names[i]] <-
+      new_data[[object$names[i]]] <-
         roller(
-          x = getElement(new_data, object$columns[i]),
+          x = new_data[[object$columns[i]]],
           stat = object$statistic,
           na_rm = object$na_rm,
           window = object$size
         )
     } else {
-      new_data[, object$columns[i]] <-
+      new_data[[object$columns[i]]] <-
         roller(
-          x = getElement(new_data, object$columns[i]),
+          x = new_data[[object$columns[i]]],
           stat = object$statistic,
           na_rm = object$na_rm,
           window = object$size
@@ -273,7 +279,7 @@ bake.step_window <- function(object, new_data, ...) {
 
 print.step_window <-
   function(x, width = max(20, options()$width - 28), ...) {
-    title <- glue::glue("Moving {x$size}-point {x$statistic} on ")
+    title <- glue("Moving {x$size}-point {x$statistic} on ")
     print_step(x$columns, x$terms, x$trained, title, width)
     invisible(x)
   }
@@ -291,7 +297,7 @@ tidy.step_window <- function(x, ...) {
 #' @export
 tunable.step_window <- function(x, ...) {
   tibble::tibble(
-    name = c("statistic", "window"),
+    name = c("statistic", "size"),
     call_info = list(
       list(pkg = "dials", fun = "summary_stat"),
       list(pkg = "dials", fun = "window_size")

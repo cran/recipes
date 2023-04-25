@@ -140,8 +140,7 @@ prep.step_depth <- function(x, training, info = NULL, ...) {
 
   class_var <- x$class[1]
 
-  x_dat <-
-    split(training[, x_names], getElement(training, class_var))
+  x_dat <- split(training[, x_names], training[[class_var]])
   x_dat <- lapply(x_dat, as.matrix)
   step_depth_new(
     terms = x$terms,
@@ -194,7 +193,7 @@ bake.step_depth <- function(object, new_data, ...) {
 
 print.step_depth <-
   function(x, width = max(20, options()$width - 30), ...) {
-    title <- glue::glue("Data depth by {x$class} for ")
+    title <- glue("Data depth by {x$class} for ")
 
     if (x$trained) {
       x_names <- colnames(x$data[[1]])

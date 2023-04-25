@@ -131,6 +131,7 @@ prep.step_regex <- function(x, training, info = NULL, ...) {
   )
 }
 
+#' @export
 bake.step_regex <- function(object, new_data, ...) {
   if (length(object$input) == 0) {
     # Handle empty selection by adding an all `0` column
@@ -143,7 +144,7 @@ bake.step_regex <- function(object, new_data, ...) {
   ## sub in options
   regex <- expr(
     grepl(
-      x = getElement(new_data, object$input),
+      x = new_data[[object$input]],
       pattern = object$pattern,
       ignore.case = FALSE,
       perl = FALSE,
@@ -162,7 +163,7 @@ bake.step_regex <- function(object, new_data, ...) {
 print.step_regex <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Regular expression dummy variable using "
-    pattern <- glue::glue("\"{x$pattern}\"")
+    pattern <- glue("\"{x$pattern}\"")
     untrained_terms <- rlang::parse_quos(pattern, rlang::current_env())
     print_step(pattern, untrained_terms, x$trained, title, width)
     invisible(x)

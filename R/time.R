@@ -142,7 +142,8 @@ bake.step_time <- function(object, new_data, ...) {
       feats = object$features
     )
 
-    names(time_values) <- glue::glue("{column}_{names(time_values)}")
+    names(time_values) <- glue("{column}_{names(time_values)}")
+    time_values <- check_name(time_values, new_data, object, names(time_values))
     new_data <- bind_cols(new_data, time_values)
   }
 
