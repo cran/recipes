@@ -1,6 +1,5 @@
 library(testthat)
 library(recipes)
-library(dplyr)
 
 # ------------------------------------------------------------------------------
 
@@ -101,11 +100,24 @@ test_that("no input", {
   expect_equal(no_inputs, iris)
 })
 
+# Infrastructure ---------------------------------------------------------------
 
-test_that("printing", {
-  rec <- iris_rec %>% step_filter(Sepal.Length > 4.5)
-  expect_snapshot(print(rec))
-  expect_snapshot(prep(rec))
+test_that("bake method errors when needed non-standard role columns are missing", {
+  # Here for completeness
+  # step_filter() is one of the thin wrappers around dplyr functions and
+  # is thus hard to check against
+  expect_true(TRUE)
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_filter(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -134,14 +146,10 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_filter(rec)
+test_that("printing", {
+  rec <- iris_rec %>%
+    step_filter(Sepal.Length > 4.5)
 
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

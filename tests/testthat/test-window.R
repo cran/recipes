@@ -1,7 +1,5 @@
 library(testthat)
 library(recipes)
-library(tibble)
-
 
 set.seed(5522)
 sim_dat <- data.frame(x1 = (20:100) / 10)
@@ -115,15 +113,6 @@ test_that("na_rm argument works for step_window", {
   )
 })
 
-test_that("printing", {
-  skip_if_not_installed("RcppRoll")
-  new_names <- rec %>%
-    step_window(starts_with("y"), names = paste0("new", 1:2), role = "predictor")
-  expect_snapshot(print(new_names))
-  expect_snapshot(prep(new_names))
-})
-
-
 test_that("tunable", {
   rec <-
     recipe(~., data = iris) %>%
@@ -139,18 +128,45 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_window(
-      all_predictors(),
-      statistic = hardhat::tune(), size = hardhat::tune()
-    )
+test_that("check_name() is used", {
+  skip_if_not_installed("RcppRoll")
 
-  params <- extract_parameter_set_dials(rec)
+  dat <- mtcars
+  dat$new_value <- dat$mpg
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 2L)
+  rec <- recipe(~ ., data = dat) %>%
+    step_window(mpg, names = "new_value")
+
+  expect_snapshot(
+    error = TRUE,
+    prep(rec, training = dat)
+  )
+})
+
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  skip_if_not_installed("RcppRoll")
+  rec <- rec %>%
+    step_window(x1) %>%
+    update_role(x1, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
+
+  rec_trained <- prep(rec, training = sim_dat)
+
+  expect_error(bake(rec_trained, new_data = sim_dat[, -1]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_window(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -184,14 +200,68 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
+test_that("keep_original_cols works", {
+  skip_if_not_installed("RcppRoll")
+  new_names <- c("new_y1")
+
+  rec <- recipe(~ y1, data = sim_dat) %>%
+    step_window(y1, names = "new_y1", keep_original_cols = FALSE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ y1, data = sim_dat) %>%
+    step_window(y1, names = "new_y1", keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("y1", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  skip_if_not_installed("RcppRoll")
+  rec <- recipe(~ y1, data = sim_dat) %>%
+    step_window(y1, names = "new_y1")
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = sim_dat),
+    NA
+  )
+})
+
+test_that("printing", {
   rec <- recipe(mpg ~ ., mtcars)
   rec <- step_window(rec)
 
-  expect_snapshot(rec)
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
 
-  rec <- prep(rec, mtcars)
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_window(
+      all_predictors(),
+      statistic = hardhat::tune(), size = hardhat::tune()
+    )
 
-  expect_snapshot(rec)
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 2L)
 })

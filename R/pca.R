@@ -1,7 +1,7 @@
 #' PCA Signal Extraction
 #'
-#' `step_pca` creates a *specification* of a recipe step that will convert
-#'  numeric data into one or more principal components.
+#' `step_pca()` creates a *specification* of a recipe step that will convert
+#' numeric variables into one or more principal components.
 #'
 #' @inheritParams step_center
 #' @param role For model terms created by this step, what analysis role should
@@ -11,7 +11,7 @@
 #'  If `num_comp` is greater than the number of columns or the number of
 #'  possible components, a smaller value will be used. If `num_comp = 0`
 #'  is set then no transformation is done and selected variables will
-#'  stay unchanged.
+#'  stay unchanged, regardless of the value of `keep_original_cols`.
 #' @param threshold A fraction of the total variance that should be covered by
 #'  the components. For example, `threshold = .75` means that `step_pca` should
 #'  generate enough components to capture 75 percent of the variability in the
@@ -23,8 +23,8 @@
 #'  should not be passed here (or at all).
 #' @param res The [stats::prcomp.default()] object is stored here once this
 #'  preprocessing step has be trained by [prep()].
-#' @param columns A character string of variable names that will
-#'  be populated elsewhere.
+#' @param columns A character string of the selected variable names. This field
+#'   is a placeholder and will be populated once [prep()] is used.
 #' @param prefix A character string for the prefix of the resulting new
 #'  variables. See notes below.
 #' @param keep_original_cols A logical to keep the original variables in the
@@ -48,14 +48,11 @@
 #'  `options` argument or by using [step_center()]
 #'  and [step_scale()].
 #'
-#' The argument `num_comp` controls the number of components that
-#'  will be retained (the original variables that are used to derive
-#'  the components are removed from the data). The new components
-#'  will have names that begin with `prefix` and a sequence of
-#'  numbers. The variable names are padded with zeros. For example,
-#'  if `num_comp < 10`, their names will be `PC1` - `PC9`.
-#'  If `num_comp = 101`, the names would be `PC001` -
-#'  `PC101`.
+#' ```{r, echo = FALSE, results="asis"}
+#' prefix <- "PC"
+#' result <- knitr::knit_child("man/rmd/num_comp.Rmd")
+#' cat(result)
+#' ```
 #'
 #' Alternatively, `threshold` can be used to determine the
 #'  number of components that are required to capture a specified
@@ -225,25 +222,23 @@ prep.step_pca <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_pca <- function(object, new_data, ...) {
+  check_new_data(object$columns, object, new_data)
+
   if (is.null(object$columns)) {
     object$columns <- stats::setNames(nm = rownames(object$res$rotation))
   }
 
-  if (length(object$columns) > 0 && !all(is.na(object$res$rotation))) {
-    check_new_data(object$columns, object, new_data)
-
-    pca_vars <- rownames(object$res$rotation)
-    comps <- scale(new_data[, pca_vars], object$res$center, object$res$scale) %*%
-      object$res$rotation
-    comps <- comps[, seq_len(object$num_comp), drop = FALSE]
-    comps <- check_name(comps, new_data, object)
-    new_data <- bind_cols(new_data, as_tibble(comps))
-    keep_original_cols <- get_keep_original_cols(object)
-
-    if (!keep_original_cols) {
-      new_data <- new_data[, !(colnames(new_data) %in% pca_vars), drop = FALSE]
-    }
+  if (length(object$columns) == 0 || all(is.na(object$res$rotation))) {
+    return(new_data)
   }
+
+  pca_vars <- rownames(object$res$rotation)
+  comps <- scale(new_data[, pca_vars], object$res$center, object$res$scale) %*%
+    object$res$rotation
+  comps <- comps[, seq_len(object$num_comp), drop = FALSE]
+  comps <- check_name(comps, new_data, object)
+  new_data <- vec_cbind(new_data, as_tibble(comps))
+  new_data <- remove_original_cols(new_data, object, pca_vars)
   new_data
 }
 

@@ -104,26 +104,6 @@ test_that("harmonic frequencies", {
   expect_equal(ncol(rec), 7)
 })
 
-
-test_that("harmonic keep_original_cols", {
-  harmonic_dat <- tibble(
-    osc = sin(2 * pi * x_second / (3600 * 6)),
-    time_var = x_second
-  )
-
-  rec <- recipe(osc ~ time_var, data = harmonic_dat) %>%
-    step_harmonic(time_var,
-      frequency = c(1, 1.93, 2),
-      cycle_size = 86400,
-      keep_original_cols = TRUE
-    ) %>%
-    prep() %>%
-    bake(new_data = NULL)
-
-  expect_equal(ncol(rec), 8)
-})
-
-
 test_that("harmonic phase", {
   harmonic_dat_1 <- tibble(
     osc = sin(2 * pi * x_second / 86400),
@@ -437,19 +417,37 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_harmonic(
-      all_predictors(),
-      cycle_size = 1,
-      frequency = hardhat::tune()
-    )
+# Infrastructure ---------------------------------------------------------------
 
-  params <- extract_parameter_set_dials(rec)
+test_that("bake method errors when needed non-standard role columns are missing", {
+  harmonic_dat_mult <- tibble(
+    osc = sin(2 * pi * x_second / (3600 * 6)),
+    time_var_1 = x_second,
+    time_var_2 = x_second * 2
+  )
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
+  rec <- recipe(osc ~ time_var_1 + time_var_2, data = harmonic_dat_mult) %>%
+    step_harmonic(time_var_1, time_var_2,
+                  frequency = c(5, 10),
+                  cycle_size = 1
+    ) %>%
+    update_role(time_var_1, time_var_2, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE) %>%
+    prep()
+
+  expect_error(bake(rec, new_data = harmonic_dat_mult[, 1:2]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_harmonic(rec, frequency = 1 / 11, cycle_size = 1)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -485,43 +483,69 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  with_harmonic <- rec %>% step_harmonic(hp, frequency = 1 / 11, cycle_size = 1)
-  expect_snapshot(print(with_harmonic))
-  expect_snapshot(prep(with_harmonic))
-})
+test_that("keep_original_cols works", {
+  new_names <- c("mpg_sin_1", "mpg_cos_1")
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_harmonic(rec, frequency = 1 / 11, cycle_size = 1)
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_harmonic(all_predictors(), frequency = 3, cycle_size = 2.5,
+                  keep_original_cols = FALSE)
 
-  expect_snapshot(rec)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
-})
-
-test_that("bake method errors when needed non-standard role columns are missing", {
-  harmonic_dat_mult <- tibble(
-    osc = sin(2 * pi * x_second / (3600 * 6)),
-    time_var_1 = x_second,
-    time_var_2 = x_second * 2
+  expect_equal(
+    colnames(res),
+    new_names
   )
 
-  rec <- recipe(osc ~ time_var_1 + time_var_2, data = harmonic_dat_mult) %>%
-    step_harmonic(time_var_1, time_var_2,
-                  frequency = c(5, 10),
-                  cycle_size = 1
-    ) %>%
-    update_role(time_var_1, time_var_2, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE) %>%
-    prep()
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_harmonic(all_predictors(), frequency = 3, cycle_size = 2.5,
+                  keep_original_cols = TRUE)
 
-  expect_error(bake(rec, new_data = harmonic_dat_mult[, 1:2]),
-               class = "new_data_missing_column")
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("mpg", new_names)
+  )
 })
 
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_harmonic(all_predictors(), frequency = 3, cycle_size = 2.5)
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = mtcars),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(mpg ~ ., mtcars) %>%
+    step_harmonic(hp, frequency = 1 / 11, cycle_size = 1)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_harmonic(
+      all_predictors(),
+      cycle_size = 1,
+      frequency = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 1L)
+})

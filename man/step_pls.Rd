@@ -40,7 +40,7 @@ preprocessing have been estimated.}
 If \code{num_comp} is greater than the number of columns or the number of
 possible components, a smaller value will be used. If \code{num_comp = 0}
 is set then no transformation is done and selected variables will
-stay unchanged.}
+stay unchanged, regardless of the value of \code{keep_original_cols}.}
 
 \item{predictor_prop}{The maximum number of original predictors that can have
 non-zero coefficients for each PLS component (via regularization).}
@@ -59,8 +59,8 @@ original predictor data should be retained along with the new features.}
 \item{res}{A list of results are stored here once this preprocessing step
 has been trained by \code{\link[=prep]{prep()}}.}
 
-\item{columns}{A character string of variable names that will
-be populated elsewhere.}
+\item{columns}{A character string of the selected variable names. This field
+is a placeholder and will be populated once \code{\link[=prep]{prep()}} is used.}
 
 \item{prefix}{A character string for the prefix of the resulting new
 variables. See notes below.}
@@ -82,8 +82,8 @@ An updated version of \code{recipe} with the new step added to the
 sequence of any existing operations.
 }
 \description{
-\code{step_pls} creates a \emph{specification} of a recipe step that will
-convert numeric data into one or more new dimensions.
+\code{step_pls()} creates a \emph{specification} of a recipe step that will convert
+numeric data into one or more new dimensions.
 }
 \details{
 PLS is a supervised version of principal component
@@ -93,12 +93,12 @@ the new features.
 This step requires the Bioconductor \pkg{mixOmics} package. If not installed, the
 step will stop with a note about installing the package.
 
-The argument \code{num_comp} controls the number of components that will
-be retained (the original variables that are used to derive the
-components are removed from the data). The new components will
-have names that begin with \code{prefix} and a sequence of numbers.
-The variable names are padded with zeros. For example, if \code{num_comp < 10}, their names will be \code{PLS1} - \code{PLS9}. If \code{num_comp = 101}, the
-names would be \code{PLS001} - \code{PLS101}.
+The argument \code{num_comp} controls the number of components that will be retained
+(the original variables that are used to derive the components are removed from
+the data). The new components will have names that begin with \code{prefix} and a
+sequence of numbers. The variable names are padded with zeros. For example, if
+\code{num_comp < 10}, their names will be \code{PLS1} - \code{PLS9}. If \code{num_comp = 101},
+the names would be \code{PLS1} - \code{PLS101}.
 
 Sparsity can be encouraged using the \code{predictor_prop} parameter. This affects
 each PLS component, and indicates the maximum proportion of predictors with
@@ -188,6 +188,7 @@ Rohart F, Gautier B, Singh A, Lê Cao K-A (2017) \emph{mixOmics: An R package fo
 }
 \seealso{
 Other multivariate transformation steps: 
+\code{\link{step_classdist_shrunken}()},
 \code{\link{step_classdist}()},
 \code{\link{step_depth}()},
 \code{\link{step_geodist}()},

@@ -40,17 +40,6 @@ test_that("correct kernel PCA values", {
   expect_equal(tidy(kpca_trained, 1), kpca_tibble)
 })
 
-test_that("printing", {
-  skip_if_not_installed("kernlab")
-
-  kpca_rec <- rec %>%
-    step_kpca_poly(X2, X3, X4, X5, X6)
-  skip_if(packageVersion("rlang") < "1.0.0")
-  expect_snapshot(kpca_rec)
-  expect_snapshot(prep(kpca_rec))
-})
-
-
 test_that("No kPCA comps", {
   pca_extract <- rec %>%
     step_kpca_poly(X2, X3, X4, X5, X6, num_comp = 0, id = "") %>%
@@ -65,7 +54,6 @@ test_that("No kPCA comps", {
     tidy(pca_extract, 1),
     tibble::tibble(terms = paste0("X", 2:6), id = "")
   )
-  skip_if(packageVersion("rlang") < "1.0.0")
   expect_snapshot(pca_extract)
 })
 
@@ -98,62 +86,43 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_kpca_poly(
-      all_predictors(),
-      num_comp = hardhat::tune(),
-      degree = hardhat::tune(),
-      scale_factor = hardhat::tune(),
-      offset = hardhat::tune()
-    )
+test_that("Do nothing for num_comps = 0 and keep_original_cols = FALSE (#1152)", {
+  rec <- recipe(~ ., data = mtcars) %>%
+    step_kpca_poly(all_predictors(), num_comp = 0, keep_original_cols = FALSE) %>%
+    prep()
 
-  params <- extract_parameter_set_dials(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 4L)
+  expect_identical(res, tibble::as_tibble(mtcars))
 })
 
-test_that("keep_original_cols works", {
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
   skip_if_not_installed("kernlab")
 
   kpca_rec <- rec %>%
-    step_kpca_poly(X2, X3, X4, X5, X6, id = "", keep_original_cols = TRUE)
+    step_kpca_poly(X2, X3, X4, X5, X6, degree = 3, scale_factor = .1) %>%
+    update_role(X2, X3, X4, X5, X6, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
   kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE)
 
-  pca_pred <- bake(kpca_trained, new_data = te_dat, all_predictors())
-
-  expect_equal(
-    colnames(pca_pred),
-    c(
-      "X2", "X3", "X4", "X5", "X6",
-      "kPC1", "kPC2", "kPC3", "kPC4", "kPC5"
-    )
-  )
+  expect_error(bake(kpca_trained, new_data = te_dat[, 1:3]),
+               class = "new_data_missing_column")
 })
 
-test_that("can prep recipes with no keep_original_cols", {
+test_that("empty printing", {
   skip_if_not_installed("kernlab")
 
-  kpca_rec <- rec %>%
-    step_kpca_poly(X2, X3, X4, X5, X6, id = "")
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_kpca_poly(rec)
 
-  kpca_rec$steps[[1]]$keep_original_cols <- NULL
+  expect_snapshot(rec)
 
-  suppressWarnings(
-    kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE)
-  )
+  rec <- prep(rec, mtcars)
 
-  expect_error(
-    pca_pred <- bake(kpca_trained, new_data = te_dat, all_predictors()),
-    NA
-  )
-  skip_if(packageVersion("rlang") < "1.0.0")
-  expect_snapshot(
-    kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE),
-  )
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -186,30 +155,73 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
+test_that("keep_original_cols works", {
   skip_if_not_installed("kernlab")
+  new_names <- paste0("kPC", 1:5)
 
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_kpca_poly(rec)
+  rec <- recipe(~ ., tr_dat) %>%
+    step_kpca_poly(all_predictors(), keep_original_cols = FALSE)
 
-  expect_snapshot(rec)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  rec <- prep(rec, mtcars)
+  expect_equal(
+    colnames(res),
+    new_names
+  )
 
-  expect_snapshot(rec)
+  rec <- recipe(~ ., tr_dat) %>%
+    step_kpca_poly(all_predictors(), keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c(colnames(tr_dat), new_names)
+  )
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
+test_that("keep_original_cols - can prep recipes with it missing", {
+  skip_if_not_installed("kernlab")
+  rec <- recipe(~ ., tr_dat) %>%
+    step_kpca_poly(all_predictors())
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = tr_dat),
+    NA
+  )
+})
+
+test_that("printing", {
   skip_if_not_installed("kernlab")
 
-  kpca_rec <- rec %>%
-    step_kpca_poly(X2, X3, X4, X5, X6, degree = 3, scale_factor = .1) %>%
-    update_role(X2, X3, X4, X5, X6, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+  kpca_rec <- recipe(X1 ~ ., data = tr_dat) %>%
+    step_kpca_poly(X2, X3, X4, X5, X6)
 
-  kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE)
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
 
-  expect_error(bake(kpca_trained, new_data = te_dat[, 1:3]),
-               class = "new_data_missing_column")
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_kpca_poly(
+      all_predictors(),
+      num_comp = hardhat::tune(),
+      degree = hardhat::tune(),
+      scale_factor = hardhat::tune(),
+      offset = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 4L)
 })

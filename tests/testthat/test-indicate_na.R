@@ -1,6 +1,5 @@
 library(testthat)
 library(recipes)
-library(tidyr)
 
 train <-
   tibble::tibble(
@@ -99,12 +98,28 @@ test_that("check_name() is used", {
   )
 })
 
-test_that("printing", {
-  rec <- recipe(Ozone ~ ., data = airquality) %>%
-    step_indicate_na(all_predictors())
+# Infrastructure ---------------------------------------------------------------
 
-  expect_snapshot(print(rec))
-  expect_snapshot(prep(rec))
+test_that("bake method errors when needed non-standard role columns are missing", {
+  rec1 <- recipe(train) %>%
+    step_indicate_na(col1) %>%
+    update_role(col1, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)%>%
+    prep(train, verbose = FALSE, retain = TRUE)
+
+  expect_error(bake(rec1, new_data = test[, 2:3]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_indicate_na(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -133,25 +148,52 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_indicate_na(rec)
+test_that("keep_original_cols works", {
+  new_names <- c("na_ind_mpg")
 
-  expect_snapshot(rec)
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_indicate_na(all_predictors(), keep_original_cols = FALSE)
 
-  rec <- prep(rec, mtcars)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_snapshot(rec)
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_indicate_na(all_predictors(), keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("mpg", new_names)
+  )
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
-  rec1 <- recipe(train) %>%
-    step_indicate_na(col1) %>%
-    update_role(col1, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)%>%
-    prep(train, verbose = FALSE, retain = TRUE)
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_indicate_na(all_predictors())
 
-  expect_error(bake(rec1, new_data = test[, 2:3]),
-               class = "new_data_missing_column")
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = mtcars),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(Ozone ~ ., data = airquality) %>%
+    step_indicate_na(all_predictors())
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

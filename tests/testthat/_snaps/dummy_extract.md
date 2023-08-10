@@ -17,74 +17,6 @@
       ! Name collision occured. The following variable names already exists:
       i  Species_setosa
 
-# printing
-
-    Code
-      print(rec)
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      predictor: 1
-      
-      -- Operations 
-      * Extract patterns from: all_predictors()
-
----
-
-    Code
-      prep(rec)
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      predictor: 1
-      
-      -- Training information 
-      Training data contained 4284 data points and no incomplete rows.
-      
-      -- Operations 
-      * Extract patterns from: medium | Trained
-
-# empty printing
-
-    Code
-      rec
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      outcome:    1
-      predictor: 10
-      
-      -- Operations 
-      * Extract patterns from: <none>
-
----
-
-    Code
-      rec
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      outcome:    1
-      predictor: 10
-      
-      -- Training information 
-      Training data contained 32 data points and no incomplete rows.
-      
-      -- Operations 
-      * Extract patterns from: <none> | Trained
-
 # case weights
 
     Code
@@ -122,4 +54,81 @@
       
       -- Operations 
       * Extract patterns from: medium | Trained, ignored weights
+
+# empty printing
+
+    Code
+      rec
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Operations 
+      * Extract patterns from: <none>
+
+---
+
+    Code
+      rec
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Training information 
+      Training data contained 32 data points and no incomplete rows.
+      
+      -- Operations 
+      * Extract patterns from: <none> | Trained
+
+# keep_original_cols - can prep recipes with it missing
+
+    Code
+      rec <- prep(rec)
+    Condition
+      Warning:
+      'keep_original_cols' was added to `step_dummy_extract()` after this recipe was created.
+      Regenerate your recipe to avoid this warning.
+
+# printing
+
+    Code
+      print(rec)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      predictor: 1
+      
+      -- Operations 
+      * Extract patterns from: all_predictors()
+
+---
+
+    Code
+      prep(rec)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      predictor: 1
+      
+      -- Training information 
+      Training data contained 4284 data points and no incomplete rows.
+      
+      -- Operations 
+      * Extract patterns from: medium | Trained
 

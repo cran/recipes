@@ -220,15 +220,7 @@ test_that("bad args", {
   )
 })
 
-test_that("printing", {
-  rec <- recipe(~ x + y, data = rand_data) %>%
-    step_geodist(x, y,
-      ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE,
-      log = FALSE
-    )
-  expect_snapshot(print(rec))
-  expect_snapshot(prep(rec))
-})
+# Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
   rec <- recipe(~ x + y, data = rand_data) %>%
@@ -241,4 +233,113 @@ test_that("bake method errors when needed non-standard role columns are missing"
   rec_trained <- prep(rec, rand_data)
   expect_error(bake(rec_trained, new_data = rand_data[, 2, drop = FALSE]),
                class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_geodist(rec, ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_geodist(rec1, ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_geodist(rec, ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE)
+
+  expect <- tibble(
+    latitude = character(),
+    longitude = character(),
+    ref_latitude = double(),
+    ref_longitude = double(),
+    is_lat_lon = logical(),
+    name = character(),
+    id = character()
+  )
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("keep_original_cols works", {
+  new_names <- c("geo_dist")
+
+  rec <- recipe(~ x + y, data = rand_data) %>%
+    step_geodist(
+      x, y,
+      ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE,
+      keep_original_cols = FALSE
+    )
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ x + y, data = rand_data) %>%
+    step_geodist(
+      x, y,
+      ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE,
+      keep_original_cols = TRUE
+    )
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("x", "y", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <- recipe(~ x + y, data = rand_data) %>%
+    step_geodist(
+      x, y,
+      ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE
+    )
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = rand_data),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(~ x + y, data = rand_data) %>%
+    step_geodist(
+      x, y,
+      ref_lat = 0.5, ref_lon = 0.25, is_lat_lon = FALSE
+    )
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

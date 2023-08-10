@@ -176,12 +176,6 @@ test_that("check_name() is used", {
   )
 })
 
-test_that("printing", {
-  int_rec <- rec %>% step_interact(~ x1:x2)
-  expect_snapshot(print(int_rec))
-  expect_snapshot(prep(int_rec))
-})
-
 # more missing data tests
 
 
@@ -288,6 +282,27 @@ test_that("missing columns", {
 #   all.equal(te_og, te_new)
 # })
 
+test_that("works when formula is passed in as an object", {
+  rec1 <- recipe(~., data = mtcars) %>%
+    step_interact(terms = ~vs:am, id = "") %>%
+    prep()
+
+  cars_formula <- ~ vs:am
+  rec2 <- recipe(~., data = mtcars) %>%
+    step_interact(terms = cars_formula, id = "") %>%
+    prep()
+
+  expect_identical(rec1, rec2)
+
+  cars_formula <- ~ vs:am
+  rec3 <- recipe(~., data = mtcars) %>%
+    step_interact(terms = !!cars_formula, id = "") %>%
+    prep()
+
+  expect_identical(rec1, rec3)
+})
+
+# Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
   int_rec <- rec %>%
@@ -304,4 +319,91 @@ test_that("bake method errors when needed non-standard role columns are missing"
                class = "new_data_missing_column")
 
   expect_snapshot(bake(int_rec_trained, dat_tr[, 4:6]), error = TRUE)
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_interact(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_center(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_interact(rec)
+
+  expect <- tibble(terms = character(), id = character())
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("keep_original_cols works", {
+  new_names <- c("x1_x_x2")
+
+  rec <- recipe(~ x1 + x2, data = dat_tr) %>%
+    step_interact(~ x1:x2, keep_original_cols = FALSE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ x1 + x2, data = dat_tr) %>%
+    step_interact(~ x1:x2, keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("x1", "x2", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <- recipe(~ x1 + x2, data = dat_tr) %>%
+    step_interact(~ x1:x2, keep_original_cols = FALSE)
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = dat_tr),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(y ~ ., data = dat_tr) %>%
+    step_interact(~ x1:x2)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

@@ -100,17 +100,6 @@ test_that("bad values", {
   )
 })
 
-test_that("printing", {
-  num_rec_1 <- sacr_rec %>%
-    step_profile(-sqft, profile = vars(sqft))
-  num_rec_2 <- prep(num_rec_1, Sacramento)
-
-  expect_snapshot(print(num_rec_1))
-  expect_snapshot(print(num_rec_2))
-})
-
-
-
 test_that("tidy", {
   num_rec_3 <- sacr_rec %>%
     step_profile(-sqft, profile = vars(contains("sqft")), id = "")
@@ -134,6 +123,25 @@ test_that("tidy", {
   expect_equal(tidy_4, exp_4)
 })
 
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  # Here for completeness
+  # step_profile() doesn't work in a way where this is useful
+  expect_true(TRUE)
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_profile(rec, profile = vars(mpg))
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
+})
+
 test_that("empty selection prep/bake is a no-op", {
   rec1 <- recipe(mpg ~ ., mtcars)
   rec2 <- step_profile(rec1, profile = vars(mpg))
@@ -147,13 +155,9 @@ test_that("empty selection prep/bake is a no-op", {
 
 test_that("empty selection tidy method works", {
   rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_profile(rec, profile = vars(mpg), id = "foo")
+  rec <- step_profile(rec, profile = vars(mpg))
 
-  expect <- tibble(
-    terms = "mpg",
-    type = "profiled",
-    id = "foo"
-  )
+  expect <- tibble(terms = character(), type = character(), id = character())
 
   expect_identical(tidy(rec, number = 1), expect)
 
@@ -162,14 +166,10 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_profile(rec, profile = vars(mpg))
+test_that("printing", {
+  rec <- recipe(~., data = Sacramento) %>%
+    step_profile(-sqft, profile = vars(sqft))
 
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

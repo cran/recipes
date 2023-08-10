@@ -1,8 +1,8 @@
 #' High Correlation Filter
 #'
-#' `step_corr` creates a *specification* of a recipe
-#'  step that will potentially remove variables that have large
-#'  absolute correlations with other variables.
+#' `step_corr()` creates a *specification* of a recipe step that will
+#' potentially remove variables that have large absolute correlations with other
+#' variables.
 #'
 #' @inheritParams step_center
 #' @param threshold A value for the threshold of absolute
@@ -159,9 +159,7 @@ prep.step_corr <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_corr <- function(object, new_data, ...) {
-  if (length(object$removals) > 0) {
-    new_data <- new_data[, !(colnames(new_data) %in% object$removals)]
-  }
+  new_data <- recipes_remove_cols(new_data, object)
   new_data
 }
 

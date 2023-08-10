@@ -1,7 +1,7 @@
 #' Add sin and cos terms for harmonic analysis
 #'
-#' `step_harmonic` creates a *specification* of a recipe step that
-#'   will add sin and cos terms for harmonic analysis.
+#' `step_harmonic()` creates a *specification* of a recipe step that will add
+#' `sin()` and `cos()` terms for harmonic analysis.
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_date
@@ -297,14 +297,13 @@ bake.step_harmonic <- function(object, new_data, ...) {
   check_new_data(col_names, object, new_data)
 
   # calculate sin and cos columns
-  for (i in seq_along(col_names)) {
-    col_name <- col_names[i]
+  for (col_name in col_names) {
     n_frequency <- length(object$frequency)
     res <- sin_cos(
       as.numeric(new_data[[col_name]]),
       object$frequency,
-      object$starting_val[i],
-      object$cycle_size[i]
+      object$starting_val[col_name],
+      object$cycle_size[col_name]
     )
     colnames(res) <- paste0(
       col_name,
@@ -315,14 +314,11 @@ bake.step_harmonic <- function(object, new_data, ...) {
 
     res <- check_name(res, new_data, object, names(res))
 
-    new_data <- bind_cols(new_data, res)
+    new_data <- vec_cbind(new_data, res)
   }
 
-  keep_original_cols <- get_keep_original_cols(object)
-  if (!keep_original_cols) {
-    new_data <-
-      new_data[, !(colnames(new_data) %in% col_names), drop = FALSE]
-  }
+  new_data <- remove_original_cols(new_data, object, col_names)
+
   new_data
 }
 

@@ -1,13 +1,10 @@
 library(testthat)
 library(recipes)
-library(dplyr)
-library(lubridate)
-
 
 set.seed(145)
 example_data <-
   data.frame(
-    day = ymd("2012-06-07") + days(1:12),
+    day = lubridate::ymd("2012-06-07") + lubridate::days(1:12),
     x1 = round(runif(12), 2),
     x2 = round(runif(12), 2),
     x3 = round(runif(12), 2)
@@ -102,15 +99,6 @@ test_that("Deprecation warning", {
   )
 })
 
-test_that("printing", {
-  seven_pt <- recipe(~., data = example_data) %>%
-    update_role(day, new_role = "time_index") %>%
-    step_impute_roll(all_predictors(), window = 7)
-  expect_snapshot(print(seven_pt))
-  expect_snapshot(prep(seven_pt))
-})
-
-
 test_that("tunable", {
   rec <-
     recipe(~., data = iris) %>%
@@ -126,18 +114,29 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_impute_roll(
-      all_predictors(),
-      statistic = hardhat::tune(), window = hardhat::tune()
-    )
+# Infrastructure ---------------------------------------------------------------
 
-  params <- extract_parameter_set_dials(rec)
+test_that("bake method errors when needed non-standard role columns are missing", {
+  seven_pt <- recipe(~., data = example_data) %>%
+    update_role(day, new_role = "time_index") %>%
+    step_impute_roll(x1, window = 7) %>%
+    update_role(x1, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE) %>%
+    prep(training = example_data)
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 2L)
+  expect_error(bake(seven_pt, new_data = example_data[, c(-2)]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_impute_roll(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -166,27 +165,25 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_impute_roll(rec)
+test_that("printing", {
+  rec <- recipe(~., data = example_data) %>%
+    update_role(day, new_role = "time_index") %>%
+    step_impute_roll(all_predictors(), window = 7)
 
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })
 
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_impute_roll(
+      all_predictors(),
+      statistic = hardhat::tune(), window = hardhat::tune()
+    )
 
-test_that("bake method errors when needed non-standard role columns are missing", {
-  seven_pt <- recipe(~., data = example_data) %>%
-    update_role(day, new_role = "time_index") %>%
-    step_impute_roll(x1, window = 7) %>%
-    update_role(x1, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE) %>%
-    prep(training = example_data)
+  params <- extract_parameter_set_dials(rec)
 
-  expect_error(bake(seven_pt, new_data = example_data[, c(-2)]),
-               class = "new_data_missing_column")
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 2L)
 })

@@ -119,14 +119,6 @@ test_that("Reduced rotation size", {
   expect_equal(pca_pred, pca_pred_exp)
 })
 
-test_that("printing", {
-  pca_extract <- rec %>%
-    step_pca(carbon, hydrogen, oxygen, nitrogen, sulfur)
-  expect_snapshot(print(pca_extract))
-  expect_snapshot(prep(pca_extract))
-})
-
-
 test_that("No PCA comps", {
   pca_extract <- rec %>%
     step_pca(carbon, hydrogen, oxygen, nitrogen, sulfur, num_comp = 0)
@@ -193,102 +185,6 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_pca(
-      all_predictors(),
-      num_comp = hardhat::tune(), threshold = hardhat::tune()
-    )
-
-  params <- extract_parameter_set_dials(rec)
-
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 2L)
-})
-
-test_that("keep_original_cols works", {
-  pca_extract <- rec %>%
-    step_center(carbon, hydrogen, oxygen, nitrogen, sulfur) %>%
-    step_scale(carbon, hydrogen, oxygen, nitrogen, sulfur) %>%
-    step_pca(carbon, hydrogen, oxygen, nitrogen, sulfur,
-      options = list(retx = TRUE), id = "", keep_original_cols = TRUE
-    )
-
-  pca_extract_trained <- prep(pca_extract, training = biomass_tr, verbose = FALSE)
-
-  pca_pred <- bake(pca_extract_trained, new_data = biomass_te, all_predictors())
-
-  expect_equal(
-    colnames(pca_pred),
-    c(
-      "carbon", "hydrogen", "oxygen", "nitrogen", "sulfur",
-      "PC1", "PC2", "PC3", "PC4", "PC5"
-    )
-  )
-})
-
-test_that("can prep recipes with no keep_original_cols", {
-  pca_extract <- rec %>%
-    step_center(carbon, hydrogen, oxygen, nitrogen, sulfur) %>%
-    step_scale(carbon, hydrogen, oxygen, nitrogen, sulfur) %>%
-    step_pca(carbon, hydrogen, oxygen, nitrogen, sulfur, num_comp = 3)
-
-  pca_extract$steps[[3]]$keep_original_cols <- NULL
-
-  expect_snapshot(
-    pca_extract_trained <- prep(pca_extract, training = biomass_tr, verbose = FALSE)
-  )
-
-  expect_error(
-    pca_pred <- bake(pca_extract_trained, new_data = biomass_te, all_predictors()),
-    NA
-  )
-})
-
-test_that("empty selection prep/bake is a no-op", {
-  rec1 <- recipe(mpg ~ ., mtcars)
-  rec2 <- step_pca(rec1)
-
-  rec1 <- prep(rec1, mtcars)
-  rec2 <- prep(rec2, mtcars)
-
-  baked1 <- bake(rec1, mtcars)
-  baked2 <- bake(rec2, mtcars)
-
-  expect_identical(baked1, baked2)
-})
-
-test_that("empty selection tidy method works", {
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_pca(rec)
-
-  expect <- tibble(
-    terms = character(),
-    value = double(),
-    component = character(),
-    id = character()
-  )
-
-  expect_identical(tidy(rec, number = 1), expect)
-
-  rec <- prep(rec, mtcars)
-
-  expect_identical(tidy(rec, number = 1), expect)
-})
-
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_pca(rec)
-
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
-})
-
 test_that("case weights", {
   biomass_tr_cw <- biomass_tr %>%
     mutate(nitrogen = frequency_weights(round(nitrogen))) %>%
@@ -344,6 +240,18 @@ test_that("case weights", {
   expect_snapshot(pca_extract_trained)
 })
 
+test_that("Do nothing for num_comps = 0 and keep_original_cols = FALSE (#1152)", {
+  rec <- recipe(~ ., data = mtcars) %>%
+    step_pca(all_predictors(), num_comp = 0, keep_original_cols = FALSE) %>%
+    prep()
+
+  res <- bake(rec, new_data = NULL)
+
+  expect_identical(res, tibble::as_tibble(mtcars))
+})
+
+# Infrastructure ---------------------------------------------------------------
+
 test_that("bake method errors when needed non-standard role columns are missing", {
   pca_extract <- rec %>%
     step_pca(carbon, hydrogen, oxygen, nitrogen, sulfur,
@@ -356,4 +264,111 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   expect_error(bake(pca_extract_trained, new_data = biomass_te[, c(-3)]),
                class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_pca(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_pca(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_pca(rec)
+
+  expect <- tibble(
+    terms = character(),
+    value = double(),
+    component = character(),
+    id = character()
+  )
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("keep_original_cols works", {
+  new_names <- c("PC1")
+
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_pca(all_predictors(), keep_original_cols = FALSE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_pca(all_predictors(), keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("mpg", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_pca(all_predictors())
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = mtcars),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+                data = biomass_tr) %>%
+    step_pca(carbon, hydrogen, oxygen, nitrogen, sulfur)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_pca(
+      all_predictors(),
+      num_comp = hardhat::tune(), threshold = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 2L)
 })

@@ -1,6 +1,5 @@
 library(testthat)
 library(recipes)
-library(dplyr)
 
 # ------------------------------------------------------------------------------
 
@@ -81,12 +80,6 @@ test_that("bad input", {
   )
 })
 
-test_that("printing", {
-  rec <- iris_rec %>% step_sample()
-  expect_snapshot(print(rec))
-  expect_snapshot(prep(rec))
-})
-
 test_that("sample with case weights", {
   mtcars1 <- mtcars
   mtcars1$carb <- frequency_weights(mtcars1$carb)
@@ -141,4 +134,50 @@ test_that("sample with case weights", {
     prep()
 
   expect_snapshot(rec)
+})
+
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  # Here for completeness
+  # step_sample() is special as it doesn't care about the incoming data
+  expect_true(TRUE)
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_sample(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_sample(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  # Here for completeness
+  # step_sample() is special as it can't be used without selection
+  expect_true(TRUE)
+})
+
+test_that("printing", {
+  rec <- recipe(~., data = iris) %>%
+    step_sample()
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

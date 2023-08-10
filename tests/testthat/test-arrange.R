@@ -1,6 +1,5 @@
 library(testthat)
 library(recipes)
-library(dplyr)
 
 # ------------------------------------------------------------------------------
 
@@ -61,19 +60,16 @@ test_that("no input", {
   expect_equal(no_inputs, iris)
 })
 
-test_that("empty tidying", {
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_arrange(rec)
-  rec <- prep(rec, mtcars)
+# Infrastructure ---------------------------------------------------------------
 
-  expect_identical(
-    tidy(rec, number = 1),
-    tibble(terms = character(), id = character())
-  )
+test_that("bake method errors when needed non-standard role columns are missing", {
+  # Here for completeness
+  # step_arrange() is one of the thin wrappers around dplyr functions and
+  # is thus hard to check against
+  expect_true(TRUE)
 })
 
 test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
   rec <- recipe(mpg ~ ., mtcars)
   rec <- step_arrange(rec)
 
@@ -84,8 +80,36 @@ test_that("empty printing", {
   expect_snapshot(rec)
 })
 
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_arrange(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_arrange(rec)
+
+  expect <- tibble(terms = character(), id = character())
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
 test_that("printing", {
-  rec <- iris_rec %>% step_arrange(Sepal.Length)
+  rec <- iris_rec %>%
+    step_arrange(Sepal.Length)
+
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
 })

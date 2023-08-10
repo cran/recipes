@@ -90,41 +90,6 @@
       ! The `preserve` argument of `step_dummy()` was deprecated in recipes 0.1.16 and is now defunct.
       i Please use the `keep_original_cols` argument instead.
 
-# printing
-
-    Code
-      print(dummy)
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      outcome:   1
-      predictor: 7
-      
-      -- Operations 
-      * Dummy variables from: city, zip
-
----
-
-    Code
-      prep(dummy)
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      outcome:   1
-      predictor: 7
-      
-      -- Training information 
-      Training data contained 932 data points and no incomplete rows.
-      
-      -- Operations 
-      * Dummy variables from: city, zip | Trained
-
 # no columns selected
 
     Code
@@ -154,15 +119,6 @@
       Caused by error in `bake()`:
       ! Name collision occured. The following variable names already exists:
       i  Species_versicolor
-
-# can prep recipes with no keep_original_cols
-
-    Code
-      dummy_trained <- prep(dummy, training = sacr_fac, verbose = FALSE)
-    Condition
-      Warning:
-      'keep_original_cols' was added to `step_dummy()` after this recipe was created.
-      Regenerate your recipe to avoid this warning.
 
 # empty printing
 
@@ -198,4 +154,48 @@
       
       -- Operations 
       * Dummy variables from: <none> | Trained
+
+# keep_original_cols - can prep recipes with it missing
+
+    Code
+      rec <- prep(rec)
+    Condition
+      Warning:
+      'keep_original_cols' was added to `step_dummy()` after this recipe was created.
+      Regenerate your recipe to avoid this warning.
+
+# printing
+
+    Code
+      print(rec)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:   1
+      predictor: 7
+      
+      -- Operations 
+      * Dummy variables from: city, zip
+
+---
+
+    Code
+      prep(rec)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:   1
+      predictor: 7
+      
+      -- Training information 
+      Training data contained 932 data points and no incomplete rows.
+      
+      -- Operations 
+      * Dummy variables from: city, zip | Trained
 

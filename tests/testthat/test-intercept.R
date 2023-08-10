@@ -1,6 +1,5 @@
 library(testthat)
 library(recipes)
-library(tibble)
 
 ex_dat <- tibble(
   cat = factor(rep(c("A", "B"), each = 5)),
@@ -65,9 +64,36 @@ test_that("check_name() is used", {
   )
 })
 
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  # Here for completeness
+  # step_intercept() is special as it doesn't care about the incoming data
+  expect_true(TRUE)
+})
+
+test_that("empty printing", {
+  # Here for completeness
+  # step_intercept() is special as it can't be used without selection
+  expect_true(TRUE)
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  # Here for completeness
+  # step_intercept() is special as it can't be used without selection
+  expect_true(TRUE)
+})
+
+test_that("empty selection tidy method works", {
+  # Here for completeness
+  # step_intercept() is special as it can't be used without selection
+  expect_true(TRUE)
+})
+
 test_that("printing", {
   rec <- recipe(~., data = ex_dat) %>%
     step_intercept()
+
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
 })

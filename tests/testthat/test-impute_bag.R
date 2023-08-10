@@ -1,6 +1,4 @@
 library(testthat)
-library(ipred)
-library(rpart)
 library(recipes)
 
 skip_if_not_installed("modeldata")
@@ -30,9 +28,9 @@ test_that("imputation models", {
   )
   for (i in seq_along(carb_samps)) {
     carb_data <- biomass[carb_samps[[i]], c("carbon", "hydrogen", "oxygen")]
-    carb_mod <- rpart(carbon ~ .,
+    carb_mod <- rpart::rpart(carbon ~ .,
       data = carb_data,
-      control = rpart.control(xval = 0)
+      control = rpart::rpart.control(xval = 0)
     )
     expect_equal(
       carb_mod$splits,
@@ -50,7 +48,7 @@ test_that("imputation models", {
   ## make sure we get the same trees given the same random samples
   for (i in seq_along(fac_samps)) {
     fac_data <- biomass[fac_samps[[i]], c("fac", "hydrogen", "oxygen")]
-    fac_mod <- rpart(fac ~ ., data = fac_data, control = fac_ctrl)
+    fac_mod <- rpart::rpart(fac ~ ., data = fac_data, control = fac_ctrl)
     expect_equal(
       fac_mod$splits,
       imputed_trained$steps[[1]]$models[["fac"]]$mtrees[[i]]$btree$splits
@@ -95,17 +93,6 @@ test_that("Deprecation warning", {
   )
 })
 
-test_that("printing", {
-  imputed <- rec %>%
-    step_impute_bag(carbon,
-      impute_with = imp_vars(hydrogen), seed_val = 12,
-      trees = 7
-    )
-
-  expect_snapshot(print(imputed))
-  expect_snapshot(prep(imputed))
-})
-
 test_that("tunable", {
   rec <-
     recipe(~., data = iris) %>%
@@ -121,20 +108,6 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_impute_bag(
-      all_predictors(),
-      trees = hardhat::tune()
-    )
-
-  params <- extract_parameter_set_dials(rec)
-
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
-})
-
 test_that("non-factor imputation", {
   data(scat, package = "modeldata")
   scat$Location <- as.character(scat$Location)
@@ -144,6 +117,34 @@ test_that("non-factor imputation", {
     step_impute_bag(Location, impute_with = imp_vars(all_predictors())) %>%
     prep(strings_as_factors = FALSE)
   expect_true(is.character(bake(rec, NULL, Location)[[1]]))
+})
+
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  imputed <- rec %>%
+    step_impute_bag(carbon, fac,
+                    impute_with = imp_vars(hydrogen, oxygen),
+                    seed_val = 12, trees = 5
+    ) %>%
+    update_role(carbon, fac, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
+
+  imputed_trained <- prep(imputed, training = biomass, verbose = FALSE)
+
+  expect_error(bake(imputed_trained, new_data = biomass[, c(-3, -9)]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_impute_bag(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -172,29 +173,25 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_impute_bag(rec)
+test_that("printing", {
+  rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur + fac,
+                    data = biomass) %>%
+    step_impute_bag(carbon, impute_with = imp_vars(hydrogen))
 
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
-  imputed <- rec %>%
-    step_impute_bag(carbon, fac,
-                    impute_with = imp_vars(hydrogen, oxygen),
-                    seed_val = 12, trees = 5
-    ) %>%
-    update_role(carbon, fac, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_impute_bag(
+      all_predictors(),
+      trees = hardhat::tune()
+    )
 
-  imputed_trained <- prep(imputed, training = biomass, verbose = FALSE)
+  params <- extract_parameter_set_dials(rec)
 
-  expect_error(bake(imputed_trained, new_data = biomass[, c(-3, -9)]),
-               class = "new_data_missing_column")
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 1L)
 })

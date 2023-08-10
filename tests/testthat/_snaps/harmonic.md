@@ -95,41 +95,6 @@
       ! Name collision occured. The following variable names already exists:
       i  mpg_sin_1
 
-# printing
-
-    Code
-      print(with_harmonic)
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      outcome:    1
-      predictor: 10
-      
-      -- Operations 
-      * Harmonic numeric variables for: hp
-
----
-
-    Code
-      prep(with_harmonic)
-    Message
-      
-      -- Recipe ----------------------------------------------------------------------
-      
-      -- Inputs 
-      Number of variables by role
-      outcome:    1
-      predictor: 10
-      
-      -- Training information 
-      Training data contained 32 data points and no incomplete rows.
-      
-      -- Operations 
-      * Harmonic numeric variables for: hp | Trained
-
 # empty printing
 
     Code
@@ -164,4 +129,48 @@
       
       -- Operations 
       * Harmonic numeric variables for: <none> | Trained
+
+# keep_original_cols - can prep recipes with it missing
+
+    Code
+      rec <- prep(rec)
+    Condition
+      Warning:
+      'keep_original_cols' was added to `step_harmonic()` after this recipe was created.
+      Regenerate your recipe to avoid this warning.
+
+# printing
+
+    Code
+      print(rec)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Operations 
+      * Harmonic numeric variables for: hp
+
+---
+
+    Code
+      prep(rec)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Training information 
+      Training data contained 32 data points and no incomplete rows.
+      
+      -- Operations 
+      * Harmonic numeric variables for: hp | Trained
 

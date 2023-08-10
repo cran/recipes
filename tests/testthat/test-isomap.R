@@ -62,23 +62,6 @@ test_that("correct Isomap values", {
   expect_equal(tidy(im_trained, 1), im_tibble)
 })
 
-
-test_that("printing", {
-
-  skip_on_cran()
-  skip_if_not_installed("RSpectra")
-  skip_if_not_installed("igraph")
-  skip_if_not_installed("RANN")
-  skip_if_not_installed("dimRed")
-  skip_if(getRversion() <= "3.4.4")
-
-  im_rec <- rec %>%
-    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3)
-  expect_snapshot(print(im_rec))
-  expect_snapshot(prep(im_rec), transform = scrub_timestamp)
-})
-
-
 test_that("No ISOmap", {
   skip_on_cran()
   skip_if_not_installed("RSpectra")
@@ -158,21 +141,9 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_isomap(
-      all_predictors(),
-      num_terms = hardhat::tune(), neighbors = hardhat::tune()
-    )
+# Infrastructure ---------------------------------------------------------------
 
-  params <- extract_parameter_set_dials(rec)
-
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 2L)
-})
-
-test_that("keep_original_cols works", {
+test_that("bake method errors when needed non-standard role columns are missing", {
   skip_on_cran()
   skip_if_not_installed("RSpectra")
   skip_if_not_installed("igraph")
@@ -181,43 +152,25 @@ test_that("keep_original_cols works", {
   skip_if(getRversion() <= "3.4.4")
 
   im_rec <- rec %>%
-    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3, id = "", keep_original_cols = TRUE)
+    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3) %>%
+    update_role(x1, x2, x3, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
   im_trained <- prep(im_rec, training = dat1, verbose = FALSE)
 
-  im_pred <- bake(im_trained, new_data = dat2)
-
-  expect_equal(
-    colnames(im_pred),
-    c(
-      "x1", "x2", "x3",
-      "Isomap1", "Isomap2", "Isomap3"
-    )
-  )
+  expect_error(bake(im_trained, new_data = dat2[, 1:2]),
+               class = "new_data_missing_column")
 })
 
-test_that("can prep recipes with no keep_original_cols", {
-  skip_on_cran()
-  skip_if_not_installed("RSpectra")
-  skip_if_not_installed("igraph")
-  skip_if_not_installed("RANN")
-  skip_if_not_installed("dimRed")
-  skip_if(getRversion() <= "3.4.4")
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_isomap(rec)
 
-  im_rec <- rec %>%
-    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3)
+  expect_snapshot(rec)
 
-  im_rec$steps[[1]]$keep_original_cols <- NULL
+  rec <- prep(rec, mtcars)
 
-  expect_snapshot(
-    im_trained <- prep(im_rec, training = dat1, verbose = FALSE),
-    transform = scrub_timestamp
-  )
-
-  expect_error(
-    im_pred <- bake(im_trained, new_data = dat2, all_predictors()),
-    NA
-  )
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -246,20 +199,7 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_isomap(rec)
-
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
-})
-
-
-test_that("bake method errors when needed non-standard role columns are missing", {
+test_that("keep_original_cols works", {
   skip_on_cran()
   skip_if_not_installed("RSpectra")
   skip_if_not_installed("igraph")
@@ -267,13 +207,82 @@ test_that("bake method errors when needed non-standard role columns are missing"
   skip_if_not_installed("dimRed")
   skip_if(getRversion() <= "3.4.4")
 
-  im_rec <- rec %>%
-    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3) %>%
-    update_role(x1, x2, x3, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+  new_names <- c("Isomap1", "Isomap2", "Isomap3")
 
-  im_trained <- prep(im_rec, training = dat1, verbose = FALSE)
+  rec <- recipe(~., data = dat1) %>%
+    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3,
+                keep_original_cols = FALSE)
 
-  expect_error(bake(im_trained, new_data = dat2[, 1:2]),
-               class = "new_data_missing_column")
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~., data = dat1) %>%
+    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3,
+                keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("x1", "x2", "x3", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  skip_on_cran()
+  skip_if_not_installed("RSpectra")
+  skip_if_not_installed("igraph")
+  skip_if_not_installed("RANN")
+  skip_if_not_installed("dimRed")
+  skip_if(getRversion() <= "3.4.4")
+
+  rec <- recipe(~., data = dat1) %>%
+    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3)
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec),
+    transform = scrub_timestamp
+  )
+
+  expect_error(
+    bake(rec, new_data = dat1),
+    NA
+  )
+})
+
+test_that("printing", {
+  skip_on_cran()
+  skip_if_not_installed("RSpectra")
+  skip_if_not_installed("igraph")
+  skip_if_not_installed("RANN")
+  skip_if_not_installed("dimRed")
+  skip_if(getRversion() <= "3.4.4")
+
+  rec <- recipe(~., data = dat1) %>%
+    step_isomap(x1, x2, x3, neighbors = 3, num_terms = 3)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec), transform = scrub_timestamp)
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_isomap(
+      all_predictors(),
+      num_terms = hardhat::tune(), neighbors = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 2L)
 })

@@ -75,18 +75,6 @@ test_that("correct ICA values", {
   expect_equal(tidy_exp_tr, tidy(ica_extract_trained, number = 2))
 })
 
-
-test_that("printing", {
-  skip_if_not_installed("dimRed")
-  skip_if_not_installed("fastICA")
-  skip_if_not_installed("RSpectra")
-  ica_extract <- rec %>%
-    step_ica(carbon, hydrogen, num_comp = 2)
-  expect_snapshot(print(ica_extract))
-  expect_snapshot(prep(ica_extract))
-})
-
-
 test_that("No ICA comps", {
   skip_if_not_installed("dimRed")
   skip_if_not_installed("fastICA")
@@ -139,65 +127,50 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  skip_if_not_installed("dimRed")
-  skip_if_not_installed("fastICA")
-  skip_if_not_installed("RSpectra")
-  rec <- recipe(~., data = mtcars) %>%
-    step_ica(
-      all_predictors(),
-      num_comp = hardhat::tune()
-    )
+test_that("Do nothing for num_comps = 0 and keep_original_cols = FALSE (#1152)", {
+  rec <- recipe(~ ., data = mtcars) %>%
+    step_ica(all_predictors(), num_comp = 0, keep_original_cols = FALSE) %>%
+    prep()
 
-  params <- extract_parameter_set_dials(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
+  expect_identical(res, tibble::as_tibble(mtcars))
 })
 
-test_that("keep_original_cols works", {
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
   skip_if_not_installed("dimRed")
   skip_if_not_installed("fastICA")
   skip_if_not_installed("RSpectra")
 
-  ica_extract <- rec %>%
-    step_ica(carbon, hydrogen, oxygen, nitrogen, sulfur,
-      num_comp = 2,
-      id = "", keep_original_cols = TRUE
-    )
-
-  set.seed(12)
-  ica_extract_trained <- prep(ica_extract, training = biomass_tr, verbose = FALSE)
-
-  ica_pred <- bake(ica_extract_trained, new_data = biomass_te, all_predictors())
-
-
-  expect_equal(
-    colnames(ica_pred),
-    c(
-      "carbon", "hydrogen", "oxygen", "nitrogen", "sulfur",
-      "IC1", "IC2"
-    )
-  )
-})
-
-test_that("can prep recipes with no keep_original_cols", {
-  skip_if_not_installed("dimRed")
-  skip_if_not_installed("fastICA")
-  skip_if_not_installed("RSpectra")
-
-  ica_extract <- rec %>%
-    step_ica(carbon, hydrogen, oxygen, nitrogen, sulfur, num_comp = 2, id = "")
-
-  ica_extract$steps[[1]]$keep_original_cols <- NULL
+  ica_extract <-
+    recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+           data = biomass_tr
+    ) %>%
+    step_ica(carbon, hydrogen, num_comp = 2, seed = 1) %>%
+    update_role(carbon, hydrogen, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
   ica_extract_trained <- prep(ica_extract, training = biomass_tr, verbose = FALSE)
 
-  expect_error(
-    ica_pred <- bake(ica_extract_trained, new_data = biomass_te, all_predictors()),
-    NA
-  )
+  expect_error(bake(ica_extract_trained, new_data = biomass_tr[, c(-3)]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  skip_if_not_installed("dimRed")
+  skip_if_not_installed("fastICA")
+  skip_if_not_installed("RSpectra")
+
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_ica(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -239,37 +212,83 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
+test_that("keep_original_cols works", {
   skip_if_not_installed("dimRed")
   skip_if_not_installed("fastICA")
   skip_if_not_installed("RSpectra")
 
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_ica(rec)
+  new_names <- c("IC1", "IC2", "IC3", "IC4", "IC5")
 
-  expect_snapshot(rec)
+  rec <- recipe(~ ., mtcars) %>%
+    step_ica(all_predictors(), keep_original_cols = FALSE)
 
-  rec <- prep(rec, mtcars)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_snapshot(rec)
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ ., mtcars) %>%
+    step_ica(all_predictors(), keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c(colnames(mtcars), new_names)
+  )
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
+test_that("keep_original_cols - can prep recipes with it missing", {
   skip_if_not_installed("dimRed")
   skip_if_not_installed("fastICA")
   skip_if_not_installed("RSpectra")
 
-  ica_extract <-
-    recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-           data = biomass_tr
-    ) %>%
-    step_ica(carbon, hydrogen, num_comp = 2, seed = 1) %>%
-    update_role(carbon, hydrogen, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+  rec <- recipe(~ ., mtcars) %>%
+    step_ica(all_predictors())
 
-  ica_extract_trained <- prep(ica_extract, training = biomass_tr, verbose = FALSE)
+  rec$steps[[1]]$keep_original_cols <- NULL
 
-  expect_error(bake(ica_extract_trained, new_data = biomass_tr[, c(-3)]),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = mtcars),
+    NA
+  )
+})
+
+test_that("printing", {
+  skip_if_not_installed("dimRed")
+  skip_if_not_installed("fastICA")
+  skip_if_not_installed("RSpectra")
+
+  rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+                data = biomass_tr) %>%
+    step_normalize(all_predictors()) %>%
+    step_ica(carbon, hydrogen, num_comp = 2)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  skip_if_not_installed("dimRed")
+  skip_if_not_installed("fastICA")
+  skip_if_not_installed("RSpectra")
+  rec <- recipe(~., data = mtcars) %>%
+    step_ica(
+      all_predictors(),
+      num_comp = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 1L)
 })

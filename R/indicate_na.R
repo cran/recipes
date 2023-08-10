@@ -1,13 +1,11 @@
 #' Create Missing Data Column Indicators
 #'
-#' `step_indicate_na` creates a *specification* of a recipe step that will
-#'  create and append additional binary columns to the dataset to indicate
-#'  which observations are missing.
+#' `step_indicate_na()` creates a *specification* of a recipe step that will
+#' create and append additional binary columns to the data set to indicate which
+#' observations are missing.
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_center
-#' @param columns A character string of variable names that will
-#'  be populated (eventually) by the terms argument.
 #' @param prefix A character string that will be the prefix to the
 #'  resulting new variables. Defaults to "na_ind".
 #' @template step-return
@@ -50,6 +48,7 @@ step_indicate_na <-
            trained = FALSE,
            columns = NULL,
            prefix = "na_ind",
+           keep_original_cols = TRUE,
            skip = FALSE,
            id = rand_id("indicate_na")) {
     terms <- enquos(...)
@@ -62,6 +61,7 @@ step_indicate_na <-
         trained = trained,
         columns = columns,
         prefix = prefix,
+        keep_original_cols = keep_original_cols,
         skip = skip,
         id = id
       )
@@ -69,7 +69,8 @@ step_indicate_na <-
   }
 
 step_indicate_na_new <-
-  function(terms, role, trained, columns, prefix, skip, id) {
+  function(terms, role, trained, columns, prefix, keep_original_cols, skip,
+           id) {
     step(
       subclass = "indicate_na",
       terms = terms,
@@ -77,6 +78,7 @@ step_indicate_na_new <-
       trained = trained,
       columns = columns,
       prefix = prefix,
+      keep_original_cols = keep_original_cols,
       skip = skip,
       id = id
     )
@@ -92,6 +94,7 @@ prep.step_indicate_na <- function(x, training, info = NULL, ...) {
     trained = TRUE,
     columns = col_names,
     prefix = x$prefix,
+    keep_original_cols = get_keep_original_cols(x),
     skip = x$skip,
     id = x$id
   )
@@ -99,21 +102,22 @@ prep.step_indicate_na <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_indicate_na <- function(object, new_data, ...) {
-  check_new_data(names(object$columns), object, new_data)
+  col_names <- names(object$columns)
+  check_new_data(col_names, object, new_data)
 
-  col_names <- object$columns
+  cols <- list()
 
-  cols <- purrr::map(
-    new_data[col_names],
-    ~ ifelse(is.na(.x), 1L, 0L)
-  )
+  for (col_name in col_names) {
+    cols[[col_name]] <- ifelse(is.na(new_data[[col_name]]), 1L, 0L)
+  }
 
   cols <- tibble::new_tibble(cols, nrow = nrow(new_data))
   cols <- dplyr::rename_with(cols, ~ vec_paste0(object$prefix, "_", .x))
 
   cols <- check_name(cols, new_data, object, names(cols))
 
-  new_data <- bind_cols(new_data, cols)
+  new_data <- vec_cbind(new_data, cols)
+  new_data <- remove_original_cols(new_data, object, col_names)
   new_data
 }
 

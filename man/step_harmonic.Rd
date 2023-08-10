@@ -50,8 +50,8 @@ is 0.}
 \item{keep_original_cols}{A logical to keep the original variables in the
 output. Defaults to \code{FALSE}.}
 
-\item{columns}{A character string of variable names that will
-be populated elsewhere.}
+\item{columns}{A character string of the selected variable names. This field
+is a placeholder and will be populated once \code{\link[=prep]{prep()}} is used.}
 
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
@@ -67,8 +67,8 @@ An updated version of \code{recipe} with the new step added to the
 sequence of any existing operations.
 }
 \description{
-\code{step_harmonic} creates a \emph{specification} of a recipe step that
-will add sin and cos terms for harmonic analysis.
+\code{step_harmonic()} creates a \emph{specification} of a recipe step that will add
+\code{sin()} and \code{cos()} terms for harmonic analysis.
 }
 \details{
 This step seeks to describe periodic components of observational

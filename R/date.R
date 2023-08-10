@@ -1,8 +1,7 @@
 #' Date Feature Generator
 #'
-#' `step_date` creates a *specification* of a recipe
-#'  step that will convert date data into one or more factor or
-#'  numeric variables.
+#' `step_date()` creates a *specification* of a recipe step that will convert
+#' date data into one or more factor or numeric variables.
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_center
@@ -31,9 +30,6 @@
 #'  On Linux systems you can use `system("locale -a")` to list all the
 #'  installed locales. Can be a locales string, or a [clock::clock_labels()]
 #'  object. Defaults to `clock::clock_locale()$labels`.
-#' @param columns A character string of variables that will be
-#'  used as inputs. This field is a placeholder and will be
-#'  populated once [prep()] is used.
 #' @param keep_original_cols A logical to keep the original variables in the
 #'  output. Defaults to `TRUE`.
 #' @template step-return
@@ -244,12 +240,14 @@ get_date_features <-
 
 #' @export
 bake.step_date <- function(object, new_data, ...) {
-  check_new_data(names(object$columns), object, new_data)
+  col_names <- names(object$columns)
+  check_new_data(col_names, object, new_data)
 
   new_cols <- rep(
     length(object$features),
-    each = length(object$columns)
+    each = length(col_names)
   )
+  names(new_cols) <- col_names
 
   date_values <- matrix(NA, nrow = nrow(new_data), ncol = sum(new_cols))
 
@@ -261,11 +259,11 @@ bake.step_date <- function(object, new_data, ...) {
   new_names <- vector("character", length = ncol(date_values))
 
   strt <- 1
-  for (i in seq_along(object$columns)) {
-    cols <- (strt):(strt + new_cols[i] - 1)
+  for (col_name in col_names) {
+    cols <- (strt):(strt + new_cols[col_name] - 1)
 
     tmp <- get_date_features(
-      dt = new_data[[object$columns[i]]],
+      dt = new_data[[col_name]],
       feats = object$features,
       locale = object$locale %||% Sys.getlocale("LC_TIME"),
       abbr = object$abbr,
@@ -275,11 +273,7 @@ bake.step_date <- function(object, new_data, ...) {
 
     date_values[, cols] <- tmp
 
-    new_names[cols] <- paste(
-      object$columns[i],
-      names(tmp),
-      sep = "_"
-    )
+    new_names[cols] <- paste(col_name, names(tmp), sep = "_")
 
     strt <- max(cols) + 1
   }
@@ -288,11 +282,9 @@ bake.step_date <- function(object, new_data, ...) {
 
   date_values <- check_name(date_values, new_data, object, names(date_values))
 
-  new_data <- bind_cols(new_data, date_values)
-  keep_original_cols <- get_keep_original_cols(object)
-  if (!keep_original_cols) {
-    new_data <- new_data[, !(colnames(new_data) %in% object$columns), drop = FALSE]
-  }
+  new_data <- vec_cbind(new_data, date_values)
+
+  new_data <- remove_original_cols(new_data, object, col_names)
   new_data
 }
 

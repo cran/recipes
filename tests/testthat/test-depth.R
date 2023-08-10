@@ -68,15 +68,6 @@ test_that("alt args", {
   }
 })
 
-
-test_that("printing", {
-  skip_if_not_installed("ddalpha")
-  rec <- recipe(Species ~ ., data = iris) %>%
-    step_depth(all_predictors(), class = "Species", metric = "spatial")
-  expect_snapshot(print(rec))
-  expect_snapshot(prep(rec))
-})
-
 test_that("prefix", {
   skip_if_not_installed("ddalpha")
   rec <- recipe(Species ~ ., data = iris) %>%
@@ -90,18 +81,46 @@ test_that("prefix", {
   expect_true(any(grepl("spatial_", names(dists))))
 })
 
-test_that("empty selection prep/bake adds NA columns", {
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
+  skip_if_not_installed("ddalpha")
+
+  rec <- recipe(Species ~ ., data = iris) %>%
+    step_depth(starts_with("Sepal"), class = "Species", metric = "spatial") %>%
+    update_role(starts_with("Sepal"), new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
+
+  trained <- prep(rec, training = iris, verbose = FALSE)
+
+  expect_error(bake(trained, new_data = iris[, 2:5]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  skip_if_not_installed("ddalpha")
+  rec <- recipe(Species ~ ., iris)
+  rec <- step_depth(rec, class = "Species")
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, iris)
+
+  expect_snapshot(rec)
+})
+
+test_that("empty selection prep/bake is a no-op", {
   skip_if_not_installed("ddalpha")
   rec1 <- recipe(Species ~ ., iris)
   rec2 <- step_depth(rec1, class = "Species")
 
+  rec1 <- prep(rec1, iris)
   rec2 <- prep(rec2, iris)
 
+  baked1 <- bake(rec1, iris)
   baked2 <- bake(rec2, iris)
 
-  expect_identical(baked2$depth_setosa, rep(NA_real_, nrow(iris)))
-  expect_identical(baked2$depth_versicolor, rep(NA_real_, nrow(iris)))
-  expect_identical(baked2$depth_virginica, rep(NA_real_, nrow(iris)))
+  expect_identical(baked1, baked2)
 })
 
 test_that("empty selection tidy method works", {
@@ -118,29 +137,55 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
+test_that("keep_original_cols works", {
   skip_if_not_installed("ddalpha")
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(Species ~ ., iris)
-  rec <- step_depth(rec, class = "Species")
+  new_names <- c("Species", "depth_setosa", "depth_versicolor", "depth_virginica")
 
-  expect_snapshot(rec)
+  rec <- recipe(Species ~ ., iris) %>%
+    step_depth(all_predictors(), class = "Species", keep_original_cols = FALSE)
 
-  rec <- prep(rec, iris)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_snapshot(rec)
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(Species ~ ., iris) %>%
+    step_depth(all_predictors(), class = "Species", keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    unique(c(names(iris), new_names))
+  )
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
+test_that("keep_original_cols - can prep recipes with it missing", {
   skip_if_not_installed("ddalpha")
+  rec <- recipe(Species ~ ., iris) %>%
+    step_depth(all_predictors(), class = "Species")
 
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = iris),
+    NA
+  )
+})
+
+test_that("printing", {
+  skip_if_not_installed("ddalpha")
   rec <- recipe(Species ~ ., data = iris) %>%
-    step_depth(starts_with("Sepal"), class = "Species", metric = "spatial") %>%
-    update_role(starts_with("Sepal"), new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+    step_depth(all_predictors(), class = "Species", metric = "spatial")
 
-  trained <- prep(rec, training = iris, verbose = FALSE)
-
-  expect_error(bake(trained, new_data = iris[, 2:5]),
-               class = "new_data_missing_column")
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

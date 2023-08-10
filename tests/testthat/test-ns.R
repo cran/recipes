@@ -1,6 +1,6 @@
 library(testthat)
 library(recipes)
-library(splines)
+
 skip_if_not_installed("modeldata")
 data(biomass, package = "modeldata")
 
@@ -23,8 +23,8 @@ test_that("correct basis functions", {
   with_ns_pred_tr <- bake(with_ns, new_data = biomass_tr)
   with_ns_pred_te <- bake(with_ns, new_data = biomass_te)
 
-  carbon_ns_tr_exp <- ns(biomass_tr$carbon, df = 2)
-  hydrogen_ns_tr_exp <- ns(biomass_tr$hydrogen, df = 2)
+  carbon_ns_tr_exp <- splines::ns(biomass_tr$carbon, df = 2)
+  hydrogen_ns_tr_exp <- splines::ns(biomass_tr$hydrogen, df = 2)
   carbon_ns_te_exp <- predict(carbon_ns_tr_exp, biomass_te$carbon)
   hydrogen_ns_te_exp <- predict(hydrogen_ns_tr_exp, biomass_te$hydrogen)
 
@@ -84,13 +84,6 @@ test_that("check_name() is used", {
   )
 })
 
-test_that("printing", {
-  with_ns <- rec %>% step_ns(carbon, hydrogen)
-  expect_snapshot(print(with_ns))
-  expect_snapshot(prep(with_ns))
-})
-
-
 test_that("tunable", {
   rec <-
     recipe(~., data = iris) %>%
@@ -106,18 +99,29 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_ns(
-      all_predictors(),
-      deg_free = hardhat::tune()
-    )
+# Infrastructure ---------------------------------------------------------------
 
-  params <- extract_parameter_set_dials(rec)
+test_that("bake method errors when needed non-standard role columns are missing", {
+  with_ns <- rec %>%
+    step_ns(carbon, hydrogen) %>%
+    update_role(carbon, hydrogen, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
+  with_ns <- prep(with_ns, training = biomass_tr, verbose = FALSE)
+
+  expect_error(bake(with_ns, new_data = biomass_tr[, c(-3)]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_ns(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -146,26 +150,66 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_ns(rec)
+test_that("keep_original_cols works", {
+  new_names <- c("mpg_ns_1", "mpg_ns_2")
 
-  expect_snapshot(rec)
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_ns(all_predictors(), keep_original_cols = FALSE)
 
-  rec <- prep(rec, mtcars)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_snapshot(rec)
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_ns(all_predictors(), keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("mpg", new_names)
+  )
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
-  with_ns <- rec %>%
-    step_ns(carbon, hydrogen) %>%
-    update_role(carbon, hydrogen, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_ns(all_predictors())
 
-  with_ns <- prep(with_ns, training = biomass_tr, verbose = FALSE)
+  rec$steps[[1]]$keep_original_cols <- NULL
 
-  expect_error(bake(with_ns, new_data = biomass_tr[, c(-3)]),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = mtcars),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(mpg ~ ., data = mtcars) %>%
+    step_ns(disp, wt)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_ns(
+      all_predictors(),
+      deg_free = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 1L)
 })

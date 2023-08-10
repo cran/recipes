@@ -2,9 +2,8 @@
 #'
 #' @description
 #'
-#' `step_nnmf` creates a *specification* of a recipe step
-#'  that will convert numeric data into one or more non-negative
-#'  components.
+#' `step_nnmf()` creates a *specification* of a recipe step that will convert
+#' numeric data into one or more non-negative components.
 #'
 #' `r lifecycle::badge("deprecated")`
 #'
@@ -21,8 +20,6 @@
 #' @param res The `NNMF()` object is stored
 #'  here once this preprocessing step has been trained by
 #'  [prep()].
-#' @param columns A character string of variable names that will
-#'  be populated elsewhere.
 #' @param prefix A character string that will be the prefix to the
 #'  resulting new variables. See notes below.
 #' @param seed An integer that will be used to set the seed in isolation
@@ -34,15 +31,11 @@
 #'  have non-negative values and take into account that the original data
 #'  have non-negative values.
 #'
-#' The argument `num_comp` controls the number of components that
-#'  will be retained (the original variables that are used to derive
-#'  the components are removed from the data). The new components
-#'  will have names that begin with `prefix` and a sequence of
-#'  numbers. The variable names are padded with zeros. For example,
-#'  if `num < 10`, their names will be `NNMF1` - `NNMF9`.
-#'  If `num = 101`, the names would be `NNMF001` -
-#'  `NNMF101`.
-#'
+#' ```{r, echo = FALSE, results="asis"}
+#' prefix <- "NNMF"
+#' result <- knitr::knit_child("man/rmd/num_comp.Rmd")
+#' cat(result)
+#' ```
 #'
 #' # Tidying
 #'
@@ -180,23 +173,22 @@ prep.step_nnmf <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_nnmf <- function(object, new_data, ...) {
+  check_new_data(object$columns, object, new_data)
 
-  if (object$num_comp > 0 && length(object$columns) > 0) {
-    check_new_data(object$columns, object, new_data)
-    nnmf_vars <- rownames(object$res@other.data$w)
-    comps <-
-      object$res@apply(dimred_data(new_data[, nnmf_vars, drop = FALSE]))@data
-    comps <- comps[, seq_len(object$num_comp), drop = FALSE]
-    colnames(comps) <- names0(ncol(comps), object$prefix)
-    comps <- as_tibble(comps)
-    comps <- check_name(comps, new_data, object)
-    new_data <- bind_cols(new_data, comps)
-    keep_original_cols <- get_keep_original_cols(object)
-
-    if (!keep_original_cols) {
-      new_data <- new_data[, !(colnames(new_data) %in% nnmf_vars), drop = FALSE]
-    }
+  keep_going <- object$num_comp > 0 && length(object$columns) > 0
+  if (!keep_going) {
+    return(new_data)
   }
+
+  nnmf_vars <- rownames(object$res@other.data$w)
+  comps <-
+    object$res@apply(dimred_data(new_data[, nnmf_vars, drop = FALSE]))@data
+  comps <- comps[, seq_len(object$num_comp), drop = FALSE]
+  colnames(comps) <- names0(ncol(comps), object$prefix)
+  comps <- as_tibble(comps)
+  comps <- check_name(comps, new_data, object)
+  new_data <- vec_cbind(new_data, comps)
+  new_data <- remove_original_cols(new_data, object, nnmf_vars)
   new_data
 }
 

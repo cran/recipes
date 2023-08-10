@@ -1,8 +1,8 @@
 #' Linear Combination Filter
 #'
-#' `step_lincomb` creates a *specification* of a recipe
-#'  step that will potentially remove numeric variables that have
-#'  linear combinations between them.
+#' `step_lincomb()` creates a *specification* of a recipe step that will
+#' potentially remove numeric variables that have exact linear combinations
+#' between them.
 #'
 #' @inheritParams step_center
 #' @param max_steps The number of times to apply the algorithm.
@@ -115,9 +115,7 @@ prep.step_lincomb <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_lincomb <- function(object, new_data, ...) {
-  if (length(object$removals) > 0) {
-    new_data <- new_data[, !(colnames(new_data) %in% object$removals)]
-  }
+  new_data <- recipes_remove_cols(new_data, object)
   new_data
 }
 

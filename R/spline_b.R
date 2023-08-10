@@ -1,7 +1,7 @@
 #' Basis Splines
 #'
-#' `step_spline_b` creates a *specification* of a recipe
-#'  step that creates b-spline features.
+#' `step_spline_b()` creates a *specification* of a recipe step that creates
+#' b-spline features.
 #'
 #' @inheritParams step_center
 #' @param deg_free The degrees of freedom for the b-spline. As the
@@ -166,16 +166,28 @@ prep.step_spline_b <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_spline_b <- function(object, new_data, ...) {
-  orig_names <- names(object$results)
-  if (length(orig_names) > 0) {
-    new_cols <- purrr::map2_dfc(object$results, new_data[, orig_names], spline2_apply)
-    new_cols <- check_name(new_cols, new_data, object, names(new_cols))
-    new_data <- bind_cols(new_data, new_cols)
-    keep_original_cols <- get_keep_original_cols(object)
-    if (!keep_original_cols) {
-      new_data <- new_data[, !(colnames(new_data) %in% orig_names), drop = FALSE]
-    }
+  col_names <- names(object$results)
+  check_new_data(col_names, object, new_data)
+
+  if (length(col_names) == 0) {
+    return(new_data)
   }
+
+  new_cols <- list()
+
+  for (col_name in col_names) {
+    new_cols[[col_name]] <- spline2_apply(
+      object$results[[col_name]],
+      new_data[[col_name]]
+    )
+  }
+
+  new_cols <- purrr::list_cbind(unname(new_cols))
+  new_cols <- check_name(new_cols, new_data, object, names(new_cols))
+
+  new_data <- vec_cbind(new_data, new_cols)
+  new_data <- remove_original_cols(new_data, object, col_names)
+
   new_data
 }
 
@@ -197,9 +209,6 @@ print.step_spline_b <-
 tidy.step_spline_b <- function(x, ...) {
   if (is_trained(x)) {
     terms <- names(x$results)
-    if (length(terms) == 0) {
-      terms <- "<none>"
-    }
   } else {
     terms <- sel2char(x$terms)
   }

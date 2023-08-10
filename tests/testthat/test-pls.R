@@ -1,6 +1,6 @@
 library(testthat)
 library(recipes)
-library(dplyr)
+
 skip_if_not_installed("modeldata")
 
 ## -----------------------------------------------------------------------------
@@ -245,17 +245,6 @@ test_that("Deprecation warning", {
   )
 })
 
-test_that("print method", {
-  skip_if_not_installed("mixOmics")
-  rec <- recipe(HHV ~ ., data = biom_tr) %>%
-    step_pls(all_predictors(), outcome = "HHV", num_comp = 3, id = "dork")
-
-  expect_snapshot(print(rec))
-
-  rec <- prep(rec)
-  expect_snapshot(print(rec))
-})
-
 test_that("tunable", {
   rec <-
     recipe(Species ~ ., data = iris) %>%
@@ -271,53 +260,41 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(mpg ~ ., data = mtcars) %>%
-    step_pls(
-      all_predictors(),
-      outcome = "mpg",
-      num_comp = hardhat::tune(), predictor_prop = hardhat::tune()
-    )
+test_that("Do nothing for num_comps = 0 and keep_original_cols = FALSE (#1152)", {
+  rec <- recipe(carb ~ ., data = mtcars) %>%
+    step_pls(all_predictors(), outcome = "carb",
+             num_comp = 0, keep_original_cols = FALSE) %>%
+    prep()
 
-  params <- extract_parameter_set_dials(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 2L)
+  expect_identical(res, tibble::as_tibble(mtcars))
 })
 
-test_that("keep_original_cols works", {
+# Infrastructure ---------------------------------------------------------------
+
+test_that("bake method errors when needed non-standard role columns are missing", {
   skip_if_not_installed("mixOmics")
-  pls_rec <- recipe(HHV ~ ., data = biom_tr) %>%
-    step_pls(all_predictors(), outcome = "HHV", num_comp = 3, keep_original_cols = TRUE)
+  rec <- recipe(HHV ~ ., data = biom_tr) %>%
+    step_pls(carbon, outcome = "HHV", num_comp = 3) %>%
+    update_role(carbon, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
-  pls_trained <- prep(pls_rec)
-  pls_pred <- bake(pls_trained, new_data = biom_te, all_predictors())
+  rec <- prep(rec)
 
-  expect_equal(
-    colnames(pls_pred),
-    c(
-      "carbon", "hydrogen", "oxygen", "nitrogen", "sulfur",
-      "PLS1", "PLS2", "PLS3"
-    )
-  )
+  expect_error(bake(rec, new_data = biom_tr[, c(-1)]),
+               class = "new_data_missing_column")
 })
 
-test_that("can prep recipes with no keep_original_cols", {
-  skip_if_not_installed("mixOmics")
-  pls_rec <- recipe(HHV ~ ., data = biom_tr) %>%
-    step_pls(all_predictors(), outcome = "HHV", num_comp = 3)
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_pls(rec, outcome = "mpg")
 
-  pls_rec$steps[[1]]$keep_original_cols <- NULL
+  expect_snapshot(rec)
 
-  expect_snapshot(
-    pls_trained <- prep(pls_rec, training = biom_tr, verbose = FALSE)
-  )
+  rec <- prep(rec, mtcars)
 
-  expect_error(
-    pls_pred <- bake(pls_trained, new_data = biom_te, all_predictors()),
-    NA
-  )
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -351,28 +328,70 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_pls(rec, outcome = "mpg")
-
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
-})
-
-
-test_that("bake method errors when needed non-standard role columns are missing", {
+test_that("keep_original_cols works", {
   skip_if_not_installed("mixOmics")
-  rec <- recipe(HHV ~ ., data = biom_tr) %>%
-    step_pls(carbon, outcome = "HHV", num_comp = 3) %>%
-    update_role(carbon, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+  new_names <- c("vs", "PLS1")
+
+  rec <- recipe(vs ~ mpg, mtcars) %>%
+    step_pls(all_predictors(), outcome = "vs", keep_original_cols = FALSE)
 
   rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_error(bake(rec, new_data = biom_tr[, c(-1)]),
-               class = "new_data_missing_column")
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(vs ~ mpg, mtcars) %>%
+    step_pls(all_predictors(), outcome = "vs", keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("mpg", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  skip_if_not_installed("mixOmics")
+  rec <- recipe(vs ~ mpg, mtcars) %>%
+    step_pls(all_predictors(), outcome = "vs")
+
+  rec$steps[[1]]$keep_original_cols <- NULL
+
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = mtcars),
+    NA
+  )
+})
+
+test_that("printing", {
+  skip_if_not_installed("mixOmics")
+  rec <- recipe(HHV ~ ., data = biom_tr) %>%
+    step_pls(all_predictors(), outcome = "HHV", num_comp = 3)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(mpg ~ ., data = mtcars) %>%
+    step_pls(
+      all_predictors(),
+      outcome = "mpg",
+      num_comp = hardhat::tune(), predictor_prop = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 2L)
 })

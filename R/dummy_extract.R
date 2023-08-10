@@ -1,8 +1,8 @@
 #' Extract patterns from nominal data
 #'
-#' `step_dummy_extract()` creates a *specification* of a recipe
-#'  step that will convert nominal data (e.g. character or factors)
-#'  into one or more integer model terms for the extracted levels.
+#' `step_dummy_extract()` creates a *specification* of a recipe step that will
+#' convert nominal data (e.g. characters or factors) into one or more integer
+#' model terms for the extracted levels.
 #'
 #' @inheritParams step_center
 #' @inheritParams step_other
@@ -51,7 +51,8 @@
 #'
 #' dummy_data %>%
 #'   select(starts_with("medium")) %>%
-#'   names()
+#'   names() %>%
+#'   head()
 #'
 #' # More detailed splitting
 #' dummies_specific <- recipe(~medium, data = tate_text) %>%
@@ -62,7 +63,8 @@
 #'
 #' dummy_data_specific %>%
 #'   select(starts_with("medium")) %>%
-#'   names()
+#'   names() %>%
+#'   head()
 #'
 #' tidy(dummies, number = 1)
 #' tidy(dummies_specific, number = 1)
@@ -221,39 +223,38 @@ prep.step_dummy_extract <- function(x, training, info = NULL, ...) {
 
 #' @export
 bake.step_dummy_extract <- function(object, new_data, ...) {
-  check_new_data(names(object$levels), object, new_data)
+  col_names <- names(object$levels)
+  check_new_data(col_names, object, new_data)
 
   # If no terms were selected
   if (length(object$levels) == 0) {
     return(new_data)
   }
 
-  col_names <- names(object$levels)
-  keep_original_cols <- get_keep_original_cols(object)
-
-  for (i in seq_along(object$levels)) {
-    orig_var <- names(object$levels)[i]
-
+  for (col_name in col_names) {
     elements <- dummy_extract(
-      new_data[[orig_var]],
+      new_data[[col_name]],
       sep = object$sep, pattern = object$pattern
     )
 
-    indicators <- list_to_dummies(elements, sort(object$levels[[i]]), object$other)
+    indicators <- list_to_dummies(
+      elements,
+      sort(object$levels[[col_name]]),
+      object$other
+    )
     indicators <- purrr::map_dfc(indicators, vec_cast, integer())
 
     ## use backticks for nonstandard factor levels here
-    used_lvl <- gsub(paste0("^", col_names[i]), "", colnames(indicators))
-    colnames(indicators) <- object$naming(col_names[i], used_lvl)
+    used_lvl <- gsub(paste0("^", col_name), "", colnames(indicators))
+    colnames(indicators) <- object$naming(col_name, used_lvl)
 
     indicators <- check_name(indicators, new_data, object, names(indicators))
 
-    new_data <- bind_cols(new_data, indicators)
-
-    if (!keep_original_cols) {
-      new_data[[col_names[i]]] <- NULL
-    }
+    new_data <- vec_cbind(new_data, indicators)
   }
+
+  new_data <- remove_original_cols(new_data, object, col_names)
+
   new_data
 }
 

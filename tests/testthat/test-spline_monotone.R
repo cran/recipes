@@ -1,6 +1,5 @@
 library(testthat)
 library(recipes)
-library(splines)
 
 skip_if_not_installed("modeldata")
 
@@ -10,7 +9,6 @@ data(biomass, package = "modeldata")
 
 test_that("correct monotone functions", {
   skip_if_not_installed("splines2")
-  library(splines2)
 
   biomass_tr <- biomass[biomass$dataset == "Training", ]
   biomass_te <- biomass[biomass$dataset == "Testing", ]
@@ -27,8 +25,8 @@ test_that("correct monotone functions", {
   with_ns_pred_tr <- bake(with_ns, new_data = biomass_tr)
   with_ns_pred_te <- bake(with_ns, new_data = biomass_te)
 
-  carbon_ns_tr_exp <- iSpline(biomass_tr$carbon, df = 5)
-  hydrogen_ns_tr_exp <- iSpline(biomass_tr$hydrogen, df = 5)
+  carbon_ns_tr_exp <- splines2::iSpline(biomass_tr$carbon, df = 5)
+  hydrogen_ns_tr_exp <- splines2::iSpline(biomass_tr$hydrogen, df = 5)
   carbon_ns_te_exp <- predict(carbon_ns_tr_exp, biomass_te$carbon)
   hydrogen_ns_te_exp <- predict(hydrogen_ns_tr_exp, biomass_te$hydrogen)
 
@@ -88,21 +86,6 @@ test_that("check_name() is used", {
   )
 })
 
-test_that("printing", {
-
-  biomass_tr <- biomass[biomass$dataset == "Training", ]
-  biomass_te <- biomass[biomass$dataset == "Testing", ]
-
-  rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-                data = biomass_tr
-  )
-
-  with_ns <- rec %>% step_spline_monotone(carbon, hydrogen)
-  expect_snapshot(print(with_ns))
-  expect_snapshot(prep(with_ns))
-})
-
-
 test_that("tunable", {
 
   biomass_tr <- biomass[biomass$dataset == "Training", ]
@@ -126,18 +109,29 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_spline_monotone(
-      all_predictors(),
-      deg_free = hardhat::tune(), degree = hardhat::tune()
-    )
+# Infrastructure ---------------------------------------------------------------
 
-  params <- extract_parameter_set_dials(rec)
+test_that("bake method errors when needed non-standard role columns are missing", {
+  rec <- recipe(mtcars) %>%
+    step_spline_monotone(disp) %>%
+    update_role(disp, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 2L)
+  rec_trained <- prep(rec, training = mtcars)
+
+  expect_error(bake(rec_trained, new_data = mtcars[, -3]),
+               class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_spline_monotone(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -157,23 +151,66 @@ test_that("empty selection tidy method works", {
   rec <- recipe(mpg ~ ., mtcars)
   rec <- step_spline_monotone(rec)
 
-  expect <- tibble(terms = "<none>", id = character())
+  expect <- tibble(terms = character(), id = character())
 
   expect_identical(tidy(rec, number = 1), expect)
 
-  rec_prepped <- prep(rec, mtcars)
-  expect_prepped <- tibble::tibble(terms = "<none>", id = rec_prepped$steps[[1]]$id)
-  expect_identical(tidy(rec_prepped, number = 1), expect_prepped)
-})
-
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_spline_monotone(rec)
-
-  expect_snapshot(rec)
-
   rec <- prep(rec, mtcars)
 
-  expect_snapshot(rec)
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("keep_original_cols works", {
+  new_names <- paste0("mpg_", formatC(1:10, width = 2, flag = "0"))
+
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_spline_monotone(all_predictors(), keep_original_cols = FALSE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~ mpg, mtcars) %>%
+    step_spline_monotone(all_predictors(), keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("mpg", new_names)
+  )
+})
+
+test_that("keep_original_cols - can prep recipes with it missing", {
+  # step_spline_monotone() was added after keep_original_cols
+  # Making this test case unlikely
+  expect_true(TRUE)
+})
+
+test_that("printing", {
+  rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+                data = biomass) %>%
+    step_spline_monotone(carbon, hydrogen)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_spline_monotone(
+      all_predictors(),
+      deg_free = hardhat::tune(), degree = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 2L)
 })

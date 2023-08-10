@@ -1,3 +1,38 @@
+# empty printing
+
+    Code
+      rec
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Operations 
+      * Variables selected: <none>
+
+---
+
+    Code
+      rec
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Training information 
+      Training data contained 32 data points and no incomplete rows.
+      
+      -- Operations 
+      * Variables selected: <none> | Trained
+
 # printing
 
     Code
@@ -11,7 +46,7 @@
       predictor: 5
       
       -- Operations 
-      * Variables selected: Species, starts_with("Sepal"), Petal.Width
+      * Variables selected: Species
 
 ---
 
@@ -29,5 +64,5 @@
       Training data contained 150 data points and no incomplete rows.
       
       -- Operations 
-      * Variables selected: Species, Sepal.Length, Sepal.Width, petal_width | Trained
+      * Variables selected: Species | Trained
 

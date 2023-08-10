@@ -249,12 +249,6 @@ test_that("'other' already in use", {
   )
 })
 
-test_that("printing", {
-  rec <- rec %>% step_other(city, zip)
-  expect_snapshot(print(rec))
-  expect_snapshot(prep(rec))
-})
-
 test_that(
   desc = "if threshold argument is an integer greater than one
           then it's treated as a frequency",
@@ -327,20 +321,6 @@ test_that("tunable", {
   )
 })
 
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) %>%
-    step_other(
-      all_predictors(),
-      threshold = hardhat::tune()
-    )
-
-  params <- extract_parameter_set_dials(rec)
-
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
-})
-
 test_that("issue #415 -  strings to factor conversion", {
   trans_recipe <-
     recipe(Species ~ ., data = iris)
@@ -355,45 +335,6 @@ test_that("issue #415 -  strings to factor conversion", {
     regex = NA
   )
   expect_equal(names(res), names(iris[, 1:4]))
-})
-
-
-test_that("empty selection prep/bake is a no-op", {
-  rec1 <- recipe(mpg ~ ., mtcars)
-  rec2 <- step_other(rec1)
-
-  rec1 <- prep(rec1, mtcars)
-  rec2 <- prep(rec2, mtcars)
-
-  baked1 <- bake(rec1, mtcars)
-  baked2 <- bake(rec2, mtcars)
-
-  expect_identical(baked1, baked2)
-})
-
-test_that("empty selection tidy method works", {
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_other(rec)
-
-  expect <- tibble(terms = character(), retained = character(), id = character())
-
-  expect_identical(tidy(rec, number = 1), expect)
-
-  rec <- prep(rec, mtcars)
-
-  expect_identical(tidy(rec, number = 1), expect)
-})
-
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_other(rec)
-
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
 })
 
 test_that("othering with case weights", {
@@ -435,6 +376,8 @@ test_that("othering with case weights", {
   expect_snapshot(others)
 })
 
+# Infrastructure ---------------------------------------------------------------
+
 test_that("bake method errors when needed non-standard role columns are missing", {
   others <- rec %>% step_other(city, zip, other = "another", id = "") %>%
     update_role(city, zip, new_role = "potato") %>%
@@ -450,4 +393,63 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   expect_error(bake(others, new_data = sacr_te[, 3:9]),
                class = "new_data_missing_column")
+})
+
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_other(rec)
+
+  expect_snapshot(rec)
+
+  rec <- prep(rec, mtcars)
+
+  expect_snapshot(rec)
+})
+
+test_that("empty selection prep/bake is a no-op", {
+  rec1 <- recipe(mpg ~ ., mtcars)
+  rec2 <- step_other(rec1)
+
+  rec1 <- prep(rec1, mtcars)
+  rec2 <- prep(rec2, mtcars)
+
+  baked1 <- bake(rec1, mtcars)
+  baked2 <- bake(rec2, mtcars)
+
+  expect_identical(baked1, baked2)
+})
+
+test_that("empty selection tidy method works", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_other(rec)
+
+  expect <- tibble(terms = character(), retained = character(), id = character())
+
+  expect_identical(tidy(rec, number = 1), expect)
+
+  rec <- prep(rec, mtcars)
+
+  expect_identical(tidy(rec, number = 1), expect)
+})
+
+test_that("printing", {
+  rec <- recipe(~ city + zip, data = sacr_tr) %>%
+    step_other(city, zip)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
+})
+
+test_that("tunable is setup to work with extract_parameter_set_dials", {
+  skip_if_not_installed("dials")
+  rec <- recipe(~., data = mtcars) %>%
+    step_other(
+      all_predictors(),
+      threshold = hardhat::tune()
+    )
+
+  params <- extract_parameter_set_dials(rec)
+
+  expect_s3_class(params, "parameters")
+  expect_identical(nrow(params), 1L)
 })

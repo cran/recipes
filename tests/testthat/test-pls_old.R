@@ -1,6 +1,6 @@
 library(testthat)
 library(recipes)
-library(dplyr)
+
 skip_if_not_installed("modeldata")
 
 ## -----------------------------------------------------------------------------
@@ -26,6 +26,5 @@ test_that("check old PLS scores from recipes version <= 0.1.12", {
 
   suppressWarnings(new_values_te <- bake(old_pls, biom_te))
   expect_equal(new_values_te, old_pls_te)
-  skip_if(packageVersion("rlang") < "1.0.0")
   expect_snapshot(new_values_te <- bake(old_pls, biom_te))
 })

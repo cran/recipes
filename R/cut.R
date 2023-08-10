@@ -1,7 +1,7 @@
 #' Cut a numeric variable into a factor
 #'
 #' `step_cut()` creates a *specification* of a recipe step that cuts a numeric
-#'  variable into a factor based on provided boundary values
+#' variable into a factor based on provided boundary values.
 #'
 #' @inheritParams step_center
 #' @param breaks A numeric vector with at least one cut point.
@@ -143,16 +143,17 @@ full_breaks_check <- function(breaks) {
 
 #' @export
 bake.step_cut <- function(object, new_data, ...) {
-  check_new_data(names(object$breaks), object, new_data)
+  col_names <- names(object$breaks)
+  check_new_data(col_names, object, new_data)
 
-  for (col_name in names(object$breaks)) {
-    res <- cut_var(
+  for (col_name in col_names) {
+    new_data[[col_name]] <- cut_var(
       new_data[[col_name]],
       object$breaks[[col_name]],
       object$include_outside_range
     )
-    new_data[[col_name]] <- res
   }
+
   new_data
 }
 

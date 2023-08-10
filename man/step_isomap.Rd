@@ -47,8 +47,8 @@ used.}
 here once this preprocessing step has be trained by
 \code{\link[=prep]{prep()}}.}
 
-\item{columns}{A character string of variable names that will
-be populated elsewhere.}
+\item{columns}{A character string of the selected variable names. This field
+is a placeholder and will be populated once \code{\link[=prep]{prep()}} is used.}
 
 \item{prefix}{A character string for the prefix of the resulting new
 variables. See notes below.}
@@ -70,8 +70,8 @@ An updated version of \code{recipe} with the new step added to the
 sequence of any existing operations.
 }
 \description{
-\code{step_isomap} creates a \emph{specification} of a recipe
-step that will convert numeric data into one or more new
+\code{step_isomap()} creates a \emph{specification} of a recipe step that uses
+multidimensional scaling to convert numeric data into one or more new
 dimensions.
 }
 \details{
@@ -159,6 +159,7 @@ https://github.com/gdkrmr
 }
 \seealso{
 Other multivariate transformation steps: 
+\code{\link{step_classdist_shrunken}()},
 \code{\link{step_classdist}()},
 \code{\link{step_depth}()},
 \code{\link{step_geodist}()},

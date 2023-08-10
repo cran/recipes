@@ -1,14 +1,13 @@
 library(testthat)
 library(recipes)
-library(lubridate)
 
 exp_dates <- data.frame(
-  date = ymd(c("2017-12-25", "2017-05-29", "2017-04-16")),
+  date = lubridate::ymd(c("2017-12-25", "2017-05-29", "2017-04-16")),
   holiday = c("ChristmasDay", "USMemorialDay", "Easter"),
   stringsAsFactors = FALSE
 )
 test_data <- data.frame(
-  day = c(ymd("2017-01-01") + days(0:364), NA),
+  day = c(lubridate::ymd("2017-01-01") + lubridate::days(0:364), NA),
   stringsAsFactors = FALSE
 )
 
@@ -37,7 +36,7 @@ test_that("Date class", {
   )
   expect_equal(
     holiday_ind$day[is.na(test_data$day)],
-    NA_Date_
+    lubridate::NA_Date_
   )
   expect_equal(
     holiday_ind$day_ChristmasDay[is.na(test_data$day)],
@@ -170,14 +169,6 @@ test_that("works with no missing values - POSIXct class", {
   )
 })
 
-test_that("printing", {
-  holiday_rec <- recipe(~day, test_data) %>%
-    step_holiday(all_predictors(), holidays = exp_dates$holiday)
-  expect_snapshot(print(holiday_rec))
-  expect_snapshot(prep(holiday_rec))
-})
-
-
 test_that("check_name() is used", {
   dat <- test_data
   dat$day_Easter <- dat$day
@@ -191,45 +182,29 @@ test_that("check_name() is used", {
   )
 })
 
-holiday_rec <- recipe(~day, test_data) %>%
-  step_holiday(all_predictors(), holidays = exp_dates$holiday)
+# Infrastructure ---------------------------------------------------------------
 
-holiday_rec <- prep(holiday_rec, training = test_data)
-
-test_that("keep_original_cols works", {
+test_that("bake method errors when needed non-standard role columns are missing", {
   holiday_rec <- recipe(~day, test_data) %>%
-    step_holiday(all_predictors(),
-      holidays = exp_dates$holiday,
-      keep_original_cols = FALSE
-    )
+    step_holiday(day, holidays = exp_dates$holiday) %>%
+    update_role(day, new_role = "potato") %>%
+    update_role_requirements(role = "potato", bake = FALSE)
 
   holiday_rec <- prep(holiday_rec, training = test_data)
-  holiday_ind <- bake(holiday_rec, test_data)
 
-  expect_equal(
-    colnames(holiday_ind),
-    c(
-      "day_ChristmasDay",
-      "day_USMemorialDay",
-      "day_Easter"
-    )
-  )
+  expect_error(bake(holiday_rec, exp_dates[, 2, drop = FALSE]),
+               class = "new_data_missing_column")
 })
 
-test_that("can prep recipes with no keep_original_cols", {
-  holiday_rec <- recipe(~day, test_data) %>%
-    step_holiday(all_predictors(), holidays = exp_dates$holiday)
+test_that("empty printing", {
+  rec <- recipe(mpg ~ ., mtcars)
+  rec <- step_holiday(rec)
 
-  holiday_rec$steps[[1]]$keep_original_cols <- NULL
+  expect_snapshot(rec)
 
-  expect_snapshot(
-    holiday_rec <- prep(holiday_rec, training = test_data, verbose = FALSE)
-  )
+  rec <- prep(rec, mtcars)
 
-  expect_error(
-    holiday_ind <- bake(holiday_rec, new_data = test_data, all_predictors()),
-    NA
-  )
+  expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
@@ -258,26 +233,54 @@ test_that("empty selection tidy method works", {
   expect_identical(tidy(rec, number = 1), expect)
 })
 
-test_that("empty printing", {
-  skip_if(packageVersion("rlang") < "1.0.0")
-  rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_holiday(rec)
+test_that("keep_original_cols works", {
+  new_names <- c("day_ChristmasDay", "day_USMemorialDay", "day_Easter")
 
-  expect_snapshot(rec)
+  rec <- recipe(~day, test_data) %>%
+    step_holiday(all_predictors(), holidays = exp_dates$holiday,
+                 keep_original_cols = FALSE)
 
-  rec <- prep(rec, mtcars)
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
 
-  expect_snapshot(rec)
+  expect_equal(
+    colnames(res),
+    new_names
+  )
+
+  rec <- recipe(~day, test_data) %>%
+    step_holiday(all_predictors(), holidays = exp_dates$holiday,
+                 keep_original_cols = TRUE)
+
+  rec <- prep(rec)
+  res <- bake(rec, new_data = NULL)
+
+  expect_equal(
+    colnames(res),
+    c("day", new_names)
+  )
 })
 
-test_that("bake method errors when needed non-standard role columns are missing", {
-  holiday_rec <- recipe(~day, test_data) %>%
-    step_holiday(day, holidays = exp_dates$holiday) %>%
-    update_role(day, new_role = "potato") %>%
-    update_role_requirements(role = "potato", bake = FALSE)
+test_that("keep_original_cols - can prep recipes with it missing", {
+  rec <-  recipe(~day, test_data) %>%
+    step_holiday(all_predictors(), holidays = exp_dates$holiday)
 
-  holiday_rec <- prep(holiday_rec, training = test_data)
+  rec$steps[[1]]$keep_original_cols <- NULL
 
-  expect_error(bake(holiday_rec, exp_dates[, 2, drop = FALSE]),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    rec <- prep(rec)
+  )
+
+  expect_error(
+    bake(rec, new_data = test_data),
+    NA
+  )
+})
+
+test_that("printing", {
+  rec <- recipe(~day, test_data) %>%
+    step_holiday(all_predictors(), holidays = exp_dates$holiday)
+
+  expect_snapshot(print(rec))
+  expect_snapshot(prep(rec))
 })

@@ -1,9 +1,8 @@
 #' Distances to Class Centroids
 #'
-#' `step_classdist` creates a *specification* of a
-#'  recipe step that will convert numeric data into Mahalanobis
-#'  distance measurements to the data centroid. This is done for
-#'  each value of a categorical class variable.
+#' `step_classdist()` creates a *specification* of a recipe step that will
+#' convert numeric data into Mahalanobis distance measurements to the data
+#' centroid. This is done for each value of a categorical class variable.
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_center
@@ -21,11 +20,19 @@
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
-#' @details `step_classdist` will create a new column for every
-#'  unique value of the `class` variable.
-#'  The resulting variables will not replace the original values
-#'  and by default have the prefix `classdist_`. The naming format can be
-#'  changed using the `prefix` argument.
+#' @details `step_classdist` will create a new column for every unique value of
+#' the `class` variable. The resulting variables will not replace the original
+#' values and, by default, have the prefix `classdist_`. The naming format can
+#' be changed using the `prefix` argument.
+#'
+#' Class-specific centroids are the multivariate averages of each predictor
+#' using the data from each class in the training set. When pre-processing a
+#' new data point, this step computes the distance from the new point to each
+#' of the class centroids. These distance features can be very effective at
+#' capturing linear class boundaries. for this reason, they can be useful to
+#' add to an existing predictor set used within a nonlinear model. If the true
+#' boundary is actually linear, the model will have an easier time learning the
+#' training data patterns.
 #'
 #' Note that, by default, the default covariance function requires
 #'  that each class should have at least as many rows as variables
@@ -41,31 +48,35 @@
 #'
 #' @template case-weights-supervised
 #'
-#' @examples
+#' @examplesIf rlang::is_installed(c("modeldata"))
+#' data(penguins, package = "modeldata")
+#' penguins <- penguins[complete.cases(penguins), ]
+#' penguins$island <- NULL
+#' penguins$sex <- NULL
 #'
 #' # in case of missing data...
 #' mean2 <- function(x) mean(x, na.rm = TRUE)
 #'
 #' # define naming convention
-#' rec <- recipe(Species ~ ., data = iris) %>%
+#' rec <- recipe(species ~ ., data = penguins) %>%
 #'   step_classdist(all_numeric_predictors(),
-#'     class = "Species",
+#'     class = "species",
 #'     pool = FALSE, mean_func = mean2, prefix = "centroid_"
 #'   )
 #'
 #' # default naming
-#' rec <- recipe(Species ~ ., data = iris) %>%
+#' rec <- recipe(species ~ ., data = penguins) %>%
 #'   step_classdist(all_numeric_predictors(),
-#'     class = "Species",
+#'     class = "species",
 #'     pool = FALSE, mean_func = mean2
 #'   )
 #'
-#' rec_dists <- prep(rec, training = iris)
+#' rec_dists <- prep(rec, training = penguins)
 #'
-#' dists_to_species <- bake(rec_dists, new_data = iris, everything())
+#' dists_to_species <- bake(rec_dists, new_data = penguins, everything())
 #' ## on log scale:
 #' dist_cols <- grep("classdist", names(dists_to_species), value = TRUE)
-#' dists_to_species[, c("Species", dist_cols)]
+#' dists_to_species[, c("species", dist_cols)]
 #'
 #' tidy(rec, number = 1)
 #' tidy(rec_dists, number = 1)
@@ -80,6 +91,7 @@ step_classdist <- function(recipe,
                            log = TRUE,
                            objects = NULL,
                            prefix = "classdist_",
+                           keep_original_cols = TRUE,
                            skip = FALSE,
                            id = rand_id("classdist")) {
   if (!is.character(class) || length(class) != 1) {
@@ -98,6 +110,7 @@ step_classdist <- function(recipe,
       log = log,
       objects = objects,
       prefix = prefix,
+      keep_original_cols = keep_original_cols,
       skip = skip,
       id = id,
       case_weights = NULL
@@ -106,8 +119,8 @@ step_classdist <- function(recipe,
 }
 
 step_classdist_new <-
-  function(terms, class, role, trained, mean_func,
-           cov_func, pool, log, objects, prefix, skip, id, case_weights) {
+  function(terms, class, role, trained, mean_func, cov_func, pool, log, objects,
+           prefix, keep_original_cols, skip, id, case_weights) {
     step(
       subclass = "classdist",
       terms = terms,
@@ -120,6 +133,7 @@ step_classdist_new <-
       log = log,
       objects = objects,
       prefix = prefix,
+      keep_original_cols = keep_original_cols,
       skip = skip,
       id = id,
       case_weights = case_weights
@@ -200,6 +214,7 @@ prep.step_classdist <- function(x, training, info = NULL, ...) {
     log = x$log,
     objects = res,
     prefix = x$prefix,
+    keep_original_cols = get_keep_original_cols(x),
     skip = x$skip,
     id = x$id,
     case_weights = were_weights_used
@@ -227,29 +242,40 @@ mah_pooled <- function(means, x, cov_mat) {
 
 #' @export
 bake.step_classdist <- function(object, new_data, ...) {
+  col_names <- names(object$objects[[1]][[1]])
+  check_new_data(col_names, object, new_data)
+
+  if (length(col_names) == 0) {
+    return(new_data)
+  }
+
   if (object$pool) {
-    x_cols <- names(object$objects[["center"]][[1]])
-    check_new_data(x_cols, object, new_data)
-    res <- lapply(
+    new_values <- lapply(
       object$objects$center,
       mah_pooled,
-      x = new_data[, x_cols],
+      x = new_data[, col_names],
       cov_mat = object$objects$scale
     )
   } else {
-    x_cols <- names(object$objects[[1]]$center)
-    check_new_data(x_cols, object, new_data)
-    res <-
-      lapply(object$objects, mah_by_class, x = new_data[, x_cols])
+    new_values <- lapply(
+      object$objects,
+      mah_by_class,
+      x = new_data[, col_names]
+    )
   }
+
   if (object$log) {
-    res <- lapply(res, log)
+    new_values <- lapply(new_values, log)
   }
-  res <- as_tibble(res)
-  newname <- paste0(object$prefix, colnames(res))
-  res <- check_name(res, new_data, object, newname)
-  res <- bind_cols(new_data, res)
-  res
+  new_values <- tibble::new_tibble(new_values)
+
+  new_names <- paste0(object$prefix, colnames(new_values))
+  colnames(new_values) <- new_names
+
+  new_values <- check_name(new_values, new_data, object, new_names)
+  new_data <- vctrs::vec_cbind(new_data, new_values)
+  new_data <- remove_original_cols(new_data, object, col_names)
+  new_data
 }
 
 print.step_classdist <-
