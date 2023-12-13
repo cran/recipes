@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -484,10 +484,10 @@ formula, such as</p>
 model formulae</a>, using a <code>*</code> between two variables would
 expand to <code>a*b = a + b + a:b</code> so that the main effects are
 included. In <a href="https://recipes.tidymodels.org/reference/step_interact.html"><code>step_interact</code></a>,
-you can do use <code>*</code>, but only the interactions are recorded as
-columns that needs to be created.</p>
+you can use <code>*</code>, but only the interactions are recorded as
+columns that need to be created.</p>
 <p>One thing that <code>recipes</code> does differently than base R is
-to construct the design matrix in sequential iterations. This is
+it constructs the design matrix in sequential iterations. This is
 relevant when thinking about interactions between continuous and
 categorical predictors.</p>
 <p>For example, if you were to use the standard formula interface, the
@@ -508,12 +508,12 @@ interactions are created:</p>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; 101                              0                           6.3</span></span></code></pre></div>
 <p>With recipes, you create them sequentially. This raises an issue: do
 I have to type out all of the interaction effects by their specific
-names when using dummy variable?</p>
+names when using dummy variables?</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Must I do this?</span></span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>iris_rec <span class="sc">%&gt;%</span></span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">step_interact</span>( <span class="sc">~</span> Species_versicolor<span class="sc">:</span>Sepal.Length <span class="sc">+</span> </span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                   Species_virginica<span class="sc">:</span>Sepal.Length) </span></code></pre></div>
-<p>Note only is this a pain, but it may not be obvious what dummy
+<p>Not only is this a pain, but it may not be obvious what dummy
 variables are available (especially when <a href="https://recipes.tidymodels.org/reference/step_other.html"><code>step_other</code></a>
 is used).</p>
 <p>The solution is to use a selector:</p>
@@ -538,8 +538,8 @@ is used).</p>
 <p>What happens here is that <code>starts_with(&quot;Species&quot;)</code> is
 executed on the data that are available when the previous steps have
 been applied to the data. That means that the dummy variable columns are
-present. The results of this selectors are then translated to an
-additive function of the results. In this case, that means that</p>
+present. The results of this selector are then translated to an additive
+function of the results. In this case, that means that</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">starts_with</span>(<span class="st">&quot;Species&quot;</span>)</span></code></pre></div>
 <p>becomes</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>(Species_versicolor <span class="sc">+</span> Species_virginica)</span></code></pre></div>
@@ -598,7 +598,7 @@ will make sure that all <em>C</em> are produced:</p>
 <span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt; 1 setosa                  1                  0                 0</span></span>
 <span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt; 2 versicolor              0                  1                 0</span></span>
 <span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; 3 virginica               0                  0                 1</span></span></code></pre></div>
-<p>The option is named that way since this is that the computer
+<p>The option is named that way since this is what the computer
 scientists call <a href="https://www.google.com/search?q=one-hot+encoding">“one-hot
 encoding”</a>.</p>
 <p><strong><em>Warning!</em></strong> (again)</p>
@@ -645,7 +645,7 @@ it reverts back to the default encoding.</p>
 <p>When a recipe is used with new samples, some factors may have
 acquired new levels that were not present when <code>prep</code> was
 run. If <code>step_dummy</code> encounters this situation, a warning is
-issues (“There are new levels in a factor”) and the indicator variables
+issued (“There are new levels in a factor”) and the indicator variables
 that correspond to the factor are assigned missing values.</p>
 <p>One way around this is to use <code>step_other</code>. This step can
 convert infrequently occurring levels to a new category (that defaults

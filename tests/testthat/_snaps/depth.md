@@ -39,8 +39,8 @@
       rec <- prep(rec)
     Condition
       Warning:
-      'keep_original_cols' was added to `step_depth()` after this recipe was created.
-      Regenerate your recipe to avoid this warning.
+      `keep_original_cols` was added to `step_depth()` after this recipe was created.
+      i Regenerate your recipe to avoid this warning.
 
 # printing
 
@@ -75,5 +75,5 @@
       Training data contained 150 data points and no incomplete rows.
       
       -- Operations 
-      * Data depth by Species for: Sepal.Length, Sepal.Width, ... | Trained
+      * Data depth by Species for: Sepal.Length and Sepal.Width, ... | Trained
 

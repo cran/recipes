@@ -8,29 +8,39 @@ knitr::opts_chunk$set(
   )
 options(digits = 3)
 
-## ----credit-------------------------------------------------------------------
+## ----penguins-----------------------------------------------------------------
 library(recipes)
 library(modeldata)
 
-data("credit_data")
-str(credit_data)
+data("penguins")
+str(penguins)
 
-rec <- recipe(Status ~ Seniority + Time + Age + Records, data = credit_data)
+rec <- recipe(body_mass_g ~ ., data = penguins)
 rec
 
 ## ----var_info_orig------------------------------------------------------------
 summary(rec, original = TRUE)
 
+## ----var_info_orig_type-------------------------------------------------------
+summary(rec, original = TRUE)$type
+
 ## ----dummy_1------------------------------------------------------------------
-dummied <- rec %>% step_dummy(all_nominal())
+dummied <- rec %>% step_normalize(all_numeric())
 
 ## ----dummy_2------------------------------------------------------------------
-dummied <- rec %>% step_dummy(Records) # or
-dummied <- rec %>% step_dummy(all_nominal(), - Status) # or
-dummied <- rec %>% step_dummy(all_nominal_predictors()) 
+dummied <- rec %>% step_normalize(bill_length_mm, bill_depth_mm, 
+                                  flipper_length_mm) # or
+dummied <- rec %>% step_normalize(all_numeric(), - body_mass_g) # or
+dummied <- rec %>% step_normalize(all_numeric_predictors()) # recommended
+
+## -----------------------------------------------------------------------------
+rec %>%
+  step_dummy(sex) %>%
+  prep() %>%
+  juice()
 
 ## ----dummy_3------------------------------------------------------------------
-dummied <- prep(dummied, training = credit_data)
-with_dummy <- bake(dummied, new_data = credit_data)
+dummied <- prep(dummied, training = penguins)
+with_dummy <- bake(dummied, new_data = penguins)
 with_dummy
 

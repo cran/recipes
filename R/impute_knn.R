@@ -34,9 +34,15 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables for imputation), `predictors`
-#' (those variables used to impute), and `neighbors` is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `predictors`, `neighbors` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{predictors}{character, selected predictors used to impute}
+#'   \item{neighbors}{integer, number of neighbors}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' ```{r, echo = FALSE, results="asis"}
 #' step <- "step_impute_knn"
@@ -102,16 +108,18 @@ step_impute_knn <-
            skip = FALSE,
            id = rand_id("impute_knn")) {
     if (is.null(impute_with)) {
-      rlang::abort("Please list some variables in `impute_with`")
+      cli::cli_abort("{.arg impute_with} must not be empty.")
     }
 
     if (!is.list(options)) {
-      rlang::abort("`options` should be a named list.")
+      cli::cli_abort("{.arg options} should be a named list.")
     }
     opt_nms <- names(options)
     if (length(options) > 0) {
       if (any(!(opt_nms %in% c("eps", "nthread")))) {
-        rlang::abort("Availible options are 'eps', and 'nthread'.")
+        cli::cli_abort(
+          "Valid values for {.arg options} are {.val eps}, and {.val nthread}."
+        )
       }
       if (all(opt_nms != "nthread")) {
         options$nthread <- 1
@@ -268,7 +276,7 @@ bake.step_impute_knn <- function(object, new_data, ...) {
     imp_data <- old_data[missing_rows, preds, drop = FALSE]
     ## do a better job of checking this:
     if (all(is.na(imp_data))) {
-      rlang::warn("All predictors are missing; cannot impute")
+      cli::cli_warn("All predictors are missing; cannot impute.")
     } else {
       imp_var_complete <- !is.na(object$ref_data[[col_name]])
       nn_ind <- nn_index(

@@ -5,8 +5,8 @@
     Condition
       Error in `step_indicate_na()`:
       Caused by error in `bake()`:
-      ! Name collision occured. The following variable names already exists:
-      i  na_ind_mpg
+      ! Name collision occurred. The following variable names already exist:
+      * `na_ind_mpg`
 
 # empty printing
 
@@ -49,8 +49,8 @@
       rec <- prep(rec)
     Condition
       Warning:
-      'keep_original_cols' was added to `step_indicate_na()` after this recipe was created.
-      Regenerate your recipe to avoid this warning.
+      `keep_original_cols` was added to `step_indicate_na()` after this recipe was created.
+      i Regenerate your recipe to avoid this warning.
 
 # printing
 
@@ -85,5 +85,5 @@
       Training data contained 153 data points and 42 incomplete rows.
       
       -- Operations 
-      * Creating missing data variable indicators for: Solar.R, Wind, ... | Trained
+      * Creating missing data variable indicators for: Solar.R, ... | Trained
 

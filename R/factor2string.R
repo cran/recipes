@@ -1,4 +1,4 @@
-#' Convert Factors to Strings
+#' Convert factors to strings
 #'
 #' `step_factor2string()` creates a *specification* of a recipe step that will
 #' convert one or more factor vectors to strings.
@@ -8,15 +8,25 @@
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @export
-#' @details `prep` has an option `strings_as_factors` that defaults to `TRUE`.
-#'   If this step is used with the default option, the string(s() produced by
-#'   this step will be converted to factors after all of the steps have been
-#'   prepped.
+#' @details
+#'
+#' [prep()] has an option `strings_as_factors` that defaults to `TRUE`. If this
+#' step is used with the default option, the strings produced by this step will
+#' not be converted to factors.
+#'
+#' Remember that categorical data that will be directly passed to a model should
+#' be encoded as factors. This step is helpful for ancillary columns (such as
+#' identifiers) that will not be computed on in the model.
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns `terms`
-#' (the columns that will be affected) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms` and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'

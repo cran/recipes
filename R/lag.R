@@ -18,8 +18,13 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
-#' `terms` (the columns that will be affected) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms` and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -92,7 +97,10 @@ step_lag_new <-
 #' @export
 prep.step_lag <- function(x, training, info = NULL, ...) {
   if (!all(x$lag == as.integer(x$lag))) {
-    rlang::abort("step_lag() requires 'lag' argument to be integer-valued.")
+    cli::cli_abort(
+      "{.arg lag} argument must be integer-valued, \\
+      not {.obj_type_friendly {lag}}."
+    )
   }
 
   step_lag_new(

@@ -4,7 +4,8 @@
       rec %>% step_regex(description, rows, pattern = "(rock|stony)")
     Condition
       Error in `step_regex()`:
-      ! For this step, at most a single selector can be used.
+      x For this step, only a single selector can be used.
+      i The following 2 selectors were used: `~description` and `~rows`.
 
 ---
 
@@ -13,7 +14,8 @@
     Condition
       Error in `step_regex()`:
       Caused by error in `prep()`:
-      ! All columns selected for the step should be string, factor, or ordered.
+      x All columns selected for the step should be string, factor, or ordered.
+      * 1 integer variable found: `rows`
 
 # check_name() is used
 
@@ -22,8 +24,8 @@
     Condition
       Error in `step_regex()`:
       Caused by error in `bake()`:
-      ! Name collision occured. The following variable names already exists:
-      i  Sepal.Width
+      ! Name collision occurred. The following variable names already exist:
+      * `Sepal.Width`
 
 # empty printing
 
@@ -66,8 +68,8 @@
       rec <- prep(rec)
     Condition
       Warning:
-      'keep_original_cols' was added to `step_regex()` after this recipe was created.
-      Regenerate your recipe to avoid this warning.
+      `keep_original_cols` was added to `step_regex()` after this recipe was created.
+      i Regenerate your recipe to avoid this warning.
 
 # printing
 

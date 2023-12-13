@@ -24,9 +24,14 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the columns that will be affected) and `value` (the factor
-#'  levels that is used for the new value) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `value` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{statistic}{character, the factor levels for the new values}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -95,11 +100,9 @@ prep.step_unknown <- function(x, training, info = NULL, ...) {
   level_check <-
     map_lgl(objects, function(x, y) y %in% x, y = x$new_level)
   if (any(level_check)) {
-    rlang::abort(
-      paste0(
-        "Columns already contain a level '", x$new_level, "': ",
-        paste0(names(level_check)[level_check], collapse = ", ")
-      )
+    offenders <- names(level_check)[level_check]
+    cli::cli_abort(
+      "Columns already contain the level {.val {x$new_level}}: {offenders}."
     )
   }
 
@@ -132,10 +135,12 @@ bake.step_unknown <- function(object, new_data, ...) {
       warn_new_levels(
         new_data[[col_name]],
         new_levels,
-        paste0(
-          "\nNew levels will be coerced to `NA` by `step_unknown()`.",
-          "\nConsider using `step_novel()` before `step_unknown()`."
+        c(
+          "*" = "New levels will be coerced to `NA` by {.fn step_unknown}.",
+          "i" = "Consider using {.help [?step_novel](recipes::step_novel)} \\
+                before {.fn step_unknown}."
         )
+
       )
     }
 

@@ -37,11 +37,16 @@
 #'  As of `recipes` 0.1.16, this function name changed from `step_rollimpute()`
 #'    to `step_impute_roll()`.
 #'
-#'  # Tidying
+#' # Tidying
 #'
-#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#'  `terms` (the selectors or variables selected) and `window`
-#'  (the window size) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `window` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{window}{integer, window size}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' ```{r, echo = FALSE, results="asis"}
 #' step <- "step_impute_roll"
@@ -85,7 +90,7 @@ step_impute_roll <-
            id = rand_id("impute_roll")) {
     if (!is_tune(window)) {
       if (window < 3 | window %% 2 != 1) {
-        rlang::abort("`window` should be an odd integer >= 3")
+        cli::cli_abort("{.arg window} should be an odd integer >= 3.")
       }
       window <- as.integer(floor(window))
     }

@@ -1,4 +1,4 @@
-#' Create Interaction Variables
+#' Create interaction variables
 #'
 #' `step_interact()` creates a *specification* of a recipe step that will create
 #' new columns that are interaction terms between two or more variables.
@@ -50,8 +50,13 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with column
-#' `terms` (the interaction effects) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms` and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -151,7 +156,9 @@ prep.step_interact <- function(x, training, info = NULL, ...) {
     } else {
       tmp_terms <- rlang::eval_tidy(x$terms[[1]])
       if (!is_formula(tmp_terms)) {
-        rlang::abort("`term` must be a formula.")
+        cli::cli_abort(
+          "{.arg term} must be a formula. Not {.obj_type_friendly {term}}."
+        )
       }
     }
 
@@ -199,13 +206,11 @@ prep.step_interact <- function(x, training, info = NULL, ...) {
       unique(unlist(lapply(make_new_formula(int_terms), all.vars)))
     var_check <- info[info$variable %in% vars, ]
     if (any(var_check$type == "nominal")) {
-      rlang::warn(
-        paste0(
-          "Categorical variables used in `step_interact` should probably be ",
-          "avoided;  This can lead to differences in dummy variable values that ",
-          "are produced by `step_dummy`. Please convert all involved variables ",
-          "to dummy variables first."
-        )
+      cli::cli_warn(
+        "Categorical variables used in {.fn step_interact} should probably be \\
+        avoided; This can lead to differences in dummy variable values that \\
+        are produced by {.help [?step_dummy](recipes::step_dummy)}. Please \\
+        convert all involved variables to dummy variables first."
       )
     }
 
@@ -318,13 +323,11 @@ get_term_names <- function(form, vnames) {
     silent = TRUE
   )
   if (inherits(nms, "try-error")) {
-    rlang::warn(
-      paste0(
-        "Interaction specification failed for: ",
-        deparse(form),
-        ". No interactions will be created."
-      )
-    )
+    cli::cli_warn(c(
+      "!" = "Interaction specification failed for:",
+      "*" = deparse(form),
+      "i" = "No interactions will be created"
+    ))
     return(rlang::na_chr)
   }
   nms <- nms[nms != "(Intercept)"]
@@ -394,7 +397,7 @@ find_selectors <- function(f) {
     list()
   } else {
     # User supplied incorrect input
-    rlang::abort(paste0("Don't know how to handle type ", typeof(f), "."))
+    cli::cli_abort("Don't know how to handle type {typeof(f)}.")
   }
 }
 
@@ -411,7 +414,7 @@ replace_selectors <- function(x, elem, value) {
     map_pairlist(x, replace_selectors, elem, value)
   } else {
     # User supplied incorrect input
-    rlang::abort(paste0("Don't know how to handle type ", typeof(x), "."))
+    cli::cli_abort("Don't know how to handle type {typeof(f)}.")
   }
 }
 

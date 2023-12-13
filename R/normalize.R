@@ -21,12 +21,17 @@
 #'  `prep.recipe`. [`bake.recipe`] then applies the scaling to new data sets using
 #'  these estimates.
 #'
-#'  # Tidying
+#' # Tidying
 #'
-#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#'  `terms` (the selectors or variables selected), `value` (the standard
-#'  deviations and means), and `statistic` for the type of value is
-#'  returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `statistic`, `value` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{statistic}{character, name of statistic (`"mean"` or `"sd"`)}
+#'   \item{value}{numeric, value of the `statistic`}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-unsupervised
 #'
@@ -106,16 +111,26 @@ step_normalize_new <-
 sd_check <- function(x) {
   zero_sd <- which(x < .Machine$double.eps)
   if (length(zero_sd) > 0) {
-    glue_cols <- glue::glue_collapse(
-      glue("`{names(zero_sd)}`"), sep = ", ", last = " and "
-    )
-    rlang::warn(
-      glue(
-        "Column(s) have zero variance so scaling cannot be used: {glue_cols}. ",
-        "Consider using `step_zv()` to remove those columns before normalizing"
-      )
-    )
+    offenders <- names(zero_sd)
+
+    cli::cli_warn(c(
+      "!" = "{cli::qty(offenders)} The following column{?s} {?has/have} zero \\
+            variance so scaling cannot be used: {offenders}.",
+      "i" = "Consider using {.help [?step_zv](recipes::step_zv)} to remove \\
+            those columns before normalizing."
+    ))
+
     x[zero_sd] <- 1
+  }
+
+  na_sd <- which(is.na(x))
+  if (length(na_sd) > 0) {
+    cli::cli_warn(
+        "Column{?s} {.var {names(na_sd)}} returned NaN, because variance \\
+        cannot be calculated and scaling cannot be used. Consider avoiding \\
+        `Inf` or `-Inf` values and/or setting `na_rm = TRUE` before \\
+        normalizing."
+    )
   }
   x
 }

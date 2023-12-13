@@ -1,4 +1,4 @@
-#' Convert Numbers to Factors
+#' Convert numbers to factors
 #'
 #' `step_num2factor()` will convert one or more numeric vectors to factors
 #' (ordered or unordered). This can be useful when categories are encoded as
@@ -19,8 +19,14 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables selected) and `ordered` is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `ordered` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{ordered}{logical, were the factor(s) ordered}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -92,13 +98,14 @@ step_num2factor <-
            skip = FALSE,
            id = rand_id("num2factor")) {
     if (!is_tune(ordered)) {
-      if (!is.logical(ordered) || length(ordered) != 1) {
-        rlang::abort("`ordered` should be a single logical variable")
-      }
+      check_bool(ordered)
     }
 
     if (rlang::is_missing(levels) || !is.character(levels)) {
-      rlang::abort("Please provide a character vector of appropriate length for `levels`.")
+      cli::cli_abort(
+        "Please provide a character vector of appropriate length for \\
+        {.arg levels}."
+      )
     }
 
     add_step(

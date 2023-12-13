@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -351,79 +351,136 @@ be used to select which variables or features should be used.</p>
 <p>The manual pages for <code>?selections</code> and
 <code>?has_role</code> have details about the available selection
 methods.</p>
-<p>To illustrate this, the credit data will be used:</p>
+<p>To illustrate this, the palmer penguins data will be used:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(recipes)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(modeldata)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;credit_data&quot;</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">str</span>(credit_data)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    4454 obs. of  14 variables:</span></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt;  $ Status   : Factor w/ 2 levels &quot;bad&quot;,&quot;good&quot;: 2 2 1 2 2 2 2 2 2 1 ...</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt;  $ Seniority: int  9 17 10 0 0 1 29 9 0 0 ...</span></span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt;  $ Home     : Factor w/ 6 levels &quot;ignore&quot;,&quot;other&quot;,..: 6 6 3 6 6 3 3 4 3 4 ...</span></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt;  $ Time     : int  60 60 36 60 36 60 60 12 60 48 ...</span></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt;  $ Age      : int  30 58 46 24 26 36 44 27 32 41 ...</span></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt;  $ Marital  : Factor w/ 5 levels &quot;divorced&quot;,&quot;married&quot;,..: 2 5 2 4 4 2 2 4 2 2 ...</span></span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&gt;  $ Records  : Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 1 1 2 1 1 1 1 1 1 1 ...</span></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&gt;  $ Job      : Factor w/ 4 levels &quot;fixed&quot;,&quot;freelance&quot;,..: 2 1 2 1 1 1 1 1 2 4 ...</span></span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt;  $ Expenses : int  73 48 90 63 46 75 75 35 90 90 ...</span></span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&gt;  $ Income   : int  129 131 200 182 107 214 125 80 107 80 ...</span></span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co">#&gt;  $ Assets   : int  0 0 3000 2500 0 3500 10000 0 15000 0 ...</span></span>
-<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="co">#&gt;  $ Debt     : int  0 0 0 0 0 0 0 0 0 0 ...</span></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co">#&gt;  $ Amount   : int  800 1000 2000 900 310 650 1600 200 1200 1200 ...</span></span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co">#&gt;  $ Price    : int  846 1658 2985 1325 910 1645 1800 1093 1957 1468 ...</span></span>
-<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>(Status <span class="sc">~</span> Seniority <span class="sc">+</span> Time <span class="sc">+</span> Age <span class="sc">+</span> Records, <span class="at">data =</span> credit_data)</span>
-<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>rec</span></code></pre></div>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;penguins&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">str</span>(penguins)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; tibble [344 × 7] (S3: tbl_df/tbl/data.frame)</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt;  $ species          : Factor w/ 3 levels &quot;Adelie&quot;,&quot;Chinstrap&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt;  $ island           : Factor w/ 3 levels &quot;Biscoe&quot;,&quot;Dream&quot;,..: 3 3 3 3 3 3 3 3 3 3 ...</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt;  $ bill_length_mm   : num [1:344] 39.1 39.5 40.3 NA 36.7 39.3 38.9 39.2 34.1 42 ...</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt;  $ bill_depth_mm    : num [1:344] 18.7 17.4 18 NA 19.3 20.6 17.8 19.6 18.1 20.2 ...</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt;  $ flipper_length_mm: int [1:344] 181 186 195 NA 193 190 181 195 193 190 ...</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt;  $ body_mass_g      : int [1:344] 3750 3800 3250 NA 3450 3650 3625 4675 3475 4250 ...</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&gt;  $ sex              : Factor w/ 2 levels &quot;female&quot;,&quot;male&quot;: 2 1 1 NA 1 2 1 2 NA NA ...</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>(body_mass_g <span class="sc">~</span> ., <span class="at">data =</span> penguins)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>rec</span></code></pre></div>
 <p>Before any steps are used the information on the original variables
 is:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">summary</span>(rec, <span class="at">original =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 5</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt;   variable  type      role      source   required_to_bake</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;     &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;    &lt;lgl&gt;           </span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt; 1 Seniority &lt;chr [2]&gt; predictor original TRUE            </span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 2 Time      &lt;chr [2]&gt; predictor original TRUE            </span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 3 Age       &lt;chr [2]&gt; predictor original TRUE            </span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 4 Records   &lt;chr [3]&gt; predictor original TRUE            </span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 5 Status    &lt;chr [3]&gt; outcome   original FALSE</span></span></code></pre></div>
-<p>We can add a step to compute dummy variables on the non-numeric data
-after we impute any missing data:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_dummy</span>(<span class="fu">all_nominal</span>())</span></code></pre></div>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 7 × 5</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt;   variable          type      role      source   required_to_bake</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;             &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;    &lt;lgl&gt;           </span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt; 1 species           &lt;chr [3]&gt; predictor original TRUE            </span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 2 island            &lt;chr [3]&gt; predictor original TRUE            </span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 3 bill_length_mm    &lt;chr [2]&gt; predictor original TRUE            </span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 4 bill_depth_mm     &lt;chr [2]&gt; predictor original TRUE            </span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 5 flipper_length_mm &lt;chr [2]&gt; predictor original TRUE            </span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 6 sex               &lt;chr [3]&gt; predictor original TRUE            </span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 7 body_mass_g       &lt;chr [2]&gt; outcome   original FALSE</span></span></code></pre></div>
+<p>This shows the types and roles. Each variable can have one or more
+types, so we can printing them out seperately</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">summary</span>(rec, <span class="at">original =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>type</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;factor&quot;    &quot;unordered&quot; &quot;nominal&quot;  </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; [1] &quot;factor&quot;    &quot;unordered&quot; &quot;nominal&quot;  </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; [1] &quot;double&quot;  &quot;numeric&quot;</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; [[4]]</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;double&quot;  &quot;numeric&quot;</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; [[5]]</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;integer&quot; &quot;numeric&quot;</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; [[6]]</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; [1] &quot;factor&quot;    &quot;unordered&quot; &quot;nominal&quot;  </span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; [[7]]</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; [1] &quot;integer&quot; &quot;numeric&quot;</span></span></code></pre></div>
+<p>Notice that integer variables have roles <code>&quot;integer&quot;</code> and
+<code>&quot;numeric&quot;</code>, and the factor variables have roles
+<code>&quot;factor&quot;</code>, <code>&quot;unordered&quot;</code>, <code>&quot;nominal&quot;</code>.
+This allows for some neat selections where the selector
+<code>all_numeric()</code> select double and integer variables, and more
+specific selectors such as <code>all_integer()</code> only select
+integer variables. A full hierarchy of types can be seen in
+<code>?has_role</code>.</p>
+<p>We can add a step to normalize numeric data:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>())</span></code></pre></div>
 <p>This will capture <em>any</em> variables that are either character
-strings or factors: <code>Status</code> and <code>Records</code>.
-However, since <code>Status</code> is our outcome, we might want to keep
-it as a factor so we can <em>subtract</em> that variable out either by
-name or by role:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_dummy</span>(Records) <span class="co"># or</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_dummy</span>(<span class="fu">all_nominal</span>(), <span class="sc">-</span> Status) <span class="co"># or</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) </span></code></pre></div>
+integers or doubles: <code>bill_length_mm</code>,
+<code>bill_depth_mm</code>, <code>flipper_length_mm</code> and
+<code>body_mass_g</code>. However, since <code>body_mass_g</code> is our
+outcome, we might want to keep it as a factor so we can
+<em>subtract</em> that variable out either by name or by role:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(bill_length_mm, bill_depth_mm, </span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                                  flipper_length_mm) <span class="co"># or</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>(), <span class="sc">-</span> body_mass_g) <span class="co"># or</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>()) <span class="co"># recommended</span></span></code></pre></div>
+<p>Whenever possible, it is recommended to use the more specific
+<code>*_predictors()</code> variants to avoid accidentally selecting the
+outcomes.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>rec <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">step_dummy</span>(sex) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">prep</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">juice</span>()</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; Warning: ! There are new levels in a factor: NA</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 344 × 7</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;    species island    bill_length_mm bill_depth_mm flipper_length_mm body_mass_g</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;    &lt;fct&gt;   &lt;fct&gt;              &lt;dbl&gt;         &lt;dbl&gt;             &lt;int&gt;       &lt;int&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  1 Adelie  Torgersen           39.1          18.7               181        3750</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  2 Adelie  Torgersen           39.5          17.4               186        3800</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  3 Adelie  Torgersen           40.3          18                 195        3250</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  4 Adelie  Torgersen           NA            NA                  NA          NA</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  5 Adelie  Torgersen           36.7          19.3               193        3450</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  6 Adelie  Torgersen           39.3          20.6               190        3650</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  7 Adelie  Torgersen           38.9          17.8               181        3625</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  8 Adelie  Torgersen           39.2          19.6               195        4675</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  9 Adelie  Torgersen           34.1          18.1               193        3475</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; 10 Adelie  Torgersen           42            20.2               190        4250</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; # ℹ 334 more rows</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: sex_X1 &lt;dbl&gt;</span></span></code></pre></div>
 <p>Using the last definition:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> <span class="fu">prep</span>(dummied, <span class="at">training =</span> credit_data)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>with_dummy <span class="ot">&lt;-</span> <span class="fu">bake</span>(dummied, <span class="at">new_data =</span> credit_data)</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>with_dummy</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4,454 × 5</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;    Seniority  Time   Age Status Records_X1</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;        &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;fct&gt;       &lt;dbl&gt;</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;  1         9    60    30 good           -1</span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;  2        17    60    58 good           -1</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;  3        10    36    46 bad             1</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;  4         0    60    24 good           -1</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;  5         0    36    26 good           -1</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;  6         1    60    36 good           -1</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  7        29    60    44 good           -1</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;  8         9    12    27 good           -1</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;  9         0    60    32 good           -1</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; 10         0    48    41 bad            -1</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; # ℹ 4,444 more rows</span></span></code></pre></div>
-<p><code>Status</code> is unaffected.</p>
-<p>One important aspect about selecting variables in steps is that the
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> <span class="fu">prep</span>(dummied, <span class="at">training =</span> penguins)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>with_dummy <span class="ot">&lt;-</span> <span class="fu">bake</span>(dummied, <span class="at">new_data =</span> penguins)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>with_dummy</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; # A tibble: 344 × 7</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt;    species island    bill_length_mm bill_depth_mm flipper_length_mm sex   </span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt;    &lt;fct&gt;   &lt;fct&gt;              &lt;dbl&gt;         &lt;dbl&gt;             &lt;dbl&gt; &lt;fct&gt; </span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;  1 Adelie  Torgersen         -0.883         0.784            -1.42  male  </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt;  2 Adelie  Torgersen         -0.810         0.126            -1.06  female</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;  3 Adelie  Torgersen         -0.663         0.430            -0.421 female</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt;  4 Adelie  Torgersen         NA            NA                NA     &lt;NA&gt;  </span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt;  5 Adelie  Torgersen         -1.32          1.09             -0.563 female</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt;  6 Adelie  Torgersen         -0.847         1.75             -0.776 male  </span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt;  7 Adelie  Torgersen         -0.920         0.329            -1.42  female</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt;  8 Adelie  Torgersen         -0.865         1.24             -0.421 male  </span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt;  9 Adelie  Torgersen         -1.80          0.480            -0.563 &lt;NA&gt;  </span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; 10 Adelie  Torgersen         -0.352         1.54             -0.776 &lt;NA&gt;  </span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; # ℹ 334 more rows</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: body_mass_g &lt;int&gt;</span></span></code></pre></div>
+<p><code>body_mass_g</code> is unaffected.</p>
+<p>One important aspect of selecting variables in steps is that the
 variable names and types may change as steps are being executed. In the
-above example, <code>Records</code> is a factor variable before the step
-is executed. Afterwards, <code>Records</code> is gone and the binary
-variable <code>Records_yes</code> is in its place. One reason to have
-general selection routines like <code>all_predictors()</code> or
-<code>contains()</code> is to be able to select variables that have not
-be created yet.</p>
+above example, <code>sex</code> is a factor variable, if
+<code>step_dummy()</code> was used on it, then <code>sex</code> would be
+removed and the binary variable <code>sex_male</code> is in its place.
+One reason to have general selection routines like
+<code>all_predictors()</code> or <code>contains()</code> is to be able
+to select variables that have not been created yet.</p>
+<p>All steps in the recipes package support empty selections. Meaning
+that if <code>all_date_predictors()</code> is used in a step, and no
+date variables was found the in the data set, then the step is applied
+without error. The calculations inside the step will be skipped. This
+allows for quite relaxed recipes as you don’t have to make sure that the
+variables exists at that point in the recipe.</p>
 
 
 

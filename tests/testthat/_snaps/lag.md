@@ -5,7 +5,7 @@
     Condition
       Error in `step_lag()`:
       Caused by error in `prep()`:
-      ! step_lag() requires 'lag' argument to be integer-valued.
+      ! `lag` argument must be integer-valued, not a function.
 
 # empty printing
 
@@ -48,8 +48,8 @@
       rec <- prep(rec)
     Condition
       Warning:
-      'keep_original_cols' was added to `step_lag()` after this recipe was created.
-      Regenerate your recipe to avoid this warning.
+      `keep_original_cols` was added to `step_lag()` after this recipe was created.
+      i Regenerate your recipe to avoid this warning.
 
 # printing
 

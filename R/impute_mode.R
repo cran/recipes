@@ -23,9 +23,14 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables selected) and `model` (the mode
-#' value) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `value` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{value}{character, the mode value}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-unsupervised
 #'
@@ -160,12 +165,11 @@ bake.step_impute_mode <- function(object, new_data, ...) {
       next
     }
     if (is.null(object$ptype)) {
-      rlang::warn(
-        paste0(
-          "'ptype' was added to `step_impute_mode()` after this recipe was created.\n",
-          "Regenerate your recipe to avoid this warning."
-        )
-      )
+      cli::cli_warn(c(
+        "!" = "{.arg ptype} was added to {.fn step_impute_mode} after this \\
+              recipe was created.",
+        "i" = "Regenerate your recipe to avoid this warning."
+      ))
     } else {
       new_data[[col_name]] <- vctrs::vec_cast(
         new_data[[col_name]],
@@ -198,8 +202,9 @@ print.step_modeimpute <- print.step_impute_mode
 
 mode_est <- function(x, wts = NULL, call = caller_env(2)) {
   if (!is.character(x) & !is.factor(x))
-    rlang::abort(
-      "The data should be character or factor to compute the mode.",
+    cli::cli_abort(
+      "The data should be character or factor to compute the mode. \\
+      Not {.obj_type_friendly {x}}.",
       call = call
     )
   tab <- weighted_table(x, wts = wts)

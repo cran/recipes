@@ -1,4 +1,4 @@
-#' Create Counts of Patterns using Regular Expressions
+#' Create counts of patterns using regular expressions
 #'
 #' `step_count()` creates a *specification* of a recipe step that will create a
 #' variable that counts instances of a regular expression pattern in text.
@@ -26,9 +26,14 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables selected) and `result` (the
-#' new column name) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `result` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{result}{character, the new column names}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -61,23 +66,24 @@ step_count <- function(recipe,
                        keep_original_cols = TRUE,
                        skip = FALSE,
                        id = rand_id("count")) {
-  if (!is.character(pattern)) {
-    rlang::abort("`pattern` should be a character string")
-  }
-  if (length(pattern) != 1) {
-    rlang::abort("`pattern` should be a single pattern")
-  }
+  check_string(pattern)
+
   valid_args <- names(formals(grepl))[-(1:2)]
   if (any(!(names(options) %in% valid_args))) {
-    rlang::abort(paste0(
-      "Valid options are: ",
-      paste0(valid_args, collapse = ", ")
+    cli::cli_abort(c(
+      "x" = "The following elements of {.arg options} are not allowed:",
+      "*" = "{.val {setdiff(names(options), valid_args)}}.",
+      "i" = "Valid options are: {.val {valid_args}}."
     ))
   }
 
   terms <- enquos(...)
   if (length(terms) > 1) {
-    rlang::abort("For this step, only a single selector can be used.")
+    cli::cli_abort(c(
+      x = "For this step, only a single selector can be used.",
+      i = "The following {length(terms)} selectors were used: \\
+          {.var {as.character(terms)}}."
+    ))
   }
 
   add_step(
@@ -123,7 +129,11 @@ prep.step_count <- function(x, training, info = NULL, ...) {
   check_type(training[, col_name], types = c("string", "factor", "ordered"))
 
   if (length(col_name) > 1) {
-    rlang::abort("The selector should select at most a single variable")
+    cli::cli_abort(c(
+      x = "The selector should select at most a single variable.",
+      i = "The following {length(col_name)} were selected: \\
+          {.and {.var {col_name}}}."
+    ))
   }
 
   step_count_new(

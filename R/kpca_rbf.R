@@ -1,4 +1,4 @@
-#' Radial Basis Function Kernel PCA Signal Extraction
+#' Radial basis function kernel PCA signal extraction
 #'
 #' `step_kpca_rbf()` creates a *specification* of a recipe step that will
 #' convert numeric data into one or more principal components using a radial
@@ -22,6 +22,16 @@
 #' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
 #' cat(result)
 #' ```
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms` and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -121,7 +131,10 @@ prep.step_kpca_rbf <- function(x, training, info = NULL, ...) {
       )
     kprc <- try(rlang::eval_tidy(cl), silent = TRUE)
     if (inherits(kprc, "try-error")) {
-      rlang::abort(paste0("`step_kpca_rbf` failed with error:\n", as.character(kprc)))
+      cli::cli_abort(c(
+        x = "Failed with error:",
+        i = as.character(kprc)
+      ))
     }
   } else {
     kprc <- NULL

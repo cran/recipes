@@ -5,8 +5,8 @@
     Condition
       Error in `step_poly()`:
       Caused by error in `bake()`:
-      ! Name collision occured. The following variable names already exists:
-      i  mpg_poly_1
+      ! Name collision occurred. The following variable names already exist:
+      * `mpg_poly_1`
 
 # empty printing
 
@@ -49,8 +49,8 @@
       rec <- prep(rec)
     Condition
       Warning:
-      'keep_original_cols' was added to `step_poly()` after this recipe was created.
-      Regenerate your recipe to avoid this warning.
+      `keep_original_cols` was added to `step_poly()` after this recipe was created.
+      i Regenerate your recipe to avoid this warning.
 
 # printing
 
@@ -66,7 +66,7 @@
       predictor: 5
       
       -- Operations 
-      * Orthogonal polynomials on: carbon, hydrogen
+      * Orthogonal polynomials on: carbon and hydrogen
 
 ---
 
@@ -85,5 +85,5 @@
       Training data contained 456 data points and no incomplete rows.
       
       -- Operations 
-      * Orthogonal polynomials on: carbon, hydrogen | Trained
+      * Orthogonal polynomials on: carbon and hydrogen | Trained
 

@@ -23,9 +23,14 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables selected) and `model` (the mean
-#' value) is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `value` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{value}{numeric, the mean value}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' ```{r, echo = FALSE, results="asis"}
 #' step <- "step_impute_mean"
@@ -136,12 +141,14 @@ trim <- function(x, trim) {
   # Adapted from mean.default
   x <- sort(x, na.last = TRUE)
   na_ind <- is.na(x)
-  if (!is.numeric(trim) || length(trim) != 1L)
-    stop("'trim' must be numeric of length one")
+  if (!is.numeric(trim) || length(trim) != 1L) {
+    cli::cli_abort("{.arg trim} must be numeric of length one.")
+  }
   n <- length(x[!na_ind])
   if (trim > 0 && n) {
-    if (is.complex(x))
-      stop("trimmed means are not defined for complex data")
+    if (is.complex(x)) {
+      cli::cli_abort("Trimmed means are not defined for complex data.")
+    }
     if (trim >= 0.5)
       return(stats::median(x[!na_ind], na.rm = FALSE))
     lo <- floor(n * trim) + 1
@@ -163,7 +170,8 @@ prep.step_impute_mean <- function(x, training, info = NULL, ...) {
     wts <- NULL
   }
 
-  trimmed <- purrr::map_dfc(training[, col_names], trim, x$trim)
+  trimmed <- purrr::map(training[, col_names], trim, x$trim)
+  trimmed <- vctrs::vec_cbind(!!!trimmed)
 
   means <- averages(trimmed, wts = wts)
   means <- purrr::map2(means, trimmed, cast)

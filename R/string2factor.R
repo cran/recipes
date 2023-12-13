@@ -1,4 +1,4 @@
-#' Convert Strings to Factors
+#' Convert strings to factors
 #'
 #' @description
 #' `step_string2factor()` will convert one or more character vectors to factors
@@ -44,11 +44,16 @@
 #'  data will be applied to `step_string2factor()`. However, this step
 #'  can also take existing factors (but will leave them as-is).
 #'
-#'  # Tidying
+#' # Tidying
 #'
-#'  When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#'  `terms` (the selectors or variables selected) and `ordered` is
-#'  returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `ordered` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{ordered}{logical, are factors ordered}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -83,14 +88,11 @@ step_string2factor <-
            ordered = FALSE,
            skip = FALSE,
            id = rand_id("string2factor")) {
+
     if (!is_tune(ordered)) {
-      if (!is.logical(ordered) || length(ordered) != 1) {
-        rlang::abort("`ordered` should be a single logical variable")
-      }
+      check_bool(ordered)
     }
-    if ((!is.null(levels) & !is.character(levels)) | is.list(levels)) {
-      rlang::abort("`levels` should be NULL or a single character vector")
-    }
+    check_character(levels, allow_null = TRUE)
 
     add_step(
       recipe,

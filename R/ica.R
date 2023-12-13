@@ -1,4 +1,4 @@
-#' ICA Signal Extraction
+#' ICA signal extraction
 #'
 #' `step_ica()` creates a *specification* of a recipe step that will convert
 #' numeric data into one or more independent components.
@@ -41,9 +41,15 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables selected), `value` (the loading),
-#' and `component` is returned.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `component`, `value` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{component}{character, name of component}
+#'   \item{value}{numeric, the loading}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' ```{r, echo = FALSE, results="asis"}
 #' step <- "step_ica"
@@ -155,11 +161,14 @@ prep.step_ica <- function(x, training, info = NULL, ...) {
     indc <- try(withr::with_seed(x$seed, rlang::eval_tidy(cl)), silent = TRUE)
 
     if (inherits(indc, "try-error")) {
-      rlang::abort(paste0("`step_ica` failed with error:\n", as.character(indc)))
-    } else {
-      indc <- indc[c("K", "W")]
-      indc$means <- colMeans(training[, col_names])
+      cli::cli_abort(c(
+        x = "Failed with error:",
+        i = as.character(indc)
+      ))
     }
+
+    indc <- indc[c("K", "W")]
+    indc$means <- colMeans(training[, col_names])
   } else {
     indc <- NULL
   }

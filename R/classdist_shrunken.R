@@ -40,11 +40,20 @@
 #'
 #' # Tidying
 #'
-#' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
-#' `terms` (the selectors or variables selected), `value` (the centroid),
-#' `class`, and `type` is returned. Type has values `"global"`, `"by_class"`,
-#' and `"shrunken"`. The first two types of centroids are in the original units
-#' while the last have been standardized.
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `value`, `class`, `type`, `threshold` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{value}{numeric, the centroid}
+#'   \item{class}{character, name of class variable}
+#'   \item{type}{character, has values `"global"`, `"by_class"`, and `"shrunken"`}
+#'   \item{threshold}{numeric, value of threshold}
+#'   \item{id}{character, id of this step}
+#' }
+#'
+#' The first two types of centroids are in the original units while the last
+#' has been standardized.
 #'
 #' @template case-weights-supervised
 #' @references
@@ -276,12 +285,10 @@ prep.step_classdist_shrunken <- function(x, training, info = NULL, ...) {
   check_type(training[, y_names], types = c("factor"))
 
   threshold <- x$threshold
-  stopifnot(all(threshold >= 0) & all(threshold <= 1) &
-              length(threshold) == 1 & all(!is.na(threshold)))
+  check_number_decimal(threshold, min = 0, max = 1)
 
   sd_offset <- x$sd_offset
-  stopifnot(all(sd_offset >= 0) & all(sd_offset <= 1) &
-              length(sd_offset) == 1 & all(!is.na(sd_offset)))
+  check_number_decimal(sd_offset, min = 0, max = 1)
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts)

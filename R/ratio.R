@@ -1,4 +1,4 @@
-#' Ratio Variable Creation
+#' Ratio variable creation
 #'
 #' `step_ratio()` creates a *specification* of a recipe step that will create
 #' one or more ratios from selected numeric variables.
@@ -26,6 +26,17 @@
 #'
 #' When you [`tidy()`][tidy.recipe()] this step, a tibble with columns
 #' `terms` (the selectors or variables selected) and `denom` is returned.
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][tidy.recipe()] this step, a tibble is returned with
+#' columns `terms`, `denom` , and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected}
+#'   \item{denom}{character, name of denominator selected}
+#'   \item{id}{character, id of this step}
+#' }
 #'
 #' @template case-weights-not-supported
 #'
@@ -67,10 +78,11 @@ step_ratio <-
            skip = FALSE,
            id = rand_id("ratio")) {
     if (is_empty(denom)) {
-      rlang::abort(
-        paste0(
-          "Please supply at least one denominator variable specification. ",
-          "See ?selections."
+      cli::cli_abort(
+        c(
+          "!" = "{.arg denom} must select at least one variable.",
+          "i" = "See {.help [?selections](recipes::selections)} \\
+              for more information."
         )
       )
     }
@@ -119,7 +131,7 @@ prep.step_ratio <- function(x, training, info = NULL, ...) {
   col_names <- col_names[!(col_names$top == col_names$bottom), ]
 
   check_type(
-    training[, c(col_names$top, col_names$bottom)],
+    training[, unique(c(col_names$top, col_names$bottom))],
     types = c("double", "integer")
   )
 
