@@ -1,7 +1,7 @@
-cfaa665674af234fbfc4a599cbf189af *DESCRIPTION
+adde30b97e1e09157e544c950771d885 *DESCRIPTION
 d3d5107e2287d0aacacae70b373a3670 *LICENSE
 2adb0f1783088b2b9c487fafba008706 *NAMESPACE
-bb31e844cad6b4b84b6197791dd94dc6 *NEWS.md
+51cd39979ca8e5293ae63608cf6f0278 *NEWS.md
 efe1e3eebe0e810fdec5d4ebc862e1e9 *R/BoxCox.R
 1203af94c8437a5c95114d72227935df *R/YeoJohnson.R
 4f7f97434a98889d2c3dad3395f4d60a *R/aaa.R
@@ -22,7 +22,7 @@ fb9f63b9e20e32f52aaa54e5053a5b11 *R/date.R
 e837e59e04bec362983c3d34b911a658 *R/depth.R
 798c2f68410d34135acd6f61c7ceb5da *R/developer.R
 3263e1043bd4b23b52f1a907a9e823e8 *R/discretize.R
-fbf5194b6fe33772e344c0b295b04df4 *R/dummy.R
+431935059cef2ce00f713f362d7c22a9 *R/dummy.R
 c36fe33402c673ccb49023cb1b04b3cb *R/dummy_extract.R
 6f78192369d3efa8b59eea1d660caa91 *R/dummy_multi_choice.R
 2b478d2df3b93f4d75f6f4b93abba511 *R/extension_check.R
@@ -60,7 +60,7 @@ b6672679c1c44afdb24dd7457cb62743 *R/kpca_poly.R
 90f8bdc1df43345324227ba45852eaf5 *R/kpca_rbf.R
 1e571dc5a782c3155b9acdc9b52a8998 *R/lag.R
 c12bfe5e33616e0e6a55e1d66594a36c *R/lincomb.R
-d642e83209cdb70fb4597ff54f884120 *R/log.R
+11b5276fa86b16684b1ba927a68d2173 *R/log.R
 6002a9786bac0c37b3e0644eadd68cc9 *R/logit.R
 49161ba6047eac9c6af2e2311ab7de4f *R/misc.R
 eb7d07815de6d554908923094d973135 *R/missing.R
@@ -89,7 +89,7 @@ a7e18d65f1a0fa1937134820d1efe535 *R/printing.R
 c47834c70df028507e28cc7243ce1f3c *R/range.R
 e96736e74a261b1987249d6983cb47bd *R/range_check.R
 1fc9cc57427c5207b00f6c406a10a236 *R/ratio.R
-680281e0bbdadb61227f4665207dbfd3 *R/recipe.R
+3f23930d04b91377bcc4c35385479529 *R/recipe.R
 5f49acde9aadfb5922a3ce12c661944a *R/recipes-package.R
 6d3e82c659533ce9d666e56a6869e687 *R/reexports.R
 3457d2a2dc28dd1a54d9494c3028e9d5 *R/regex.R
@@ -139,7 +139,7 @@ ae9b40f911e6f1abdc614af4bf36c157 *inst/doc/Roles.R
 e33918c885a9b275e969a28c845f29ba *inst/doc/Roles.html
 ecaf534f70d12b512622aa1e5740440b *inst/doc/Selecting_Variables.R
 4c3529d6ea786ff6ef8ce81c9b4a6037 *inst/doc/Selecting_Variables.Rmd
-0612374e948fbe7b668c2a98c69f206b *inst/doc/Selecting_Variables.html
+82d395bb80e28699012776b475560bdf *inst/doc/Selecting_Variables.html
 2458b48f272a97df1ec43c9389e072dc *inst/doc/Skipping.R
 ce4cfafba16779433a650f6155f0f816 *inst/doc/Skipping.Rmd
 05159e64c9743c1c8d2f54ed321d3913 *inst/doc/Skipping.html
@@ -309,7 +309,7 @@ f1d5f16fef5fee3273f34691771893d9 *tests/testthat/_snaps/BoxCox.md
 2fd01490d7f3a09bafa260d356eca33b *tests/testthat/_snaps/R4.3/selections.md
 bc9dbae0258e17aa69304ba21245d5c1 *tests/testthat/_snaps/YeoJohnson.md
 bd075b6f0cb6b300a4845a9218b590fc *tests/testthat/_snaps/arrange.md
-1f289609d3b0a7c50876335caa0aa3ed *tests/testthat/_snaps/basics.md
+8da1f642ea67374cca923bb620320ab9 *tests/testthat/_snaps/basics.md
 23c06556eba8cc9a19c5bcf9661305df *tests/testthat/_snaps/bin2factor.md
 b125fabda9907aab1ab68c1672870d21 *tests/testthat/_snaps/bs.md
 07e2b527c6ad843b2d0d26e2623569c4 *tests/testthat/_snaps/case-weight-functions.md
@@ -324,7 +324,7 @@ caac733c143e79464c71bdbcbb4c24ca *tests/testthat/_snaps/cut.md
 545ed5d26c7afb66b66d57af68f2d358 *tests/testthat/_snaps/date.md
 568306d28b4816a29f3bf479e3d4f297 *tests/testthat/_snaps/depth.md
 4d24e62904b16fc0db0f60347fb1bf2e *tests/testthat/_snaps/discretize.md
-3c74f24d85b8c359d412431a2406c8ae *tests/testthat/_snaps/dummy.md
+e1c989cc10ee2640700b95f39799c5bc *tests/testthat/_snaps/dummy.md
 81b1fd9ea128f9a0ef5c1f56eb71caf3 *tests/testthat/_snaps/dummy_extract.md
 9b4d3ee28d4d548a02ebb476272fea77 *tests/testthat/_snaps/dummy_multi_choice.md
 81a70e7fa4b55ef5b53f2f5d83a9dcbc *tests/testthat/_snaps/extension_check.md
@@ -402,7 +402,7 @@ c8a8271fc8c1485df364c9f0a2398c80 *tests/testthat/_snaps/select.md
 ffaad01f64e34966907210cf5835f13f *tests/testthat/_snaps/selections.md
 3be709fcd877fefa864d2d19e6bf8f53 *tests/testthat/_snaps/shuffle.md
 dcb8d07b25a22758818d25bccac8ee32 *tests/testthat/_snaps/skipping.md
-1096b082f9eb3b8ebb8c11a7140f05d5 *tests/testthat/_snaps/slice.md
+36b289ead4acff673a471e528107bf09 *tests/testthat/_snaps/slice.md
 ec08051e748ec9f21476e71163cf48f1 *tests/testthat/_snaps/sparsity.md
 df940a7fb32375def98c55252123cb49 *tests/testthat/_snaps/spatialsign.md
 2888995983632a91bde01d9d618d7a16 *tests/testthat/_snaps/spline_b.md
@@ -415,7 +415,7 @@ cf389ca9694f561b56fb784f506f3277 *tests/testthat/_snaps/string2factor.md
 f21aa9026a0c7cd071aa06502e4110b1 *tests/testthat/_snaps/stringsAsFactors.md
 ffe1b871de1e61cf5c8fb7082ef9ba05 *tests/testthat/_snaps/tidy.md
 9ac9c4922a863e9dfef3e853e2af1d60 *tests/testthat/_snaps/time.md
-8d51ec9dfd419f06d9b19bfa3b3196e5 *tests/testthat/_snaps/unknown.md
+54f48adae0465898301f105acb911d26 *tests/testthat/_snaps/unknown.md
 31d52619d63aa117cf75535d63594eea *tests/testthat/_snaps/unorder.md
 ba618e42bb294760f4d082d6cffd8eb9 *tests/testthat/_snaps/update-role-requirements.md
 c8793829bb641bb748163eb979d42ba7 *tests/testthat/_snaps/update.md

@@ -1,3 +1,9 @@
+# recipes 1.0.10
+
+## Bug Fixes
+
+* Fixed bug where `step_log()` breaks legacy recipe objects by indexing `names(object)` in `bake()`. (@stufield, #1284)
+
 # recipes 1.0.9
 
 ## Improvements

@@ -1,6 +1,6 @@
 Package: recipes
 Title: Preprocessing and Feature Engineering Steps for Modeling
-Version: 1.0.9
+Version: 1.0.10
 Authors@R: c(
     person("Max", "Kuhn", , "max@posit.co", role = c("aut", "cre")),
     person("Hadley", "Wickham", , "hadley@posit.co", role = "aut"),
@@ -24,7 +24,7 @@ Imports: cli, clock (>= 0.6.1), ellipsis, generics (>= 0.1.2), glue,
         1.0.0), rlang (>= 1.1.0), stats, tibble, tidyr (>= 1.0.0),
         tidyselect (>= 1.2.0), timeDate, utils, vctrs (>= 0.5.0), withr
 Suggests: covr, ddalpha, dials (>= 1.2.0), ggplot2, igraph, kernlab,
-        knitr, modeldata (>= 0.1.1), parsnip (>= 0.1.7), RANN,
+        knitr, modeldata (>= 0.1.1), parsnip (>= 1.2.0), RANN,
         RcppRoll, rmarkdown, rpart, rsample, RSpectra, splines2,
         testthat (>= 3.0.0), workflows, xml2
 VignetteBuilder: knitr
@@ -34,11 +34,11 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2023-12-13 20:35:28 UTC; max
+Packaged: 2024-02-18 17:15:26 UTC; max
 Author: Max Kuhn [aut, cre],
   Hadley Wickham [aut],
   Emil Hvitfeldt [aut],
   Posit Software, PBC [cph, fnd]
 Maintainer: Max Kuhn <max@posit.co>
 Repository: CRAN
-Date/Publication: 2023-12-13 21:20:02 UTC
+Date/Publication: 2024-02-18 18:00:02 UTC
