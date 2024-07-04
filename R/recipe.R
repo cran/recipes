@@ -184,7 +184,8 @@ recipe.data.frame <-
       template = x,
       levels = NULL,
       retained = NA,
-      requirements = requirements
+      requirements = requirements,
+      ptype = vctrs::vec_ptype(x)
     )
     class(out) <- "recipe"
     out
@@ -193,8 +194,13 @@ recipe.data.frame <-
 #' @rdname recipe
 #' @export
 recipe.formula <- function(formula, data, ...) {
+
+  if (rlang::is_missing(data)) {
+    cli::cli_abort("{.arg data} is missing with no default.")
+  }
+
   # check for minus:
-  f_funcs <- fun_calls(formula)
+  f_funcs <- fun_calls(formula, data)
   if (any(f_funcs == "-")) {
     cli::cli_abort(c(
       "x" = "{.code -} is not allowed in a recipe formula.",
@@ -202,9 +208,10 @@ recipe.formula <- function(formula, data, ...) {
     ))
   }
 
-  if (rlang::is_missing(data)) {
-    cli::cli_abort("Argument {.var data} is missing, with no default.")
+  if (!is_tibble(data)) {
+    data <- as_tibble(data)
   }
+
   # Check for other in-line functions
   args <- form2args(formula, data, ...)
   obj <- recipe.data.frame(
@@ -230,11 +237,7 @@ form2args <- function(formula, data, ..., call = rlang::caller_env()) {
   }
 
   ## check for in-line formulas
-  inline_check(formula)
-
-  if (!is_tibble(data)) {
-    data <- as_tibble(data)
-  }
+  inline_check(formula, data, call)
 
   ## use rlang to get both sides of the formula
   outcomes <- get_lhs_vars(formula, data)
@@ -271,20 +274,20 @@ form2args <- function(formula, data, ..., call = rlang::caller_env()) {
   list(x = data, vars = vars, roles = roles)
 }
 
-inline_check <- function(x) {
-  funs <- fun_calls(x)
-  funs <- funs[!(funs %in% c("~", "+", "-"))]
+inline_check <- function(x, data, call) {
+  funs <- fun_calls(x, data)
+  funs <- funs[!(funs %in% c("~", "+", "-", "."))]
 
   if (length(funs) > 0) {
     cli::cli_abort(c(
-      x = "No in-line functions should be used here.",
-      i = "{cli::qty(length(funs))}The following function{?s} {?was/were} \\
-          found: {.and {.code {funs}}}.",
+      x = "Misspelled variable name or in-line functions detected.",
+      i = "{cli::qty(length(funs))}The following function{?s}/misspelling{?s} \\
+          {?was/were} found: {.and {.code {funs}}}.",
       i = "Use steps to do transformations instead.",
       i = "If your modeling engine uses special terms in formulas, pass \\
           that formula to workflows as a \\
           {.help [model formula](parsnip::model_formula)}."
-    ))
+    ), call = call)
   }
 
   invisible(x)
@@ -425,6 +428,8 @@ prep.recipe <-
       x$term_info <- x$var_info
     }
 
+    fit_times <- list()
+
     running_info <- x$term_info %>% mutate(number = 0, skip = FALSE)
 
     get_needs_tuning <- function(x) {
@@ -470,6 +475,7 @@ prep.recipe <-
 
         # Compute anything needed for the preprocessing steps
         # then apply it to the current training set
+        time <- proc.time()
         x$steps[[i]] <- recipes_error_context(
           prep(x$steps[[i]],
             training = training,
@@ -477,10 +483,20 @@ prep.recipe <-
           ),
           step_name = step_name
         )
+        prep_time <- proc.time() - time
+
+        time <- proc.time()
         training <- recipes_error_context(
           bake(x$steps[[i]], new_data = training),
           step_name = step_name
         )
+        bake_time <- proc.time() - time
+
+        fit_times[[i]] <- list(
+          stage_id = paste(c("prep", "bake"), x$steps[[i]]$id, sep = "."),
+          elapsed = c(prep_time[["elapsed"]], bake_time[["elapsed"]])
+        )
+
         if (!is_tibble(training)) {
           cli::cli_abort(c(
             "x" = "{.fun bake} methods should always return tibbles.",
@@ -539,6 +555,7 @@ prep.recipe <-
     x$levels <- lvls
     x$orig_lvls <- orig_lvls
     x$retained <- retain
+    x$fit_times <- dplyr::bind_rows(fit_times)
     # In case a variable was removed, and that removal step used
     # `skip = TRUE`, we need to retain its record so that
     # selectors can be properly used with `bake`. This tibble
@@ -579,7 +596,7 @@ bake <- function(object, ...) {
 #' @param ... One or more selector functions to choose which variables will be
 #'   returned by the function. See [selections()] for more details.
 #'   If no selectors are given, the default is to use
-#'   [everything()].
+#'   [dplyr::everything()].
 #' @param composition Either "tibble", "matrix", "data.frame", or
 #'  "dgCMatrix" for the format of the processed data set. Note that
 #'  all computations during the baking process are done in a

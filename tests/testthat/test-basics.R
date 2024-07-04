@@ -30,6 +30,18 @@ test_that("Recipe fails on in-line functions", {
   )
 })
 
+test_that("Recipe on missspelled variables in formulas", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(HHV ~ not_nitrogen, data = biomass)
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(not_HHV ~ nitrogen, data = biomass)
+  )
+})
+
 test_that("return character or factor values", {
   raw_recipe <- recipe(HHV ~ ., data = biomass)
   centered <- raw_recipe %>%
@@ -122,7 +134,7 @@ test_that("bake without prep", {
 })
 
 test_that("prep with fresh = TRUE", {
-  test_data <- data.frame(x = factor(c(1, 2)), y = c(1, 2))
+  test_data <- data.frame(x = factor(c(1, 2), levels = 1:2), y = c(1, 2))
 
   rec <-
     recipe(y ~ ., data = test_data) %>%
@@ -131,6 +143,9 @@ test_that("prep with fresh = TRUE", {
 
   new_rec <- prep(rec, training = test_data, fresh = TRUE)
 
+  rec$fit_times$elapsed <- 0
+  new_rec$fit_times$elapsed <- 0
+
   expect_identical(rec, new_rec)
 
   expect_equal(
@@ -138,13 +153,13 @@ test_that("prep with fresh = TRUE", {
     tibble(terms = "x", columns = "2", id = "")
   )
 
-  test_data2 <- data.frame(x = factor(c(1, 3)), y = c(1, 2))
+  test_data2 <- data.frame(x = factor(c(2, 1), levels = 1:2), y = c(1, 2))
 
   new_rec2 <- prep(rec, training = test_data2, fresh = TRUE)
 
   expect_equal(
     tidy(new_rec2, 1),
-    tibble(terms = "x", columns = "3", id = "")
+    tibble(terms = "x", columns = "2", id = "")
   )
 })
 
@@ -342,4 +357,72 @@ test_that("`internal data is kept as tibbles when prepping", {
 
 test_that("recipe() errors if `data` is missing", {
   expect_snapshot(error = TRUE, recipe(mpg ~ .))
+})
+
+test_that("NAs aren't dropped in strings2factor() (#1291)", {
+  ex_data <- tibble(
+    x = factor(c("a", NA, "c"), exclude = NULL)
+  )
+
+  rec_res <- recipe(~., data = ex_data) %>%
+    prep() %>%
+    bake(new_data = NULL)
+
+  expect_identical(rec_res, ex_data)
+})
+
+test_that("recipe() can handle very long formulas (#1283)", {
+  df <- matrix(1:10000, ncol = 10000)
+  df <- as.data.frame(df)
+  names(df) <- c(paste0("x", 1:10000))
+
+  long_formula <- as.formula(paste("~ ", paste(names(df), collapse = " + ")))
+
+  expect_no_error(
+    rec <- recipe(long_formula, df)
+  )
+})
+
+test_that("recipe() works with odd formula usage (#1283)", {
+
+  expect_identical(
+    sort(recipe(mpg ~ ., data = mtcars)$var_info$variable),
+    sort(colnames(mtcars))
+  )
+
+  expect_identical(
+    sort(recipe(mpg ~ . + disp, data = mtcars)$var_info$variable),
+    sort(colnames(mtcars))
+  )
+  
+  expect_identical(
+    sort(recipe(mpg ~ disp + disp, mtcars)$var_info$variable),
+    c("disp", "mpg")
+  )
+})
+
+test_that("steps give errors when arguments are misspelled", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_pca(vs, am, gear, number = 2) %>%
+      prep()
+  )
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_normalize(vs, AM = am, GEAR = gear) %>%
+      prep()
+  )
+})
+
+test_that("data argument is checked in recipe.formula() (#1325)", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~ a, data = data)
+  )
+  expect_snapshot(
+    error = TRUE,
+    recipe(~ ., data = data)
+  )
 })

@@ -7,6 +7,7 @@
 step_mutate(
   recipe,
   ...,
+  .pkgs = character(),
   role = "predictor",
   trained = FALSE,
   inputs = NULL,
@@ -19,6 +20,9 @@ step_mutate(
 sequence of operations for this recipe.}
 
 \item{...}{Name-value pairs of expressions. See \code{\link[dplyr:mutate]{dplyr::mutate()}}.}
+
+\item{.pkgs}{Character vector, package names of functions used in
+expressions \code{...}. Should be specified if using non-base functions.}
 
 \item{role}{For model terms created by this step, what analysis role should
 they be assigned? By default, the new columns created by this step from
@@ -138,8 +142,8 @@ Other individual transformation steps:
 \code{\link{step_hyperbolic}()},
 \code{\link{step_inverse}()},
 \code{\link{step_invlogit}()},
-\code{\link{step_logit}()},
 \code{\link{step_log}()},
+\code{\link{step_logit}()},
 \code{\link{step_ns}()},
 \code{\link{step_percentile}()},
 \code{\link{step_poly}()},
@@ -150,8 +154,8 @@ Other dplyr steps:
 \code{\link{step_arrange}()},
 \code{\link{step_filter}()},
 \code{\link{step_mutate_at}()},
-\code{\link{step_rename_at}()},
 \code{\link{step_rename}()},
+\code{\link{step_rename_at}()},
 \code{\link{step_sample}()},
 \code{\link{step_select}()},
 \code{\link{step_slice}()}

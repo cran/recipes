@@ -50,7 +50,7 @@ the natural log function?}
 variables. See notes below.}
 
 \item{keep_original_cols}{A logical to keep the original variables in the
-output. Defaults to \code{FALSE}.}
+output. Defaults to \code{TRUE}.}
 
 \item{objects}{Statistics are stored here once this step has
 been trained by \code{\link[=prep]{prep()}}.}
@@ -145,7 +145,7 @@ rec <- recipe(species ~ ., data = penguins) \%>\%
 
 rec_dists <- prep(rec, training = penguins)
 
-dists_to_species <- bake(rec_dists, new_data = penguins, everything())
+dists_to_species <- bake(rec_dists, new_data = penguins)
 ## on log scale:
 dist_cols <- grep("classdist", names(dists_to_species), value = TRUE)
 dists_to_species[, c("species", dist_cols)]
@@ -166,12 +166,12 @@ Other multivariate transformation steps:
 \code{\link{step_geodist}()},
 \code{\link{step_ica}()},
 \code{\link{step_isomap}()},
+\code{\link{step_kpca}()},
 \code{\link{step_kpca_poly}()},
 \code{\link{step_kpca_rbf}()},
-\code{\link{step_kpca}()},
 \code{\link{step_mutate_at}()},
-\code{\link{step_nnmf_sparse}()},
 \code{\link{step_nnmf}()},
+\code{\link{step_nnmf_sparse}()},
 \code{\link{step_pca}()},
 \code{\link{step_pls}()},
 \code{\link{step_ratio}()},

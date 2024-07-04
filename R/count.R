@@ -3,6 +3,7 @@
 #' `step_count()` creates a *specification* of a recipe step that will create a
 #' variable that counts instances of a regular expression pattern in text.
 #'
+#' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param ... A single selector function to choose which variable
@@ -192,6 +193,7 @@ bake.step_count <- function(object, new_data, ...) {
 
 counter <- function(x) length(x[x > 0])
 
+#' @export
 print.step_count <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Regular expression counts using "

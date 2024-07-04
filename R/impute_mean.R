@@ -60,7 +60,7 @@
 #'
 #' imp_models <- prep(impute_rec, training = credit_tr)
 #'
-#' imputed_te <- bake(imp_models, new_data = credit_te, everything())
+#' imputed_te <- bake(imp_models, new_data = credit_te)
 #'
 #' credit_te[missing_examples, ]
 #' imputed_te[missing_examples, names(credit_te)]
@@ -88,34 +88,6 @@ step_impute_mean <-
         id = id,
         case_weights = NULL
       )
-    )
-  }
-
-#' @rdname step_impute_mean
-#' @export
-step_meanimpute <-
-  function(recipe,
-           ...,
-           role = NA,
-           trained = FALSE,
-           means = NULL,
-           trim = 0,
-           skip = FALSE,
-           id = rand_id("impute_mean")) {
-    lifecycle::deprecate_stop(
-      when = "0.1.16",
-      what = "recipes::step_meanimpute()",
-      with = "recipes::step_impute_mean()"
-    )
-    step_impute_mean(
-      recipe,
-      ...,
-      role = role,
-      trained = trained,
-      means = means,
-      trim = trim,
-      skip = skip,
-      id = id
     )
   }
 
@@ -189,10 +161,6 @@ prep.step_impute_mean <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
-#' @keywords internal
-prep.step_meanimpute <- prep.step_impute_mean
-
-#' @export
 bake.step_impute_mean <- function(object, new_data, ...) {
   col_names <- names(object$means)
   check_new_data(col_names, object, new_data)
@@ -209,10 +177,6 @@ bake.step_impute_mean <- function(object, new_data, ...) {
 }
 
 #' @export
-#' @keywords internal
-bake.step_meanimpute <- bake.step_impute_mean
-
-#' @export
 print.step_impute_mean <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Mean imputation for "
@@ -220,10 +184,6 @@ print.step_impute_mean <-
                case_weights = x$case_weights)
     invisible(x)
   }
-
-#' @export
-#' @keywords internal
-print.step_meanimpute <- print.step_impute_mean
 
 #' @rdname tidy.recipe
 #' @export
@@ -242,10 +202,6 @@ tidy.step_impute_mean <- function(x, ...) {
 }
 
 #' @export
-#' @keywords internal
-tidy.step_meanimpute <- tidy.step_impute_mean
-
-#' @export
 tunable.step_impute_mean <- function(x, ...) {
   tibble::tibble(
     name = "trim",
@@ -257,7 +213,3 @@ tunable.step_impute_mean <- function(x, ...) {
     component_id = x$id
   )
 }
-
-#' @export
-#' @keywords internal
-tunable.step_meanimpute <- tunable.step_impute_mean

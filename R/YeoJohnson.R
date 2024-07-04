@@ -147,6 +147,7 @@ bake.step_YeoJohnson <- function(object, new_data, ...) {
   new_data
 }
 
+#' @export
 print.step_YeoJohnson <-
   function(x, width = max(20, options()$width - 39), ...) {
     title <- "Yeo-Johnson transformation on "
@@ -157,10 +158,9 @@ print.step_YeoJohnson <-
 ## computes the new data given a lambda
 #' Internal Functions
 #'
-#' These are not to be used directly by the users.
-#' @export
 #' @keywords internal
 #' @rdname recipes-internal
+#' @export
 yj_transform <- function(x, lambda, ind_neg = NULL, eps = 0.001) {
   if (is.na(lambda)) {
     return(x)
@@ -225,9 +225,9 @@ yj_obj <- function(lam, dat, ind_neg, const) {
 }
 
 ## estimates the values
-#' @export
 #' @keywords internal
 #' @rdname recipes-internal
+#' @export
 estimate_yj <- function(dat,
                         limits = c(-5, 5),
                         num_unique = 5,

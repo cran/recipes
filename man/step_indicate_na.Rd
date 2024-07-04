@@ -37,7 +37,7 @@ is a placeholder and will be populated once \code{\link[=prep]{prep()}} is used.
 resulting new variables. Defaults to "na_ind".}
 
 \item{keep_original_cols}{A logical to keep the original variables in the
-output. Defaults to \code{FALSE}.}
+output. Defaults to \code{TRUE}.}
 
 \item{skip}{A logical. Should the step be skipped when the
 recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
@@ -93,7 +93,7 @@ impute_rec <- rec \%>\%
 
 imp_models <- prep(impute_rec, training = credit_tr)
 
-imputed_te <- bake(imp_models, new_data = credit_te, everything())
+imputed_te <- bake(imp_models, new_data = credit_te)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
@@ -101,9 +101,9 @@ Other dummy variable and encoding steps:
 \code{\link{step_bin2factor}()},
 \code{\link{step_count}()},
 \code{\link{step_date}()},
+\code{\link{step_dummy}()},
 \code{\link{step_dummy_extract}()},
 \code{\link{step_dummy_multi_choice}()},
-\code{\link{step_dummy}()},
 \code{\link{step_factor2string}()},
 \code{\link{step_holiday}()},
 \code{\link{step_integer}()},

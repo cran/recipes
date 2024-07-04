@@ -262,6 +262,8 @@ test_that("works when formula is passed in as an object", {
     step_interact(terms = cars_formula, id = "") %>%
     prep()
 
+  rec1$fit_times$elapsed <- 0
+  rec2$fit_times$elapsed <- 0
   expect_identical(rec1, rec2)
 
   cars_formula <- ~ vs:am
@@ -269,8 +271,51 @@ test_that("works when formula is passed in as an object", {
     step_interact(terms = !!cars_formula, id = "") %>%
     prep()
 
+  rec3$fit_times$elapsed <- 0
   expect_identical(rec1, rec3)
 })
+
+test_that("works with long formulas (#1231)", {
+  df_long <- data.frame(
+    a = 1:10,
+    bbbbbbbbbbbbbbbbbbb = 1:10,
+    ccccccccccccccccccc = 1:10,
+    d = 1:10
+  )
+  
+  df_short <- data.frame(
+    a = 1:10,
+    b = 1:10,
+    c = 1:10,
+    d = 1:10
+  )
+
+  res_long <- recipe(df_long) %>%
+    step_interact(~starts_with('bbbbbbbbbbbbbb'):starts_with('cccccccccccccc') + 
+                     starts_with('bbbbbbbbbbbbbb'):starts_with('d')) %>%
+    prep() %>%
+    bake(new_data = NULL) %>%
+    unname()
+
+  res_short <- recipe(df_short) %>%
+    step_interact(~starts_with('b'):starts_with('c') + 
+                     starts_with('b'):starts_with('d')) %>%
+    prep() %>%
+    bake(new_data = NULL) %>%
+    unname()
+
+  expect_identical(res_long, res_short)
+})
+
+test_that("gives informative error if terms isn't a formula (#1299)", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) %>% 
+      step_interact(terms = starts_with("dis")) %>% 
+      prep()
+  )
+})
+
 
 # Infrastructure ---------------------------------------------------------------
 

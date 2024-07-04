@@ -72,7 +72,7 @@ The underlying operation does not allow for case weights.
 \examples{
 library(dplyr)
 recipe(~., data = iris) \%>\%
-  step_rename_at(everything(), fn = ~ gsub(".", "_", ., fixed = TRUE)) \%>\%
+  step_rename_at(all_predictors(), fn = ~ gsub(".", "_", ., fixed = TRUE)) \%>\%
   prep() \%>\%
   bake(new_data = NULL) \%>\%
   slice(1:10)
@@ -81,8 +81,8 @@ recipe(~., data = iris) \%>\%
 Other dplyr steps: 
 \code{\link{step_arrange}()},
 \code{\link{step_filter}()},
-\code{\link{step_mutate_at}()},
 \code{\link{step_mutate}()},
+\code{\link{step_mutate_at}()},
 \code{\link{step_rename}()},
 \code{\link{step_sample}()},
 \code{\link{step_select}()},

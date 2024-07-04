@@ -3,6 +3,7 @@
 #' `step_regex()` creates a *specification* of a recipe step that will create a
 #' new dummy variable based on a regular expression.
 #'
+#' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param ... A single selector function to choose which variable
@@ -176,6 +177,7 @@ bake.step_regex <- function(object, new_data, ...) {
   new_data
 }
 
+#' @export
 print.step_regex <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Regular expression dummy variable using "

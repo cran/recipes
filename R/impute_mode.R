@@ -54,7 +54,7 @@
 #'
 #' imp_models <- prep(impute_rec, training = credit_tr)
 #'
-#' imputed_te <- bake(imp_models, new_data = credit_te, everything())
+#' imputed_te <- bake(imp_models, new_data = credit_te)
 #'
 #' table(credit_te$Home, imputed_te$Home, useNA = "always")
 #'
@@ -81,34 +81,6 @@ step_impute_mode <-
         id = id,
         case_weights = NULL
       )
-    )
-  }
-
-#' @rdname step_impute_mode
-#' @export
-step_modeimpute <-
-  function(recipe,
-           ...,
-           role = NA,
-           trained = FALSE,
-           modes = NULL,
-           ptype = NULL,
-           skip = FALSE,
-           id = rand_id("impute_mode")) {
-    lifecycle::deprecate_stop(
-      when = "0.1.16",
-      what = "recipes::step_modeimpute()",
-      with = "recipes::step_impute_mode()"
-    )
-    step_impute_mode(
-      recipe,
-      ...,
-      role = role,
-      trained = trained,
-      modes = modes,
-      ptype = ptype,
-      skip = skip,
-      id = id
     )
   }
 
@@ -152,10 +124,6 @@ prep.step_impute_mode <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
-#' @keywords internal
-prep.step_modeimpute <- prep.step_impute_mode
-
-#' @export
 bake.step_impute_mode <- function(object, new_data, ...) {
   col_names <- names(object$modes)
   check_new_data(col_names, object, new_data)
@@ -184,10 +152,6 @@ bake.step_impute_mode <- function(object, new_data, ...) {
 }
 
 #' @export
-#' @keywords internal
-bake.step_modeimpute <- bake.step_impute_mode
-
-#' @export
 print.step_impute_mode <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Mode imputation for "
@@ -195,10 +159,6 @@ print.step_impute_mode <-
                case_weights = x$case_weights)
     invisible(x)
   }
-
-#' @export
-#' @keywords internal
-print.step_modeimpute <- print.step_impute_mode
 
 mode_est <- function(x, wts = NULL, call = caller_env(2)) {
   if (!is.character(x) & !is.factor(x))
@@ -227,7 +187,3 @@ tidy.step_impute_mode <- function(x, ...) {
   res$id <- x$id
   res
 }
-
-#' @export
-#' @keywords internal
-tidy.step_modeimpute <- tidy.step_impute_mode

@@ -5,6 +5,7 @@
 #' the lag was induced. These can be removed with [step_naomit()], or you may
 #' specify an alternative filler value with the `default` argument.
 #'
+#' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param lag A vector of positive integers. Each specified column will be
@@ -140,6 +141,7 @@ bake.step_lag <- function(object, new_data, ...) {
   new_data
 }
 
+#' @export
 print.step_lag <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Lagging "

@@ -2,21 +2,9 @@
 % Please edit documentation in R/impute_mean.R
 \name{step_impute_mean}
 \alias{step_impute_mean}
-\alias{step_meanimpute}
 \title{Impute numeric data using the mean}
 \usage{
 step_impute_mean(
-  recipe,
-  ...,
-  role = NA,
-  trained = FALSE,
-  means = NULL,
-  trim = 0,
-  skip = FALSE,
-  id = rand_id("impute_mean")
-)
-
-step_meanimpute(
   recipe,
   ...,
   role = NA,
@@ -122,7 +110,7 @@ impute_rec <- rec \%>\%
 
 imp_models <- prep(impute_rec, training = credit_tr)
 
-imputed_te <- bake(imp_models, new_data = credit_te, everything())
+imputed_te <- bake(imp_models, new_data = credit_te)
 
 credit_te[missing_examples, ]
 imputed_te[missing_examples, names(credit_te)]

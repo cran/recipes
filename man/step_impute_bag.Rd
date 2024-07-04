@@ -2,25 +2,10 @@
 % Please edit documentation in R/impute_bag.R
 \name{step_impute_bag}
 \alias{step_impute_bag}
-\alias{step_bagimpute}
 \alias{imp_vars}
 \title{Impute via bagged trees}
 \usage{
 step_impute_bag(
-  recipe,
-  ...,
-  role = NA,
-  trained = FALSE,
-  impute_with = imp_vars(all_predictors()),
-  trees = 25,
-  models = NULL,
-  options = list(keepX = FALSE),
-  seed_val = sample.int(10^4, 1),
-  skip = FALSE,
-  id = rand_id("impute_bag")
-)
-
-step_bagimpute(
   recipe,
   ...,
   role = NA,
@@ -153,7 +138,7 @@ impute_rec <- rec \%>\%
 
 imp_models <- prep(impute_rec, training = credit_tr)
 
-imputed_te <- bake(imp_models, new_data = credit_te, everything())
+imputed_te <- bake(imp_models, new_data = credit_te)
 
 credit_te[missing_examples, ]
 imputed_te[missing_examples, names(credit_te)]
@@ -172,7 +157,7 @@ impute_rec <- rec \%>\%
 
 imp_models <- prep(impute_rec, training = credit_tr)
 
-imputed_te <- bake(imp_models, new_data = credit_te, everything())
+imputed_te <- bake(imp_models, new_data = credit_te)
 
 credit_te[missing_examples, ]
 imputed_te[missing_examples, names(credit_te)]

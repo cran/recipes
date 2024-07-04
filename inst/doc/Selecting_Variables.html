@@ -431,22 +431,24 @@ outcomes.</p>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">step_dummy</span>(sex) <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">prep</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">juice</span>()</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; Warning: ! There are new levels in a factor: `NA`.</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 344 × 7</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;    species island    bill_length_mm bill_depth_mm flipper_length_mm body_mass_g</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;    &lt;fct&gt;   &lt;fct&gt;              &lt;dbl&gt;         &lt;dbl&gt;             &lt;int&gt;       &lt;int&gt;</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  1 Adelie  Torgersen           39.1          18.7               181        3750</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  2 Adelie  Torgersen           39.5          17.4               186        3800</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  3 Adelie  Torgersen           40.3          18                 195        3250</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  4 Adelie  Torgersen           NA            NA                  NA          NA</span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  5 Adelie  Torgersen           36.7          19.3               193        3450</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  6 Adelie  Torgersen           39.3          20.6               190        3650</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  7 Adelie  Torgersen           38.9          17.8               181        3625</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  8 Adelie  Torgersen           39.2          19.6               195        4675</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  9 Adelie  Torgersen           34.1          18.1               193        3475</span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; 10 Adelie  Torgersen           42            20.2               190        4250</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; # ℹ 334 more rows</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: sex_X1 &lt;dbl&gt;</span></span></code></pre></div>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; Warning: ! There are new levels in `sex`: NA.</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; ℹ Consider using step_unknown() (`?recipes::step_unknown()`) before</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;   `step_dummy()` to handle missing values.</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; # A tibble: 344 × 7</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;    species island    bill_length_mm bill_depth_mm flipper_length_mm body_mass_g</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;    &lt;fct&gt;   &lt;fct&gt;              &lt;dbl&gt;         &lt;dbl&gt;             &lt;int&gt;       &lt;int&gt;</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  1 Adelie  Torgersen           39.1          18.7               181        3750</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  2 Adelie  Torgersen           39.5          17.4               186        3800</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  3 Adelie  Torgersen           40.3          18                 195        3250</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;  4 Adelie  Torgersen           NA            NA                  NA          NA</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  5 Adelie  Torgersen           36.7          19.3               193        3450</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  6 Adelie  Torgersen           39.3          20.6               190        3650</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  7 Adelie  Torgersen           38.9          17.8               181        3625</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  8 Adelie  Torgersen           39.2          19.6               195        4675</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt;  9 Adelie  Torgersen           34.1          18.1               193        3475</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; 10 Adelie  Torgersen           42            20.2               190        4250</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; # ℹ 334 more rows</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: sex_X1 &lt;dbl&gt;</span></span></code></pre></div>
 <p>Using the last definition:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> <span class="fu">prep</span>(dummied, <span class="at">training =</span> penguins)</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>with_dummy <span class="ot">&lt;-</span> <span class="fu">bake</span>(dummied, <span class="at">new_data =</span> penguins)</span>

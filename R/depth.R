@@ -4,6 +4,7 @@
 #' numeric data into a measurement of *data depth*. This is done for each value of
 #' a categorical class variable.
 #'
+#' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param class A single character string that specifies a single
@@ -208,6 +209,7 @@ bake.step_depth <- function(object, new_data, ...) {
   new_data
 }
 
+#' @export
 print.step_depth <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- glue("Data depth by {x$class} for ")

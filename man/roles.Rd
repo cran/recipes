@@ -50,9 +50,9 @@ functions for columns that are already present in the original data supplied
 to \code{recipe()}. See the \code{role} argument in some step functions to update
 roles for columns created by steps.
 
-Variables can have any arbitrary role (see the examples) but there are two
-special standard roles, \code{"predictor"} and \code{"outcome"}. These two roles are
-typically required when fitting a model.
+Variables can have any arbitrary role (see the examples) but there are three
+special standard roles, \code{"predictor"}, \code{"outcome"}, and \code{"case_weights"}.
+The first two roles are typically required when fitting a model.
 
 \code{update_role()} should be used when a variable doesn't currently have a role
 in the recipe, or to replace an \code{old_role} with a \code{new_role}. \code{add_role()}

@@ -124,13 +124,13 @@ step_dummy <-
            keep_original_cols = FALSE,
            skip = FALSE,
            id = rand_id("dummy")) {
+    
     if (lifecycle::is_present(preserve)) {
       lifecycle::deprecate_stop(
         "0.1.16",
         "step_dummy(preserve = )",
         "step_dummy(keep_original_cols = )"
       )
-      keep_original_cols <- preserve
     }
 
     add_step(
@@ -179,6 +179,9 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     ## data
     levels <- vector(mode = "list", length = length(col_names))
     names(levels) <- col_names
+
+    training_slice <- vctrs::vec_slice(training, 0)
+
     for (i in seq_along(col_names)) {
       form <- rlang::new_formula(lhs = NULL, rhs = rlang::sym(col_names[i]))
       if (x$one_hot) {
@@ -186,7 +189,7 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
       }
       terms <- model.frame(
         formula = form,
-        data = training[1, ],
+        data = training_slice,
         xlev = x$levels[[i]],
         na.action = na.pass
       )
@@ -219,14 +222,28 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
   )
 }
 
-warn_new_levels <- function(dat, lvl, details = NULL) {
+warn_new_levels <- function(dat, lvl, column, step, details = NULL) {
   ind <- which(!(dat %in% lvl))
   if (length(ind) > 0) {
     lvl2 <- unique(dat[ind])
-    cli::cli_warn(c(
-      "!" = "There are new levels in a factor: {.var {lvl2}}.",
-      details
-    ))
+    msg <- c("!" = "There are new levels in {.var {column}}: {.val {lvl2}}.")
+    if (any(is.na(lvl2))) {
+      msg <- c(
+        msg, 
+        "i" = "Consider using {.help [step_unknown()](recipes::step_unknown)} \\
+        before {.fn {step}} to handle missing values."
+      )
+    }
+    if (!all(is.na(lvl2))) {
+      msg <- c(
+        msg, 
+        "i" = "Consider using {.help [step_novel()](recipes::step_novel)} \\ 
+        before {.fn {step}} to handle unseen values."
+      )
+    }
+    msg <- c(msg, details)
+
+    cli::cli_warn(msg)
   }
   invisible(NULL)
 }
@@ -264,7 +281,12 @@ bake.step_dummy <- function(object, new_data, ...) {
       )
     }
 
-    warn_new_levels(new_data[[col_name]], levels_values)
+    warn_new_levels(
+      new_data[[col_name]], 
+      levels_values, 
+      col_name, 
+      step = "step_dummy"
+    )
 
     new_data[, col_name] <-
       factor(
@@ -281,11 +303,20 @@ bake.step_dummy <- function(object, new_data, ...) {
         na.action = na.pass
       )
 
-    indicators <-
-      model.matrix(
-        object = levels,
-        data = indicators
-      )
+    indicators <- tryCatch(
+      model.matrix(object = levels, data = indicators),
+      error = function(cnd) {
+        if (grepl("(vector memory|cannot allocate)", cnd$message)) {
+          n_levels <- length(attr(levels, "values"))
+          cli::cli_abort(
+            "{.var {col_name}} contains too many levels ({n_levels}), \\
+            which would result in a data.frame too large to fit in memory.",
+            call = NULL
+          )
+        }
+        stop(cnd)
+      }
+    )
 
     if (!object$one_hot) {
       indicators <- indicators[, colnames(indicators) != "(Intercept)", drop = FALSE]
@@ -307,6 +338,7 @@ bake.step_dummy <- function(object, new_data, ...) {
   new_data
 }
 
+#' @export
 print.step_dummy <-
   function(x, width = max(20, options()$width - 20), ...) {
     title <- "Dummy variables from "

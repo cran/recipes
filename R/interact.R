@@ -3,6 +3,7 @@
 #' `step_interact()` creates a *specification* of a recipe step that will create
 #' new columns that are interaction terms between two or more variables.
 #'
+#' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param terms A traditional R formula that contains interaction
@@ -150,16 +151,19 @@ prep.step_interact <- function(x, training, info = NULL, ...) {
 
   # make backwards compatible with 1.0.6 (#1138)
   if (!is_formula(x)) {
-    tmp_terms <- rlang::as_label(x$terms[[1]])
-    if (substr(tmp_terms, 1, 1) == "~") {
-      tmp_terms <- as.formula(tmp_terms)
-    } else {
-      tmp_terms <- rlang::eval_tidy(x$terms[[1]])
-      if (!is_formula(tmp_terms)) {
+    tmp_terms <- tryCatch(
+      rlang::eval_tidy(x$terms[[1]]),
+      error = function(cnd) {
         cli::cli_abort(
-          "{.arg term} must be a formula. Not {.obj_type_friendly {term}}."
+          "{.arg terms} must be supplied as a formula.",
+          call = NULL
         )
       }
+    )
+    if (!is_formula(tmp_terms)) {
+      cli::cli_abort(
+        "{.arg terms} must be a formula. Not {.obj_type_friendly {term}}."
+      )
     }
 
     environment(tmp_terms) <- environment(x$terms[[1]])
@@ -341,7 +345,7 @@ make_small_terms <- function(forms, dat) {
   lapply(forms, terms, data = dat)
 }
 
-
+#' @export
 print.step_interact <-
   function(x, width = max(20, options()$width - 27), ...) {
     title <- "Interactions with "

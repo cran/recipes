@@ -4,6 +4,7 @@
 #' create and append additional binary columns to the data set to indicate which
 #' observations are missing.
 #'
+#' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param prefix A character string that will be the prefix to the
@@ -44,7 +45,7 @@
 #'
 #' imp_models <- prep(impute_rec, training = credit_tr)
 #'
-#' imputed_te <- bake(imp_models, new_data = credit_te, everything())
+#' imputed_te <- bake(imp_models, new_data = credit_te)
 step_indicate_na <-
   function(recipe,
            ...,
@@ -125,6 +126,7 @@ bake.step_indicate_na <- function(object, new_data, ...) {
   new_data
 }
 
+#' @export
 print.step_indicate_na <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Creating missing data variable indicators for "

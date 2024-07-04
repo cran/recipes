@@ -421,7 +421,7 @@ role. Setting the role manually to <code>NA</code> is not allowed:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">recipe</span>(HHV <span class="sc">~</span> ., <span class="at">data =</span> biomass) <span class="sc">%&gt;%</span> </span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">update_role</span>(sample, <span class="at">new_role =</span> <span class="cn">NA_character_</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; Error in `update_role()`:</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; ! `new_role` must not be `NA`.</span></span></code></pre></div>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; ! `new_role` must be a single string, not a character `NA`.</span></span></code></pre></div>
 <p>When there are cases when a column will be used in more than one
 context, <code>add_role()</code> can create additional roles:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>multi_role <span class="ot">&lt;-</span> <span class="fu">recipe</span>(HHV <span class="sc">~</span> ., <span class="at">data =</span> biomass) <span class="sc">%&gt;%</span> </span>
