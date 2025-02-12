@@ -63,7 +63,7 @@
     Condition
       Warning:
       ! There are new levels in `column`: C.
-      i Consider using step_novel() (`?recipes::step_novel()`) \ before `step_dummy()` to handle unseen values.
+      i Consider using step_novel() (`?recipes::step_novel()`) before `step_dummy()` to handle unseen values.
 
 ---
 
@@ -72,7 +72,7 @@
     Condition
       Warning:
       ! There are new levels in `x1`: C.
-      i Consider using step_novel() (`?recipes::step_novel()`) \ before `step_dummy()` to handle unseen values.
+      i Consider using step_novel() (`?recipes::step_novel()`) before `step_dummy()` to handle unseen values.
     Output
       # A tibble: 10 x 2
          y      x1_B
@@ -144,6 +144,33 @@
       Error in `step_dummy()`:
       Caused by error:
       ! `x` contains too many levels (123456), which would result in a data.frame too large to fit in memory.
+
+# throws an informative error for single level
+
+    Code
+      recipe(~., data = data.frame(x = "only-level")) %>% step_dummy(x) %>% prep()
+    Condition
+      Error in `step_dummy()`:
+      Caused by error in `bake()`:
+      ! Only one factor level in `x`: "only-level".
+
+# sparse = 'yes' errors on unsupported contrasts
+
+    Code
+      recipe(~., data = tibble(x = letters)) %>% step_dummy(x, sparse = "yes") %>%
+        prep()
+    Condition
+      Error in `step_dummy()`:
+      Caused by error in `bake()`:
+      ! When `sparse = TRUE`, only "contr.treatment" and "contr_one_hot" contrasts are supported, not "contr.helmert".
+
+# bake method errors when needed non-standard role columns are missing
+
+    Code
+      bake(dummy_trained, new_data = sacr_fac[, 3:4], all_predictors())
+    Condition
+      Error in `step_dummy()`:
+      ! The following required columns are missing from `new_data`: city and zip.
 
 # empty printing
 
@@ -223,4 +250,24 @@
       
       -- Operations 
       * Dummy variables from: city and zip | Trained
+
+# bad args
+
+    Code
+      recipe(~ city + sqft + price, data = Sacramento) %>% step_dummy(city, one_hot = 2) %>%
+        prep()
+    Condition
+      Error in `step_dummy()`:
+      Caused by error in `prep()`:
+      ! `one_hot` must be `TRUE` or `FALSE`, not the number 2.
+
+---
+
+    Code
+      recipe(~ city + sqft + price, data = Sacramento) %>% step_dummy(city, naming = NULL) %>%
+        prep()
+    Condition
+      Error in `step_dummy()`:
+      Caused by error in `prep()`:
+      ! `naming` must be a function, not `NULL`.
 

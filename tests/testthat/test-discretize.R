@@ -171,6 +171,12 @@ test_that("tunable", {
   )
 })
 
+test_that("war when less breaks are generated", {
+  expect_snapshot(
+    tmp <- discretize(c(rep(1, 50), 1:50), cuts = 5, min_unique = 1)
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -180,8 +186,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE)
   rec <- prep(rec, mtcars)
 
-  expect_error(bake(rec, new_data = mtcars[, 2:ncol(mtcars)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec, new_data = mtcars[, 2:ncol(mtcars)]))
 })
 
 test_that("empty printing", {
@@ -242,3 +247,20 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 2L)
 })
+
+
+test_that("bad args", {
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_discretize(disp, num_breaks = 0) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_discretize(disp, min_unique = -1) %>%
+      prep(),
+    error = TRUE
+  )
+})
+

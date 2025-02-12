@@ -172,6 +172,39 @@ test_that("tunable", {
   )
 })
 
+test_that("impute_with errors with nothing selected", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_impute_knn(all_predictors(), impute_with = NULL) %>%
+      prep()
+  )
+})
+
+test_that("warn if all values of predictor are missing", {
+  mtcars[, 1:11] <- NA_real_
+  expect_snapshot(
+    tmp <- recipe(~., data = mtcars) %>%
+      step_impute_knn(mpg, disp, vs) %>%
+      prep()
+  )
+})
+
+test_that("error on wrong options argument", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_impute_knn(all_predictors(), options = list(wrong = "wrong")) %>%
+      prep()
+  )
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_impute_knn(all_predictors(), options = c(wrong = "wrong")) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -183,8 +216,10 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   imputed_trained <- prep(imputed, training = biomass, verbose = FALSE)
 
-  expect_error(bake(imputed_trained, new_data = biomass[, c(-4)]),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    error = TRUE,
+    bake(imputed_trained, new_data = biomass[, c(-4)])
+  )
 })
 
 test_that("empty printing", {
@@ -253,4 +288,17 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 1L)
+})
+
+
+test_that("bad args", {
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_impute_knn(
+        all_predictors(),
+        neighbors = 0L
+      ) %>%
+      prep(),
+    error = TRUE
+  )
 })

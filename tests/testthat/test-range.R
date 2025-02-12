@@ -177,17 +177,17 @@ test_that("backwards compatibility for before clipping <= 1.0.2 (#1090)", {
 })
 
 test_that("warns when NaN is returned due to zero variance",{
-  rec <- recipe(~., data = data.frame(x = rep(1, 10))) |>
+  rec <- recipe(~., data = data.frame(x = rep(1, 10))) %>%
     step_range(x)
   expect_snapshot(prep(rec))
 })
 
 test_that("warns when NaN is returned due to Inf or -Inf",{
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) |>
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) %>%
     step_range(x)
   expect_snapshot(prep(rec))
 
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) |>
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) %>%
     step_range(x)
   expect_snapshot(prep(rec))
 })
@@ -202,8 +202,10 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   standardized_trained <- prep(standardized, training = biomass_tr, verbose = FALSE)
 
-  expect_error(bake(standardized_trained, new_data = biomass_te[, 1:3]),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    error = TRUE,
+    bake(standardized_trained, new_data = biomass_te[, 1:3])
+  )
 })
 
 test_that("empty printing", {
@@ -249,4 +251,27 @@ test_that("printing", {
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+test_that("bad args", {
+
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_range(disp, wt, max = "max") %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_range(disp, wt, min = "min") %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_range(disp, wt, clipping = "never") %>%
+      prep(),
+    error = TRUE
+  )
+
 })

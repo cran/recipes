@@ -64,10 +64,10 @@ model.matrix(~ Species*Sepal.Length, data = iris) %>%
   as.data.frame()
 
 ## ----nope, eval = FALSE-------------------------------------------------------
-#  # Must I do this?
-#  iris_rec %>%
-#    step_interact( ~ Species_versicolor:Sepal.Length +
-#                     Species_virginica:Sepal.Length)
+# # Must I do this?
+# iris_rec %>%
+#   step_interact( ~ Species_versicolor:Sepal.Length +
+#                    Species_virginica:Sepal.Length)
 
 ## ----iris-sel-----------------------------------------------------------------
 iris_int <- 
@@ -78,10 +78,10 @@ iris_int <-
 summary(iris_int)
 
 ## ----sel-input, eval = FALSE--------------------------------------------------
-#  starts_with("Species")
+# starts_with("Species")
 
 ## ----sel-output, eval = FALSE-------------------------------------------------
-#  (Species_versicolor + Species_virginica)
+# (Species_versicolor + Species_virginica)
 
 ## ----int-form-----------------------------------------------------------------
 iris_int

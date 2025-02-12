@@ -70,13 +70,13 @@ test_that("basic usage", {
 
 test_that("bad input", {
   expect_snapshot(error = TRUE,
-    iris_rec %>% step_sample(size = -1)
+    iris_rec %>% step_sample(size = -1) %>% prep()
   )
   expect_snapshot(error = TRUE,
-    iris_rec %>% step_sample(size = "a")
+    iris_rec %>% step_sample(size = "a") %>% prep()
   )
   expect_snapshot(error = TRUE,
-    iris_rec %>% step_sample(replace = "a")
+    iris_rec %>% step_sample(replace = "a") %>% prep()
   )
 })
 
@@ -134,6 +134,13 @@ test_that("sample with case weights", {
     prep()
 
   expect_snapshot(rec)
+})
+
+test_that("warn when selectors are provided", {
+  expect_snapshot(
+    tmp <- recipe(~., data = mtcars) %>%
+      step_sample(all_predictors())
+  )
 })
 
 # Infrastructure ---------------------------------------------------------------

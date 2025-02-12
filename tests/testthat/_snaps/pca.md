@@ -3,8 +3,9 @@
     Code
       tidy(pca_extract_trained, number = 3, type = "variances")
     Condition
-      Error in `match.arg()`:
-      ! 'arg' should be one of "coef", "variance"
+      Error in `tidy()`:
+      ! `type` must be one of "coef" or "variance", not "variances".
+      i Did you mean "variance"?
 
 # No PCA comps
 
@@ -96,6 +97,14 @@
       -- Operations 
       * PCA extraction with: carbon and hydrogen, ... | Trained, ignored weights
 
+# bake method errors when needed non-standard role columns are missing
+
+    Code
+      bake(pca_extract_trained, new_data = biomass_te[, c(-3)])
+    Condition
+      Error in `step_pca()`:
+      ! The following required column is missing from `new_data`: carbon.
+
 # empty printing
 
     Code
@@ -174,4 +183,34 @@
       
       -- Operations 
       * PCA extraction with: carbon, hydrogen, oxygen, nitrogen, sulfur | Trained
+
+# bad args
+
+    Code
+      recipe(~., data = mtcars) %>% step_pca(all_numeric_predictors(), num_comp = -1) %>%
+        prep()
+    Condition
+      Error in `step_pca()`:
+      Caused by error in `prep()`:
+      ! `num_comp` must be a whole number larger than or equal to 0, not the number -1.
+
+---
+
+    Code
+      recipe(~., data = mtcars) %>% step_pca(all_numeric_predictors(), prefix = 1) %>%
+        prep()
+    Condition
+      Error in `step_pca()`:
+      Caused by error in `prep()`:
+      ! `prefix` must be a single string, not the number 1.
+
+---
+
+    Code
+      recipe(~., data = mtcars) %>% step_pca(all_numeric_predictors(), threshold = -1) %>%
+        prep()
+    Condition
+      Error in `step_pca()`:
+      Caused by error in `prep()`:
+      ! `threshold` must be a number between 0 and 1 or `NA`, not the number -1.
 

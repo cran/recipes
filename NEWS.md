@@ -1,3 +1,11 @@
+# recipes 1.1.1
+
+## Improvements
+
+* Example for `step_novel()` now better illustrates how it works. (@Edgar-Zamora, #1248)
+
+* `prep.recipe(..., strings_as_factors = TRUE)` now only converts string variables that have role "predictor" or "outcome". (@dajmcdon, #1358, #1376)
+
 # recipes 1.1.0
 
 ## Improvements
@@ -31,6 +39,8 @@
 * `step_dummy()` and `step_unknown()` now throw more informative warnings for unseen levels. (#450)
 
 * `step_dummy()` now throws more informative warnings for `NA` values. (#450)
+
+* `step_date()` now accepts `"mday"` as a possible feature. (@Edgar-Zamora, #1211)
 
 ## Bug Fixes
 

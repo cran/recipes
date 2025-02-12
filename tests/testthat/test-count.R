@@ -67,6 +67,14 @@ test_that("check_name() is used", {
   )
 })
 
+test_that("checks for grepl arguments", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_count(options = list(not_real_option = TRUE))
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -82,8 +90,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   rec_trained <- prep(rec, training = mt_tibble)
 
-  expect_error(bake(rec_trained, new_data = mt_tibble[,c(-1)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec_trained, new_data = mt_tibble[,c(-1)]))
 })
 
 test_that("empty printing", {
@@ -162,9 +169,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     rec <- prep(rec)
   )
 
-  expect_error(
-    bake(rec, new_data = covers),
-    NA
+  expect_no_error(
+    bake(rec, new_data = covers)
   )
 })
 
@@ -174,4 +180,28 @@ test_that("printing", {
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+test_that("bad args", {
+  skip_if_not_installed("modeldata")
+  data(covers, package = "modeldata")
+
+  expect_snapshot(
+    recipe(~description, covers) %>%
+      step_count(description, pattern = character(0)) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~description, covers) %>%
+      step_count(description, pattern = "(rock|stony)", result = letters) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~description, covers) %>%
+      step_count(description, pattern = "(rock|stony)", normalize = "yes") %>%
+      prep(),
+    error = TRUE
+  )
 })

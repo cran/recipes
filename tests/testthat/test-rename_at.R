@@ -39,10 +39,17 @@ test_that("mulitple functions", {
 })
 
 test_that("no input", {
-  # Wait for call pass through
-  expect_error(
+  expect_snapshot(
+    error = TRUE,
     iris_rec %>%
       step_rename_at() %>%
+      prep(training = iris) %>%
+      bake(new_data = NULL, composition = "data.frame")
+  )
+  expect_snapshot(
+    error = TRUE,
+    iris_rec %>%
+      step_rename_at(fn = ":=O") %>%
       prep(training = iris) %>%
       bake(new_data = NULL, composition = "data.frame")
   )

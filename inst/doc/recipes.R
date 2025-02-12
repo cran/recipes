@@ -29,8 +29,8 @@ rec_obj <- recipe(Status ~ ., data = credit_train)
 rec_obj
 
 ## ----step_code, eval = FALSE--------------------------------------------------
-#  rec_obj <- step_{X}(rec_obj, arguments)    ## or
-#  rec_obj <- rec_obj %>% step_{X}(arguments)
+# rec_obj <- step_{X}(rec_obj, arguments)    ## or
+# rec_obj <- rec_obj %>% step_{X}(arguments)
 
 ## ----imp-steps----------------------------------------------------------------
 grep("impute_", ls("package:recipes"), value = TRUE)
@@ -68,8 +68,8 @@ vapply(test_data, function(x) mean(!is.na(x)), numeric(1))
 grep("^step_", ls("package:recipes"), value = TRUE)
 
 ## ----check, eval = FALSE------------------------------------------------------
-#  trained_rec <- trained_rec %>%
-#    check_missing(contains("Marital"))
+# trained_rec <- trained_rec %>%
+#   check_missing(contains("Marital"))
 
 ## ----check_list, echo = FALSE-------------------------------------------------
 grep("^check_", ls("package:recipes"), value = TRUE)

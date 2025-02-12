@@ -110,11 +110,11 @@ test_that("centering with case weights", {
 })
 
 test_that("warns when NaN is returned due to Inf or -Inf",{
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) |>
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) %>%
     step_center(x)
   expect_snapshot(prep(rec))
 
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) |>
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) %>%
     step_center(x)
   expect_snapshot(prep(rec))
 })
@@ -128,8 +128,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   std_trained <- prep(std, training = biomass)
 
-  expect_error(bake(std_trained, new_data = biomass[, 1:2]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(std_trained, new_data = biomass[, 1:2]))
 })
 
 test_that("empty printing", {

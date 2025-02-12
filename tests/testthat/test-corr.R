@@ -132,6 +132,16 @@ test_that("case weights", {
   expect_snapshot(filtering_trained)
 })
 
+test_that("corr_filter() warns on many NA values", {
+  mtcars[, 1:10] <- NA_real_
+
+  expect_snapshot(
+    tmp <- recipe(~., data = mtcars) %>%
+      step_corr(all_predictors()) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -197,3 +207,25 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 1L)
 })
+
+test_that("bad args", {
+  expect_snapshot(
+    recipe(mpg ~ ., mtcars) %>%
+      step_corr(all_predictors(), threshold = 2) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., mtcars) %>%
+      step_corr(all_predictors(), use = "this") %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., mtcars) %>%
+      step_corr(all_predictors(), method = "my dissertation") %>%
+      prep(),
+    error = TRUE
+  )
+})
+

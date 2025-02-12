@@ -45,6 +45,12 @@ test_that("bad args", {
       step_num2factor(w, x) %>%
       prep(ex_dat)
   )
+  expect_snapshot(
+    rec %>%
+      step_num2factor(z, levels = rev(LETTERS[1:10]), transform = 2) %>%
+      prep(),
+    error = TRUE
+  )
 })
 
 # Infrastructure ---------------------------------------------------------------
@@ -56,8 +62,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE) %>%
     prep(ex_dat)
 
-  expect_error(bake(ex_1, new_data = ex_dat[, 1:2]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(ex_1, new_data = ex_dat[, 1:2]))
 })
 
 test_that("empty printing", {

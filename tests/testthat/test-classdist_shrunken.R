@@ -115,6 +115,24 @@ test_that("shrunken centroids", {
       ) %>% prep(),
     error = TRUE
   )
+  expect_snapshot(
+    recipe(class ~ x + y, data = nsc_test) %>%
+      step_classdist_shrunken(
+        all_numeric_predictors(),
+        class = "class",
+        log = 2
+      ) %>% prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(class ~ x + y, data = nsc_test) %>%
+      step_classdist_shrunken(
+        all_numeric_predictors(),
+        class = "class",
+        prefix = 2
+      ) %>% prep(),
+    error = TRUE
+  )
 
   # ------------------------------------------------------------------------------
 
@@ -169,8 +187,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   trained <- prep(rec, training = iris, verbose = FALSE)
 
-  expect_error(bake(trained, new_data = iris[,c(-3)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(trained, new_data = iris[,c(-3)]))
 })
 
 test_that("empty printing", {

@@ -306,8 +306,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   dummy_prepped <- prep(dummy)
 
-  expect_error(bake(dummy_prepped, new_data = mini_tate[, 1:3]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(dummy_prepped, new_data = mini_tate[, 1:3]))
 })
 
 test_that("empty printing", {
@@ -385,9 +384,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     rec <- prep(rec)
   )
 
-  expect_error(
-    bake(rec, new_data = color_examples),
-    NA
+  expect_no_error(
+    bake(rec, new_data = color_examples)
   )
 })
 
@@ -398,3 +396,38 @@ test_that("printing", {
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
 })
+
+test_that("bad args", {
+
+  expect_snapshot(
+    recipe(~colors, data = color_examples) %>%
+      step_dummy_extract(colors, pattern = "(?<=')[^',]+(?=')", other = 2) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~colors, data = color_examples) %>%
+      step_dummy_extract(colors, pattern = "(?<=')[^',]+(?=')", other = 2) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~colors, data = color_examples) %>%
+      step_dummy_extract(colors, pattern = "(?<=')[^',]+(?=')", sep = 2) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~colors, data = color_examples) %>%
+      step_dummy_extract(colors, pattern = 2) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~colors, data = color_examples) %>%
+      step_dummy_extract(colors, pattern = "(?<=')[^',]+(?=')", naming = NULL) %>%
+      prep(),
+    error = TRUE
+  )
+})
+

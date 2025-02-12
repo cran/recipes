@@ -112,6 +112,24 @@ test_that("non-factor imputation", {
   expect_true(is.character(bake(rec, NULL, Location)[[1]]))
 })
 
+test_that("impute_with errors with nothing selected", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_impute_bag(all_predictors(), impute_with = NULL) %>%
+      prep()
+  )
+})
+
+test_that("impute_with errors with nothing selected", {
+  mtcars[, 1:11] <- NA_real_
+  expect_snapshot(
+    tmp <- recipe(~., data = mtcars) %>%
+      step_impute_bag(mpg, disp, vs) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -125,8 +143,10 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   imputed_trained <- prep(imputed, training = biomass, verbose = FALSE)
 
-  expect_error(bake(imputed_trained, new_data = biomass[, c(-3, -9)]),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    error = TRUE,
+    bake(imputed_trained, new_data = biomass[, c(-3, -9)])
+  )
 })
 
 test_that("empty printing", {
@@ -188,3 +208,27 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 1L)
 })
+
+
+test_that("bad args", {
+
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_impute_bag(
+        all_predictors(),
+        trees = -1
+      ) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_impute_bag(
+        all_predictors(),
+        seed_val = 1:4
+      ) %>%
+      prep(),
+    error = TRUE
+  )
+})
+

@@ -71,6 +71,13 @@ test_that("na_rm argument works for step_normalize", {
       prep()
   )
 
+  expect_snapshot(
+    recipe(~., data = mtcars_na) %>%
+      step_normalize(all_predictors(), na_rm = 2) %>%
+      prep(),
+    error = TRUE
+  )
+
   rec_na_rm <- recipe(~., data = mtcars_na) %>%
     step_normalize(all_predictors(), na_rm = TRUE) %>%
     prep()
@@ -143,11 +150,11 @@ test_that("normalizing with case weights", {
 })
 
 test_that("warns when NaN is returned due to Inf or -Inf",{
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) |>
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) %>%
     step_normalize(x)
   expect_snapshot(prep(rec))
 
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) |>
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) %>%
     step_normalize(x)
   expect_snapshot(prep(rec))
 })
@@ -162,8 +169,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   std_trained <- prep(std, training = biomass)
 
-  expect_error(bake(std_trained, new_data = biomass[, 1:2]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(std_trained, new_data = biomass[, 1:2]))
 })
 
 test_that("empty printing", {

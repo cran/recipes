@@ -13,36 +13,42 @@ sim_dat$fac <- sample(letters[1:3], size = n, replace = TRUE)
 rec <- recipe(~., data = sim_dat)
 
 test_that("error checks", {
+  skip_if_not_installed("RcppRoll")
+
   expect_snapshot(error = TRUE,
-    rec %>% step_window(y1, size = 6)
+    rec %>% step_window(y1, size = 6) %>% prep()
   )
   expect_snapshot(error = TRUE,
-    rec %>% step_window(y1, size = NA)
+    rec %>% step_window(y1, size = NA) %>% prep()
   )
-  # Wait for call pass through
-  expect_error(
-    rec %>% step_window(y1, size = NULL)
+  expect_snapshot(
+    error = TRUE,
+    rec %>% step_window(y1, size = NULL) %>% prep()
   )
   expect_snapshot(error = TRUE,
     rec %>% step_window(y1, statistic = "average")
   )
   expect_snapshot(error = TRUE,
-    rec %>% step_window(y1, size = 1)
+    rec %>% step_window(y1, size = 1) %>% prep()
   )
   expect_snapshot(error = TRUE,
-    rec %>% step_window(y1, size = 2)
+    rec %>% step_window(y1, size = 2) %>% prep()
   )
   expect_snapshot(error = TRUE,
-    rec %>% step_window(y1, size = -1)
+    rec %>% step_window(y1, size = -1) %>% prep()
   )
   expect_snapshot(
-    rec %>% step_window(y1, size = pi)
+    rec %>% step_window(y1, size = 3 + .Machine$double.eps) %>% prep()
+  )
+  expect_snapshot(
+    rec %>% step_window(y1, size = 3 + 2 * .Machine$double.eps) %>% prep(),
+    error = TRUE
   )
   expect_snapshot(error = TRUE,
     prep(rec %>% step_window(fac), training = sim_dat)
   )
   expect_snapshot(error = TRUE,
-    prep(rec %>% step_window(y1, size = 1000L), training = sim_dat)
+    prep(rec %>% step_window(y1, size = 1000L), training = sim_dat) %>% prep()
   )
   bad_names <- rec %>%
     step_window(starts_with("y"), names = "only_one_name")
@@ -143,6 +149,17 @@ test_that("check_name() is used", {
   )
 })
 
+test_that("error on too large window size", {
+  skip_if_not_installed("RcppRoll")
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~ ., data = mtcars) %>%
+      step_window(mpg, size = 999) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -154,8 +171,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   rec_trained <- prep(rec, training = sim_dat)
 
-  expect_error(bake(rec_trained, new_data = sim_dat[, -1]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec_trained, new_data = sim_dat[, -1]))
 })
 
 test_that("empty printing", {
@@ -184,7 +200,7 @@ test_that("empty selection prep/bake is a no-op", {
 
 test_that("empty selection tidy method works", {
   rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_window(rec)
+  rec <- step_window(rec, size = 3L)
 
   expect <- tibble(
     terms = character(),
@@ -238,9 +254,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     rec <- prep(rec)
   )
 
-  expect_error(
-    bake(rec, new_data = sim_dat),
-    NA
+  expect_no_error(
+    bake(rec, new_data = sim_dat)
   )
 })
 

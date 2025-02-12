@@ -1,11 +1,16 @@
 test_that("step_cut throws error on non-numerics", {
   x <- tibble(num_var = 1:3, cat_var = c("1", "2", "3"))
-  expect_error(recipe(x) %>% step_cut(num_var, breaks = 2) %>% prep(), NA)
+  expect_no_error(recipe(x) %>% step_cut(num_var, breaks = 2) %>% prep())
   expect_snapshot(error = TRUE,
     recipe(x) %>% step_cut(cat_var, breaks = 2) %>% prep()
   )
   expect_snapshot(error = TRUE,
     recipe(~., x) %>% step_cut(all_predictors(), breaks = 2) %>% prep()
+  )
+  expect_snapshot(error = TRUE,
+    recipe(~., x) %>%
+      step_cut(num_var, breaks = 2, include_outside_range = 2) %>%
+      prep()
   )
 })
 
@@ -34,8 +39,8 @@ test_that("full_breaks_check will give warnings", {
   expect_snapshot(
     full_breaks_check(c(10, 20))
   )
-  expect_error(full_breaks_check(c(10, 20, 30)), NA)
-  expect_warning(full_breaks_check(c(10, 20, 30)), NA)
+  expect_no_error(full_breaks_check(c(10, 20, 30)))
+  expect_no_warning(full_breaks_check(c(10, 20, 30)))
 })
 
 test_that("cut_var gives correct output", {
@@ -167,6 +172,44 @@ test_that("tidy method works", {
   )
 })
 
+test_that("step_cut() provides informative error on missing values", {
+  # Single missing value
+  mtcars_with_na <- mtcars
+  mtcars_with_na[1, "mpg"] <- NA
+
+  expect_warning(
+    recipe(~ ., data = mtcars_with_na) %>%
+      step_cut(mpg, breaks = 20) %>%
+      prep()
+  )
+
+  # Multiple missing values
+  mtcars_with_nas <- mtcars
+  mtcars_with_nas[c(1, 3, 5), "mpg"] <- NA
+
+  expect_warning(
+    recipe(~ ., data = mtcars_with_nas) %>%
+      step_cut(mpg, breaks = 20) %>%
+      prep()
+  )
+})
+
+test_that("breaks argument are type checked", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_cut(disp, hp, breaks = TRUE) %>%
+      prep()
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., data = mtcars) %>%
+      step_cut(disp, hp, breaks = c("100", "200")) %>%
+      prep()
+  )
+})
+
 
 # Infrastructure ---------------------------------------------------------------
 
@@ -182,8 +225,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE) %>%
     prep()
 
-  expect_error(bake(prepped, df[, 2, drop = FALSE]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(prepped, df[, 2, drop = FALSE]))
 })
 
 test_that("empty printing", {
@@ -230,3 +272,5 @@ test_that("printing", {
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
 })
+
+

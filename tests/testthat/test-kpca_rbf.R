@@ -96,6 +96,23 @@ test_that("Do nothing for num_comps = 0 and keep_original_cols = FALSE (#1152)",
   expect_identical(res, tibble::as_tibble(mtcars))
 })
 
+test_that("rethrows error correctly from implementation", {
+  skip_if_not_installed("kernlab")
+
+  local_mocked_bindings(
+    .package = "kernlab",
+    kpca = function(...) {
+      cli::cli_abort("mocked error")
+    }
+  )
+  expect_snapshot(
+    error = TRUE,
+    recipe(~ ., data = mtcars) %>%
+      step_kpca_rbf(all_predictors()) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -108,8 +125,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   kpca_trained <- prep(kpca_rec, training = tr_dat, verbose = FALSE)
 
-  expect_error(bake(kpca_trained, new_data = te_dat[, 1:3]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(kpca_trained, new_data = te_dat[, 1:3]))
 })
 
 test_that("empty printing", {
@@ -187,9 +203,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     rec <- prep(rec)
   )
 
-  expect_error(
-    bake(rec, new_data = mtcars),
-    NA
+  expect_no_error(
+    bake(rec, new_data = mtcars)
   )
 })
 
@@ -215,4 +230,28 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 2L)
+})
+
+
+test_that("bad args", {
+  skip_if_not_installed("kernlab")
+
+  expect_snapshot(
+    recipe(~ ., data = tr_dat) %>%
+      step_kpca_rbf(all_numeric_predictors(), num_comp = -1) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~ ., data = tr_dat) %>%
+      step_kpca_rbf(all_numeric_predictors(), sigma = 0) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~ ., data = tr_dat) %>%
+      step_kpca_rbf(all_numeric_predictors(), prefix = 1) %>%
+      prep(),
+    error = TRUE
+  )
 })

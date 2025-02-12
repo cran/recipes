@@ -87,7 +87,7 @@ test_that("errors if degree > deg_free (#1170)", {
       step_spline_convex(mpg, degree = 3, deg_free = 3, complete_set = FALSE) %>%
       prep()
   )
-  
+
   expect_snapshot(
     error = TRUE,
     recipe(~., data = mtcars) %>%
@@ -161,8 +161,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   rec_trained <- prep(rec, training = mtcars)
 
-  expect_error(bake(rec_trained, new_data = mtcars[, -3]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec_trained, new_data = mtcars[, -3]))
 })
 
 test_that("empty printing", {
@@ -255,4 +254,21 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 2L)
+})
+
+test_that("bad args", {
+  skip_if_not_installed("splines2")
+
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_spline_convex(disp, degree = -1) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_spline_convex(disp, complete_set = 1) %>%
+      prep(),
+    error = TRUE
+  )
 })

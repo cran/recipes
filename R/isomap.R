@@ -11,8 +11,8 @@
 #'  or the number of possible dimensions, a smaller value will be
 #'  used.
 #' @param neighbors The number of neighbors.
-#' @param options A list of options to [dimRed::Isomap()].
-#' @param res The [dimRed::Isomap()] object is stored
+#' @param options A list of options to `dimRed::Isomap()``.
+#' @param res The `dimRed::Isomap()`` object is stored
 #'  here once this preprocessing step has be trained by
 #'  [prep()].
 #' @template step-return
@@ -155,6 +155,8 @@ step_isomap_new <-
 prep.step_isomap <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
+  check_number_whole(x$neighbors, arg = "neighbors", min = 1)
+  check_string(x$prefix, arg = "prefix")
 
   if (x$num_terms > 0 && length(col_names) > 0L) {
     x$num_terms <- min(x$num_terms, ncol(training))

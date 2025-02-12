@@ -66,6 +66,10 @@ test_that("bad args", {
       step_unknown(city, new_level = "FAIR_OAKS") %>%
       prep()
   )
+  expect_snapshot(error = TRUE,
+    recipe(~., data = sacr_tr) %>%
+      step_unknown(city, new_level = 2) %>% prep()
+  )
 })
 
 test_that("tidy methods", {
@@ -90,8 +94,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE) %>%
     prep()
 
-  expect_error(bake(rec_1, sacr_te[3:ncol(sacr_te)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec_1, sacr_te[3:ncol(sacr_te)]))
 })
 
 test_that("empty printing", {

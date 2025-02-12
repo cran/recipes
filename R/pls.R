@@ -326,6 +326,9 @@ prep.step_pls <- function(x, training, info = NULL, ...) {
   y_names <- recipes_eval_select(x$outcome, training, info)
 
   check_type(training[, x_names], types = c("double", "integer"))
+  check_number_decimal(x$predictor_prop, arg = "predictor_prop", min = 0, max = 1)
+  check_string(x$prefix, arg = "prefix")
+  check_number_whole(x$num_comp, arg = "num_comp", min = 0)
 
   if (length(y_names) > 1 && any(!map_lgl(training[y_names], is.numeric))) {
     cli::cli_abort(
@@ -344,7 +347,7 @@ prep.step_pls <- function(x, training, info = NULL, ...) {
     res <- try(rlang::eval_tidy(cl), silent = TRUE)
     if (inherits(res, "try-error")) {
       cli::cli_warn(
-        "{.fn step_pls failed with error: {as.character(res))}.",
+        "{.fn step_pls} failed with error: {as.character(res)}.",
       )
       res <- list(x_vars = x_names, y_vars = y_names)
     } else {

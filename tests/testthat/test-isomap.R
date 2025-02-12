@@ -158,8 +158,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   im_trained <- prep(im_rec, training = dat1, verbose = FALSE)
 
-  expect_error(bake(im_trained, new_data = dat2[, 1:2]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(im_trained, new_data = dat2[, 1:2]))
 })
 
 test_that("empty printing", {
@@ -252,9 +251,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     transform = scrub_timestamp
   )
 
-  expect_error(
-    bake(rec, new_data = dat1),
-    NA
+  expect_no_error(
+    bake(rec, new_data = dat1)
   )
 })
 
@@ -285,4 +283,25 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 2L)
+})
+
+test_that("bad args", {
+  skip_on_cran()
+  skip_if_not_installed("RSpectra")
+  skip_if_not_installed("igraph")
+  skip_if_not_installed("RANN")
+  skip_if_not_installed("dimRed")
+
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_isomap(all_predictors(), num_terms = 2, neighbors = -1/3) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_isomap(all_predictors(), prefix = NULL) %>%
+      prep(),
+    error = TRUE
+  )
 })

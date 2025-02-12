@@ -7,6 +7,16 @@
       Warning:
       Columns `mpg`, `cyl`, `disp`, and `hp` returned NaN, because variance cannot be calculated and scaling cannot be used. Consider avoiding `Inf` or `-Inf` values and/or setting `na_rm = TRUE` before normalizing.
 
+---
+
+    Code
+      recipe(~., data = mtcars_na) %>% step_normalize(all_predictors(), na_rm = 2) %>%
+        prep()
+    Condition
+      Error in `step_normalize()`:
+      Caused by error in `prep()`:
+      ! `na_rm` must be `TRUE` or `FALSE`, not the number 2.
+
 # warns on zv
 
     Code
@@ -111,6 +121,14 @@
       
       -- Operations 
       * Centering and scaling for: x | Trained
+
+# bake method errors when needed non-standard role columns are missing
+
+    Code
+      bake(std_trained, new_data = biomass[, 1:2])
+    Condition
+      Error in `step_normalize()`:
+      ! The following required columns are missing from `new_data`: carbon, hydrogen, oxygen, nitrogen, and sulfur.
 
 # empty printing
 

@@ -268,7 +268,16 @@ test_that(
   desc = "if the threshold argument is greather than one then it should be an integer(ish)",
   code = {
     expect_snapshot(error = TRUE,
-      rec %>% step_other(city, zip, threshold = 3.14)
+      rec %>% step_other(city, zip, threshold = 3.14) %>% prep()
+    )
+  }
+)
+
+test_that(
+  desc = "bad values of threshold are treated correctly",
+  code = {
+    expect_snapshot(error = TRUE,
+      rec %>% step_other(city, zip, threshold = letters) %>% prep()
     )
   }
 )
@@ -320,9 +329,8 @@ test_that("issue #415 -  strings to factor conversion", {
   iris_no_outcome <- iris
   iris_no_outcome["Species"] <- NULL
 
-  expect_error(
-    res <- bake(prepped, iris_no_outcome),
-    regex = NA
+  expect_no_error(
+    res <- bake(prepped, iris_no_outcome)
   )
   expect_equal(names(res), names(iris[, 1:4]))
 })
@@ -381,8 +389,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   others <- prep(others, training = sacr_tr)
 
-  expect_error(bake(others, new_data = sacr_te[, 3:9]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(others, new_data = sacr_te[, 3:9]))
 })
 
 test_that("empty printing", {

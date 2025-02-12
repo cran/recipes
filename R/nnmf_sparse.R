@@ -154,6 +154,9 @@ nnmf_pen_call <- function(x) {
 prep.step_nnmf_sparse <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
+  check_number_whole(x$num_comp, arg = "num_comp", min = 0)
+  check_number_decimal(x$penalty, arg = "penalty", min = .Machine$double.eps)
+  check_string(x$prefix, arg = "prefix")
 
   if (x$num_comp > 0 && length(col_names) > 0) {
     x$num_comp <- min(x$num_comp, length(col_names))
@@ -170,9 +173,10 @@ prep.step_nnmf_sparse <- function(x, training, info = NULL, ...) {
     } else {
       na_w <- sum(is.na(nnm$w))
       if (na_w > 0) {
-        cli::cli_abort(
-          "The NNMF loadings are missing. The penalty may have been to high."
-        )
+        cli::cli_abort(c(
+          x = "The NNMF loadings are missing.",
+          i = "The penalty may have been too high or missing values are present in data."
+        ))
       } else {
         nnm <- list(x_vars = col_names, w = nnm$w)
         rownames(nnm$w) <- col_names

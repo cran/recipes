@@ -87,8 +87,10 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   tr_int <- bake(rec_trained, new_data = NULL, all_predictors())
 
-  expect_error(bake(rec_trained, te_dat[, 2:3], all_predictors()),
-               class = "new_data_missing_column")
+  expect_snapshot(
+    error = TRUE,
+    bake(rec_trained, te_dat[, 2:3], all_predictors())
+  )
 })
 
 test_that("empty printing", {
@@ -134,4 +136,20 @@ test_that("printing", {
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+
+test_that("bad args", {
+  expect_snapshot(
+    recipe(~ x + y + z, data = tr_dat) %>%
+      step_integer(all_predictors(), strict = "yes") %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(~ x + y + z, data = tr_dat) %>%
+      step_integer(all_predictors(), zero_based = "sure!") %>%
+      prep(),
+    error = TRUE
+  )
 })

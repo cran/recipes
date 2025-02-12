@@ -129,6 +129,12 @@ step_corr_new <-
 prep.step_corr <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
+  check_number_decimal(x$threshold, min = 0, max = 1, arg = "threshold")
+  use <- x$use
+  rlang::arg_match(use, c("all.obs", "complete.obs", "pairwise.complete.obs",
+                            "everything", "na.or.complete"))
+  method <- x$method
+  rlang::arg_match(method, c("pearson", "kendall", "spearman"))
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
@@ -185,7 +191,7 @@ corr_filter <-
            method = "pearson") {
     x <- correlations(x, wts = wts, use = use, method = method)
 
-    if (any(!complete.cases(x))) {
+    if (any(!vec_detect_complete(x))) {
       all_na <- apply(x, 2, function(x) all(is.na(x)))
       if (sum(all_na) >= nrow(x) - 1) {
         cli::cli_warn(

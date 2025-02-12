@@ -113,14 +113,8 @@ trim <- function(x, trim) {
   # Adapted from mean.default
   x <- sort(x, na.last = TRUE)
   na_ind <- is.na(x)
-  if (!is.numeric(trim) || length(trim) != 1L) {
-    cli::cli_abort("{.arg trim} must be numeric of length one.")
-  }
   n <- length(x[!na_ind])
   if (trim > 0 && n) {
-    if (is.complex(x)) {
-      cli::cli_abort("Trimmed means are not defined for complex data.")
-    }
     if (trim >= 0.5)
       return(stats::median(x[!na_ind], na.rm = FALSE))
     lo <- floor(n * trim) + 1
@@ -135,6 +129,7 @@ trim <- function(x, trim) {
 prep.step_impute_mean <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
+  check_number_decimal(x$trim, arg = "trim", min = 0, max = 1/2)
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)

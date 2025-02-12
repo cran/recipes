@@ -42,6 +42,13 @@ test_that("default lag works on a single feature", {
       step_lag(x, lag = 0.5) %>%
       prep(df)
   )
+
+  expect_snapshot(
+    recipe(~., data = df) %>%
+      step_lag(x, prefix = 2) %>%
+      prep(),
+    error = TRUE
+  )
 })
 
 test_that("specification of multiple lags in a vector", {
@@ -87,8 +94,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE)%>%
     prep(df)
 
-  expect_error(bake(rec, new_data = df[, 1, drop = FALSE]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec, new_data = df[, 1, drop = FALSE]))
 })
 
 test_that("empty printing", {
@@ -164,9 +170,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     rec <- prep(rec)
   )
 
-  expect_error(
-    bake(rec, new_data = mtcars),
-    NA
+  expect_no_error(
+    bake(rec, new_data = mtcars)
   )
 })
 

@@ -31,6 +31,11 @@ test_that("works with logicals", {
     factor(mtcars$am, levels = c(TRUE, FALSE), labels = c("yes", "no")),
     res$am
   )
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_bin2factor(all_logical_predictors(), ref_first = 1),
+    error = TRUE
+  )
 })
 
 
@@ -76,7 +81,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   rec <- prep(rec, mtcars_bin)
 
-  expect_error(bake(rec, mtcars), class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec, mtcars))
 })
 
 test_that("empty printing", {

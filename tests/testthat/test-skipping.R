@@ -41,11 +41,12 @@ test_that("check existing steps for `skip` arg", {
   step_check <- step_check[step_check != "check_nominal_type"]
   step_check <- step_check[step_check != "check_factor_vars"]
   step_check <- step_check[step_check != "check_name"]
-  step_check <- step_check[step_check != "check_training_set"]
   step_check <- step_check[step_check != "check_is_lat_lon"]
   step_check <- step_check[step_check != "check_new_data"]
   step_check <- step_check[step_check != "check_role_requirements"]
   step_check <- step_check[step_check != "check_bake_role_requirements"]
+  step_check <- step_check[step_check != "check_step_check_args"]
+  step_check <- step_check[step_check != "check_sparse_arg"]
 
   # R/import-standalone-types-check.R
   step_check <- step_check[step_check != "check_bool"]

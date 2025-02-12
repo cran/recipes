@@ -58,7 +58,7 @@
 #'
 #' @examplesIf rlang::is_installed(c("modeldata"))
 #' data(penguins, package = "modeldata")
-#' penguins <- penguins[complete.cases(penguins), ]
+#' penguins <- penguins[vctrs::vec_detect_complete(penguins), ]
 #' penguins$island <- NULL
 #' penguins$sex <- NULL
 #'
@@ -194,6 +194,11 @@ prep.step_classdist <- function(x, training, info = NULL, ...) {
   if (isFALSE(were_weights_used)) {
     wts <- NULL
   }
+
+  check_function(x$mean_func)
+  check_function(x$cov_func)
+  check_bool(x$pool)
+  check_string(x$prefix)
 
   x_dat <- split(training[, x_names], training[[class_var]])
   if (is.null(wts)) {

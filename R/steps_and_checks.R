@@ -5,7 +5,8 @@
 #' @param subclass A character string for the resulting class. For example,
 #'   if `subclass = "blah"` the step object that is returned has class
 #'   `step_blah` or `check_blah` depending on the context.
-#' @param ... All arguments to the operator that should be returned.
+#' @param ... All arguments to the operator that should be returned. Required
+#' arguments are `trained`, `skip`, and `id`.
 #' @param .prefix Prefix to the subclass created.
 #'
 #' @seealso [developer_functions]
@@ -13,17 +14,29 @@
 #' @keywords internal
 #' @return An updated step or check with the new class.
 #' @export
-step <- function(subclass, ..., .prefix = "step_") {
-  structure(list(...),
-    class = c(paste0(.prefix, subclass), "step")
+step <- function(subclass, ..., .prefix = "step_",
+                 call = rlang::caller_env(2)) {
+  args <- list(...)
+
+  check_string(subclass, call = call)
+  .prefix <- rlang::arg_match0(.prefix, c("step_", "check_", ""),
+                               error_call = call)
+
+  structure(args, class = c(paste0(.prefix, subclass), "step")
   )
 }
 
 #' @rdname step
 #' @export
-check <- function(subclass, ..., .prefix = "check_") {
-  structure(list(...),
-    class = c(paste0(.prefix, subclass), "check")
+check <- function(subclass, ..., .prefix = "check_",
+                  call = rlang::caller_env(2)) {
+  args <- list(...)
+
+  check_string(subclass, call = call)
+  .prefix <- rlang::arg_match0(.prefix, c("step_", "check_", ""),
+                               error_call = call)
+
+  structure(args, class = c(paste0(.prefix, subclass), "check")
   )
 }
 

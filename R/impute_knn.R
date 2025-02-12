@@ -118,7 +118,7 @@ step_impute_knn <-
     if (length(options) > 0) {
       if (any(!(opt_nms %in% c("eps", "nthread")))) {
         cli::cli_abort(
-          "Valid values for {.arg options} are {.val eps}, and {.val nthread}."
+          "Valid values for {.arg options} are {.val eps} and {.val nthread}."
         )
       }
       if (all(opt_nms != "nthread")) {
@@ -168,6 +168,7 @@ step_impute_knn_new <-
 
 #' @export
 prep.step_impute_knn <- function(x, training, info = NULL, ...) {
+  check_number_whole(x$neighbors, arg = "neighbors", min = 1)
   var_lists <-
     impute_var_lists(
       to_impute = x$terms,
@@ -221,7 +222,7 @@ bake.step_impute_knn <- function(object, new_data, ...) {
   all_cols <- unique(unlist(object$columns, recursive = TRUE))
   check_new_data(all_cols, object, new_data)
 
-  missing_rows <- !complete.cases(new_data)
+  missing_rows <- !vec_detect_complete(new_data)
   if (!any(missing_rows)) {
     return(new_data)
   }
@@ -230,7 +231,7 @@ bake.step_impute_knn <- function(object, new_data, ...) {
 
   old_data <- new_data
   for (col_name in col_names) {
-    missing_rows <- !complete.cases(new_data[, col_name])
+    missing_rows <- !vec_detect_complete(new_data[, col_name])
     if (!any(missing_rows)) {
       next
     }

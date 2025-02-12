@@ -118,8 +118,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   rec_trained <- prep(rec, training = mtcars)
 
-  expect_error(bake(rec_trained, new_data = mtcars[, -3]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec_trained, new_data = mtcars[, -3]))
 })
 
 test_that("empty printing", {
@@ -212,4 +211,21 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 1L)
+})
+
+test_that("bad args", {
+  skip_if_not_installed("splines2")
+
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_poly_bernstein(disp, degree = -1) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_poly_bernstein(disp, complete_set = 1) %>%
+      prep(),
+    error = TRUE
+  )
 })

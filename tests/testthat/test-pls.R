@@ -271,6 +271,31 @@ test_that("Do nothing for num_comps = 0 and keep_original_cols = FALSE (#1152)",
   expect_identical(res, tibble::as_tibble(mtcars))
 })
 
+test_that("rethrows error correctly from implementation", {
+  skip_if_not_installed("mixOmics")
+  local_mocked_bindings(
+    .package = "mixOmics",
+    pls = function(...) {
+      cli::cli_abort("mocked error")
+    }
+  )
+  expect_snapshot(
+    tmp <- recipe(~ ., data = mtcars) %>%
+      step_pls(all_predictors(), outcome = "mpg") %>%
+      prep()
+  )
+})
+
+test_that("error on no outcome", {
+  skip_if_not_installed("mixOmics")
+  expect_snapshot(
+    error = TRUE,
+    recipe(~ ., data = mtcars) %>%
+      step_pls(all_predictors()) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -282,8 +307,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   rec <- prep(rec)
 
-  expect_error(bake(rec, new_data = biom_tr[, c(-1)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(rec, new_data = biom_tr[, c(-1)]))
 })
 
 test_that("empty printing", {
@@ -366,9 +390,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
     rec <- prep(rec)
   )
 
-  expect_error(
-    bake(rec, new_data = mtcars),
-    NA
+  expect_no_error(
+    bake(rec, new_data = mtcars)
   )
 })
 
@@ -394,4 +417,28 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 2L)
+})
+
+
+test_that("bad args", {
+  skip_if_not_installed("mixOmics")
+
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_pls(-mpg, outcome = "mpg", num_comp = -1) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_pls(-mpg, outcome = "mpg", prefix = 1) %>%
+      prep(),
+    error = TRUE
+  )
+  expect_snapshot(
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_pls(-mpg, outcome = "mpg", predictor_prop = -1) %>%
+      prep(),
+    error = TRUE
+  )
 })

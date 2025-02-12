@@ -62,7 +62,7 @@
 #' of the National Academy of Sciences_, 99(10), 6567-6572.
 #' @examplesIf rlang::is_installed(c("modeldata"))
 #' data(penguins, package = "modeldata")
-#' penguins <- penguins[complete.cases(penguins), ]
+#' penguins <- penguins[vctrs::vec_detect_complete(penguins), ]
 #' penguins$island <- NULL
 #' penguins$sex <- NULL
 #'
@@ -289,6 +289,8 @@ prep.step_classdist_shrunken <- function(x, training, info = NULL, ...) {
 
   sd_offset <- x$sd_offset
   check_number_decimal(sd_offset, min = 0, max = 1)
+  check_bool(x$log)
+  check_string(x$prefix)
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts)

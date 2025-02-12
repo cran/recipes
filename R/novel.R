@@ -49,8 +49,13 @@
 #'
 #' sacr_tr <- Sacramento[1:800, ]
 #' sacr_te <- Sacramento[801:806, ]
+#'
+#' # Without converting the predictor to a character, the new level would be converted
+#' # to `NA`.
+#' sacr_te$city <- as.character(sacr_te$city)
 #' sacr_te$city[3] <- "beeptown"
 #' sacr_te$city[4] <- "boopville"
+#' sacr_te$city <- as.factor(sacr_te$city)
 #'
 #' rec <- recipe(~ city + zip, data = sacr_tr)
 #'
@@ -116,6 +121,7 @@ get_existing_values <- function(x) {
 prep.step_novel <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("string", "factor", "ordered"))
+  check_string(x$new_level, arg = "new_level")
 
   # Get existing levels and their factor type (i.e. ordered)
   objects <- lapply(training[, col_names], get_existing_values)

@@ -110,6 +110,11 @@ test_that("na_rm argument works for step_scale", {
     tidy(rec_na_rm, 1)$value,
     unname(exp_na_rm)
   )
+  expect_snapshot(
+    rec_no_na_rm <- recipe(~., data = mtcars_na) %>%
+      step_scale(all_predictors(), na_rm = "FALSE") %>%
+      prep(),
+    error = TRUE)
 })
 
 test_that("warns on zv",{
@@ -166,8 +171,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
   std_trained <- prep(std, training = biomass)
 
-  expect_error(bake(std_trained, new_data = biomass[, 1:2]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(std_trained, new_data = biomass[, 1:2]))
 })
 
 test_that("empty printing", {

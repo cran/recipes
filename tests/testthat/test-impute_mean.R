@@ -208,8 +208,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE)
   imputed <- prep(impute_rec, training = credit_tr, verbose = FALSE)
 
-  expect_error(bake(imputed, new_data = credit_te[, c(-5)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(imputed, new_data = credit_te[, c(-5)]))
 })
 
 test_that("empty printing", {
@@ -270,3 +269,17 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 1L)
 })
+
+
+test_that("bad args", {
+  expect_snapshot(
+    recipe(~., data = mtcars) %>%
+      step_impute_mean(
+        all_predictors(),
+        trim = 0.6
+      ) %>%
+      prep(),
+    error = TRUE
+  )
+})
+

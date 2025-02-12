@@ -33,8 +33,10 @@ recipe(HHV ~ ., data = biomass) %>%
   summary()
 
 ## ----formula-rm-fail, error=TRUE----------------------------------------------
+try({
 recipe(HHV ~ ., data = biomass) %>% 
   update_role(sample, new_role = NA_character_)
+})
 
 ## ----formula-add--------------------------------------------------------------
 multi_role <- recipe(HHV ~ ., data = biomass) %>% 

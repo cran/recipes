@@ -9,7 +9,7 @@
 #'  for this step. The selected variables should have class `Date` or
 #'  `POSIXct`. See [selections()] for more details.
 #' @param features A character string that includes at least one
-#'  of the following values: `month`, `dow` (day of week),
+#'  of the following values: `month`, `dow` (day of week), `mday` (day of month),
 #'  `doy` (day of year), `week`, `month`,
 #'  `decimal` (decimal date, e.g. 2002.197), `quarter`,
 #'  `semester`, `year`.
@@ -98,6 +98,7 @@ step_date <-
       c(
         "year",
         "doy",
+        "mday",
         "week",
         "decimal",
         "semester",
@@ -110,8 +111,7 @@ step_date <-
         offenders <- features[!features %in% feat]
 
         cli::cli_abort(c(
-          x = "Possible values of {.arg features} should include:",
-          "*" = "{.or {.val {feat}}}.",
+          x = "Possible values of {.arg features} are {.or {.val {feat}}}.",
           i = "Invalid values were: {.val {offenders}}."
         ))
       }
@@ -160,6 +160,9 @@ step_date_new <-
 prep.step_date <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("date", "datetime"))
+  check_bool(x$abbr, arg = "abbr")
+  check_bool(x$label, arg = "label")
+  check_bool(x$ordinal, arg = "ordinal")
 
   step_date_new(
     terms = x$terms,
@@ -201,6 +204,9 @@ get_date_features <-
     }
     if ("doy" %in% feats) {
       res[, grepl("doy$", names(res))] <- vec_cast(yday(dt), integer())
+    }
+    if ("mday" %in% feats) {
+      res[, grepl("mday$", names(res))] <- vec_cast(mday(dt), integer())
     }
     if ("week" %in% feats) {
       res[, grepl("week$", names(res))] <- vec_cast(week(dt), integer())

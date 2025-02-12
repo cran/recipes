@@ -86,6 +86,12 @@ test_that("bad args", {
       step_novel(all_predictors()) %>%
       prep(tr_bad)
   )
+  expect_snapshot(
+    rec %>%
+      step_novel(all_predictors(), new_level = letters) %>%
+      prep(),
+    error = TRUE
+  )
 })
 
 test_that("missing values", {
@@ -106,8 +112,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     update_role_requirements(role = "potato", bake = FALSE)%>%
     prep(tr_dat, strings_as_factors = FALSE)
 
-  expect_error(bake(ex_1, new_data = tr_dat[, c(-3)]),
-               class = "new_data_missing_column")
+  expect_snapshot(error = TRUE, bake(ex_1, new_data = tr_dat[, c(-3)]))
 })
 
 test_that("empty printing", {
