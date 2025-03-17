@@ -1,7 +1,6 @@
 library(testthat)
 library(recipes)
 
-
 n <- 50
 set.seed(424)
 dat <- data.frame(
@@ -67,6 +66,19 @@ test_that("bake a single row", {
   rec4 <- prep(rec4, training = dat, verbose = FALSE)
   expect_snapshot(dat4 <- bake(rec4, dat[1, ]))
   expect_equal(dat4, tibble(dat[1, ]))
+})
+
+test_that("doesn't destroy sparsity", {
+  mtcars$vs <- sparsevctrs::as_sparse_integer(mtcars$vs)
+  mtcars$am <- sparsevctrs::as_sparse_integer(mtcars$am)
+
+  rec <- recipe(~., mtcars) %>%
+    step_shuffle(vs, am) %>%
+    prep()
+
+  expect_true(.recipes_preserve_sparsity(rec$steps[[1]]))
+  expect_true(sparsevctrs::is_sparse_integer(bake(rec, NULL)$vs))
+  expect_true(sparsevctrs::is_sparse_integer(bake(rec, NULL)$am))
 })
 
 # Infrastructure ---------------------------------------------------------------

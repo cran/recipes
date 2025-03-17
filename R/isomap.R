@@ -97,19 +97,21 @@
 #' tidy(im_trans, number = 3)
 #' tidy(im_estimates, number = 3)
 step_isomap <-
-  function(recipe,
-           ...,
-           role = "predictor",
-           trained = FALSE,
-           num_terms = 5,
-           neighbors = 50,
-           options = list(.mute = c("message", "output")),
-           res = NULL,
-           columns = NULL,
-           prefix = "Isomap",
-           keep_original_cols = FALSE,
-           skip = FALSE,
-           id = rand_id("isomap")) {
+  function(
+    recipe,
+    ...,
+    role = "predictor",
+    trained = FALSE,
+    num_terms = 5,
+    neighbors = 50,
+    options = list(.mute = c("message", "output")),
+    res = NULL,
+    columns = NULL,
+    prefix = "Isomap",
+    keep_original_cols = FALSE,
+    skip = FALSE,
+    id = rand_id("isomap")
+  ) {
     recipes_pkg_check(required_pkgs.step_isomap())
 
     add_step(
@@ -132,8 +134,20 @@ step_isomap <-
   }
 
 step_isomap_new <-
-  function(terms, role, trained, num_terms, neighbors, options, res, columns,
-           prefix, keep_original_cols, skip, id) {
+  function(
+    terms,
+    role,
+    trained,
+    num_terms,
+    neighbors,
+    options,
+    res,
+    columns,
+    prefix,
+    keep_original_cols,
+    skip,
+    id
+  ) {
     step(
       subclass = "isomap",
       terms = terms,
@@ -175,10 +189,12 @@ prep.step_isomap <- function(x, training, info = NULL, ...) {
         silent = TRUE
       )
     if (inherits(iso_map, "try-error")) {
-      cli::cli_abort(c(
-        x = "Failed with error:",
-        i = as.character(iso_map)
-      ))
+      cli::cli_abort(
+        c(
+          x = "Failed with error:",
+          i = as.character(iso_map)
+        )
+      )
     }
   } else {
     iso_map <- NULL
@@ -214,7 +230,7 @@ bake.step_isomap <- function(object, new_data, ...) {
     comps <- comps[, seq_len(object$num_terms), drop = FALSE]
     comps <- as_tibble(comps)
     comps <- check_name(comps, new_data, object)
-    new_data <- vec_cbind(new_data, comps)
+    new_data <- vec_cbind(new_data, comps, .name_repair = "minimal")
     new_data <- remove_original_cols(new_data, object, col_names)
   }
 
@@ -232,7 +248,6 @@ print.step_isomap <- function(x, width = max(20, options()$width - 35), ...) {
   print_step(x$columns, x$terms, x$trained, title, width)
   invisible(x)
 }
-
 
 #' @rdname tidy.recipe
 #' @export

@@ -20,8 +20,7 @@
 #'   step is trained by [prep()].
 #' @param sparse A single string. Should the columns produced be sparse vectors.
 #'   Can take the values `"yes"`, `"no"`, and `"auto"`. If `sparse = "auto"`
-#'   then workflows can determine the best option. Sparsity is only  supported 
-#'   for `"contr.treatment"` contrasts. Defaults to `"auto"`.
+#'   then workflows can determine the best option. Defaults to `"auto"`.
 #' @template step-return
 #' @family dummy variable and encoding steps
 #' @seealso [dummy_names()]
@@ -63,8 +62,10 @@
 #' be changed by passing in a different function to the `naming` argument for
 #' this step.
 #'
+#'
+#'
 #' Also, there are a number of contrast methods that return fractional values.
-#' The columns returned by this step are doubles (not integers) when 
+#' The columns returned by this step are doubles (not integers) when
 #' `sparse = FALSE`. The columns returned when `sparse = TRUE` are integers.
 #'
 #' The [package vignette for dummy variables](https://recipes.tidymodels.org/articles/Dummies.html)
@@ -80,6 +81,8 @@
 #'   \item{columns}{character, names of resulting columns}
 #'   \item{id}{character, id of this step}
 #' }
+#'
+#' @template sparse-creation
 #'
 #' @template case-weights-not-supported
 #'
@@ -118,19 +121,20 @@
 #' tidy(dummies, number = 1)
 #' tidy(dummies_one_hot, number = 1)
 step_dummy <-
-  function(recipe,
-           ...,
-           role = "predictor",
-           trained = FALSE,
-           one_hot = FALSE,
-           preserve = deprecated(),
-           naming = dummy_names,
-           levels = NULL,
-           sparse = "no",
-           keep_original_cols = FALSE,
-           skip = FALSE,
-           id = rand_id("dummy")) {
-
+  function(
+    recipe,
+    ...,
+    role = "predictor",
+    trained = FALSE,
+    one_hot = FALSE,
+    preserve = deprecated(),
+    naming = dummy_names,
+    levels = NULL,
+    sparse = "auto",
+    keep_original_cols = FALSE,
+    skip = FALSE,
+    id = rand_id("dummy")
+  ) {
     if (lifecycle::is_present(preserve)) {
       lifecycle::deprecate_stop(
         "0.1.16",
@@ -158,8 +162,19 @@ step_dummy <-
   }
 
 step_dummy_new <-
-  function(terms, role, trained, one_hot, preserve, naming, levels, sparse,
-           keep_original_cols, skip, id) {
+  function(
+    terms,
+    role,
+    trained,
+    one_hot,
+    preserve,
+    naming,
+    levels,
+    sparse,
+    keep_original_cols,
+    skip,
+    id
+  ) {
     step(
       subclass = "dummy",
       terms = terms,
@@ -196,7 +211,7 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     for (i in seq_along(col_names)) {
       form <- rlang::new_formula(lhs = NULL, rhs = rlang::sym(col_names[i]))
       if (x$one_hot) {
-        form <- stats::update.formula(form, ~ . -1)
+        form <- stats::update.formula(form, ~ . - 1)
       }
       terms <- model.frame(
         formula = form,
@@ -239,7 +254,7 @@ warn_new_levels <- function(dat, lvl, column, step, details = NULL) {
   if (length(ind) > 0) {
     lvl2 <- unique(dat[ind])
     msg <- c("!" = "There are new levels in {.var {column}}: {.val {lvl2}}.")
-    if (any(is.na(lvl2))) {
+    if (anyNA(lvl2)) {
       msg <- c(
         msg,
         "i" = "Consider using {.help [step_unknown()](recipes::step_unknown)} \\
@@ -295,23 +310,22 @@ bake.step_dummy <- function(object, new_data, ...) {
       col_name,
       step = "step_dummy"
     )
-  
+
     new_data[, col_name] <- factor(
       new_data[[col_name]],
       levels = levels_values,
       ordered = is_ordered
     )
 
-    if (sparse_is_yes(object$sparse)) {
-      current_contrast <- getOption("contrasts")[is_ordered + 1]
-      if (!current_contrast %in% c("contr.treatment", "contr_one_hot")) {
-        cli::cli_abort(
-          "When {.code sparse = TRUE}, only {.val contr.treatment} and
-          {.val contr_one_hot} contrasts are supported, not
-          {.val {current_contrast}}."
-        )
-      }
+    current_contrast <- getOption("contrasts")[is_ordered + 1]
+    if (
+      !current_contrast %in% c("contr.treatment", "contr_one_hot") &&
+        sparse_is_yes(object$sparse)
+    ) {
+      object$sparse <- FALSE
+    }
 
+    if (sparse_is_yes(object$sparse)) {
       indicators <- sparsevctrs::sparse_dummy(
         x = new_data[[col_name]],
         one_hot = object$one_hot
@@ -327,7 +341,7 @@ bake.step_dummy <- function(object, new_data, ...) {
           xlev = levels_values,
           na.action = na.pass
         )
-  
+
       indicators <- tryCatch(
         model.matrix(object = levels, data = indicators),
         error = function(cnd) {
@@ -342,20 +356,27 @@ bake.step_dummy <- function(object, new_data, ...) {
           stop(cnd)
         }
       )
-  
+
       if (!object$one_hot) {
-        indicators <- indicators[, colnames(indicators) != "(Intercept)", drop = FALSE]
+        indicators <- indicators[,
+          colnames(indicators) != "(Intercept)",
+          drop = FALSE
+        ]
       }
-      
+
       ## use backticks for nonstandard factor levels here
-      used_lvl <- gsub(paste0("^\\`?", col_name, "\\`?"), "", colnames(indicators))
+      used_lvl <- gsub(
+        paste0("^\\`?", col_name, "\\`?"),
+        "",
+        colnames(indicators)
+      )
     }
-    
+
     new_names <- object$naming(col_name, used_lvl, is_ordered)
     colnames(indicators) <- new_names
     indicators <- check_name(indicators, new_data, object, new_names)
 
-    new_data <- vec_cbind(new_data, indicators)
+    new_data <- vec_cbind(new_data, indicators, .name_repair = "minimal")
   }
 
   options(na.action = old_opt)
@@ -373,13 +394,11 @@ print.step_dummy <-
     invisible(x)
   }
 
-
 get_dummy_columns <- function(x, one_hot) {
   x <- attr(x, "values")
   if (!one_hot) x <- x[-1]
   tibble(columns = x)
 }
-
 
 #' @rdname tidy.recipe
 #' @export
@@ -407,7 +426,7 @@ tidy.step_dummy <- function(x, ...) {
       return(vctrs::vec_unique_count(x))
     }
   }
-  
+
   n_levels <- lapply(data, get_levels)
 
   lapply(n_levels, function(n_lvl) {

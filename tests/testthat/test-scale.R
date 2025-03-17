@@ -8,13 +8,16 @@ biomass <- as_tibble(biomass)
 means <- vapply(biomass[, 3:7], mean, c(mean = 0))
 sds <- vapply(biomass[, 3:7], sd, c(sd = 0))
 
-rec <- recipe(HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
-              data = biomass
+rec <- recipe(
+  HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur,
+  data = biomass
 )
 
 biomass['zero_variance'] <- 1
-rec_zv <- recipe(HHV ~  + carbon + hydrogen + oxygen + nitrogen + sulfur + zero_variance,
-                 data = biomass)
+rec_zv <- recipe(
+  HHV ~ +carbon + hydrogen + oxygen + nitrogen + sulfur + zero_variance,
+  data = biomass
+)
 
 test_that("works correctly", {
   standardized <- rec %>%
@@ -49,7 +52,15 @@ test_that("works correctly", {
 
 test_that("scale by factor of 1 or 2", {
   standardized <- rec %>%
-    step_scale(carbon, hydrogen, oxygen, nitrogen, sulfur, id = "scale", factor = 2)
+    step_scale(
+      carbon,
+      hydrogen,
+      oxygen,
+      nitrogen,
+      sulfur,
+      id = "scale",
+      factor = 2
+    )
 
   standardized_trained <- prep(standardized, training = biomass)
 
@@ -89,9 +100,9 @@ test_that("na_rm argument works for step_scale", {
   mtcars_na[1, 1:4] <- NA
 
   expect_snapshot({
-  rec_no_na_rm <- recipe(~., data = mtcars_na) %>%
-    step_scale(all_predictors(), na_rm = FALSE) %>%
-    prep()
+    rec_no_na_rm <- recipe(~., data = mtcars_na) %>%
+      step_scale(all_predictors(), na_rm = FALSE) %>%
+      prep()
   })
 
   rec_na_rm <- recipe(~., data = mtcars_na) %>%
@@ -114,15 +125,16 @@ test_that("na_rm argument works for step_scale", {
     rec_no_na_rm <- recipe(~., data = mtcars_na) %>%
       step_scale(all_predictors(), na_rm = "FALSE") %>%
       prep(),
-    error = TRUE)
+    error = TRUE
+  )
 })
 
-test_that("warns on zv",{
+test_that("warns on zv", {
   rec1 <- step_scale(rec_zv, all_numeric_predictors())
   expect_snapshot(prep(rec1))
 })
 
-test_that("warns when NaN is returned",{
+test_that("warns when NaN is returned", {
   rec1 <- rec %>%
     step_log(sulfur) %>%
     step_scale(sulfur)
@@ -135,8 +147,8 @@ test_that("scaling with case weights", {
 
   rec <-
     recipe(mpg ~ ., mtcars_freq) %>%
-    step_scale(all_numeric_predictors()) %>%
-    prep()
+      step_scale(all_numeric_predictors()) %>%
+      prep()
 
   expect_equal(
     tidy(rec, number = 1)[["value"]],
@@ -150,8 +162,8 @@ test_that("scaling with case weights", {
 
   rec <-
     recipe(mpg ~ ., mtcars_imp) %>%
-    step_scale(all_numeric_predictors()) %>%
-    prep()
+      step_scale(all_numeric_predictors()) %>%
+      prep()
 
   expect_equal(
     tidy(rec, number = 1)[["value"]],
@@ -161,12 +173,33 @@ test_that("scaling with case weights", {
   expect_snapshot(rec)
 })
 
+test_that("doesn't destroy sparsity", {
+  mtcars$vs <- sparsevctrs::as_sparse_double(mtcars$vs)
+  mtcars$am <- sparsevctrs::as_sparse_integer(mtcars$am)
+  rec <- recipe(~am + vs, data = mtcars) %>%
+    step_scale(am, vs)
+
+  rec_trained <- prep(rec, training = mtcars, verbose = FALSE)
+  rec_trans <- bake(rec_trained, new_data = mtcars)
+
+  expect_true(all(vapply(rec_trans, sparsevctrs::is_sparse_double, logical(1))))
+
+  expect_true(.recipes_preserve_sparsity(rec$steps[[1]]))
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
   std <- rec %>%
     step_scale(carbon, hydrogen, oxygen, nitrogen, sulfur) %>%
-    update_role(carbon, hydrogen, oxygen, nitrogen, sulfur, new_role = "potato") %>%
+    update_role(
+      carbon,
+      hydrogen,
+      oxygen,
+      nitrogen,
+      sulfur,
+      new_role = "potato"
+    ) %>%
     update_role_requirements(role = "potato", bake = FALSE)
 
   std_trained <- prep(std, training = biomass)

@@ -1,7 +1,3 @@
-#' @importFrom stats update
-#' @export
-stats::update
-
 #' Update a recipe step
 #'
 #' This `step` method for `update()` takes named arguments as `...` who's values
@@ -83,7 +79,6 @@ update_fields <- function(object, changes, call = rlang::caller_env()) {
 }
 
 reconstruct_step <- function(x) {
-
   # Collect the subclass of the step to use
   # when recreating it
   subclass <- setdiff(class(x), "step")

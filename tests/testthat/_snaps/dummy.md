@@ -154,16 +154,6 @@
       Caused by error in `bake()`:
       ! Only one factor level in `x`: "only-level".
 
-# sparse = 'yes' errors on unsupported contrasts
-
-    Code
-      recipe(~., data = tibble(x = letters)) %>% step_dummy(x, sparse = "yes") %>%
-        prep()
-    Condition
-      Error in `step_dummy()`:
-      Caused by error in `bake()`:
-      ! When `sparse = TRUE`, only "contr.treatment" and "contr_one_hot" contrasts are supported, not "contr.helmert".
-
 # bake method errors when needed non-standard role columns are missing
 
     Code
@@ -230,7 +220,7 @@
       predictor: 7
       
       -- Operations 
-      * Dummy variables from: city and zip
+      * Dummy variables from: city zip
 
 ---
 
@@ -249,7 +239,7 @@
       Training data contained 932 data points and no incomplete rows.
       
       -- Operations 
-      * Dummy variables from: city and zip | Trained
+      * Dummy variables from: city zip | Trained
 
 # bad args
 

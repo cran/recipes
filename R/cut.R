@@ -71,14 +71,16 @@
 #'   prep() %>%
 #'   bake(new_df)
 step_cut <-
-  function(recipe,
-           ...,
-           role = NA,
-           trained = FALSE,
-           breaks,
-           include_outside_range = FALSE,
-           skip = FALSE,
-           id = rand_id("cut")) {
+  function(
+    recipe,
+    ...,
+    role = NA,
+    trained = FALSE,
+    breaks,
+    include_outside_range = FALSE,
+    skip = FALSE,
+    id = rand_id("cut")
+  ) {
     add_step(
       recipe,
       step_cut_new(
@@ -94,8 +96,7 @@ step_cut <-
   }
 
 step_cut_new <-
-  function(terms, role, trained,
-           breaks, include_outside_range, skip, id) {
+  function(terms, role, trained, breaks, include_outside_range, skip, id) {
     step(
       subclass = "cut",
       terms = terms,
@@ -154,7 +155,7 @@ create_full_breaks <- function(var, breaks, call = rlang::caller_env()) {
     )
   }
 
-  if (any(is.na(var))) {
+  if (anyNA(var)) {
     cli::cli_warn(
       "{.arg var} contains missing values. These will be ignored in break
        calculations.",

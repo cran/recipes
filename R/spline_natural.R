@@ -66,40 +66,52 @@
 #' @template case-weights-not-supported
 #' @seealso [splines2::naturalSpline()]
 step_spline_natural <-
-    function(recipe,
-             ...,
-             role = "predictor",
-             trained = FALSE,
-             deg_free = 10,
-             complete_set = FALSE,
-             options = NULL,
-             keep_original_cols = FALSE,
-             results = NULL,
-             skip = FALSE,
-             id = rand_id("spline_natural")) {
+  function(
+    recipe,
+    ...,
+    role = "predictor",
+    trained = FALSE,
+    deg_free = 10,
+    complete_set = FALSE,
+    options = NULL,
+    keep_original_cols = FALSE,
+    results = NULL,
+    skip = FALSE,
+    id = rand_id("spline_natural")
+  ) {
+    recipes_pkg_check(required_pkgs.step_spline_natural())
 
-      recipes_pkg_check(required_pkgs.step_spline_natural())
-
-      add_step(
-        recipe,
-        step_spline_natural_new(
-          terms = enquos(...),
-          trained = trained,
-          role = role,
-          deg_free = deg_free,
-          complete_set = complete_set,
-          options = options,
-          keep_original_cols = keep_original_cols,
-          results = results,
-          skip = skip,
-          id = id
-        )
+    add_step(
+      recipe,
+      step_spline_natural_new(
+        terms = enquos(...),
+        trained = trained,
+        role = role,
+        deg_free = deg_free,
+        complete_set = complete_set,
+        options = options,
+        keep_original_cols = keep_original_cols,
+        results = results,
+        skip = skip,
+        id = id
       )
-    }
+    )
+  }
 
 step_spline_natural_new <-
-  function(terms, trained, role, deg_free, complete_set, options,
-           keep_original_cols, results, na_rm, skip, id) {
+  function(
+    terms,
+    trained,
+    role,
+    deg_free,
+    complete_set,
+    options,
+    keep_original_cols,
+    results,
+    na_rm,
+    skip,
+    id
+  ) {
     step(
       subclass = "spline_natural",
       terms = terms,
@@ -177,7 +189,7 @@ bake.step_spline_natural <- function(object, new_data, ...) {
   new_cols <- purrr::list_cbind(unname(new_cols))
   new_cols <- check_name(new_cols, new_data, object, names(new_cols))
 
-  new_data <- vec_cbind(new_data, new_cols)
+  new_data <- vec_cbind(new_data, new_cols, .name_repair = "minimal")
   new_data <- remove_original_cols(new_data, object, col_names)
 
   new_data

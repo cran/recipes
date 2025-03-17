@@ -88,20 +88,22 @@
 #'
 #' tidy(rec, number = 1)
 #' tidy(rec_dists, number = 1)
-step_classdist <- function(recipe,
-                           ...,
-                           class,
-                           role = "predictor",
-                           trained = FALSE,
-                           mean_func = mean,
-                           cov_func = cov,
-                           pool = FALSE,
-                           log = TRUE,
-                           objects = NULL,
-                           prefix = "classdist_",
-                           keep_original_cols = TRUE,
-                           skip = FALSE,
-                           id = rand_id("classdist")) {
+step_classdist <- function(
+  recipe,
+  ...,
+  class,
+  role = "predictor",
+  trained = FALSE,
+  mean_func = mean,
+  cov_func = cov,
+  pool = FALSE,
+  log = TRUE,
+  objects = NULL,
+  prefix = "classdist_",
+  keep_original_cols = TRUE,
+  skip = FALSE,
+  id = rand_id("classdist")
+) {
   check_string(class)
 
   add_step(
@@ -126,8 +128,22 @@ step_classdist <- function(recipe,
 }
 
 step_classdist_new <-
-  function(terms, class, role, trained, mean_func, cov_func, pool, log, objects,
-           prefix, keep_original_cols, skip, id, case_weights) {
+  function(
+    terms,
+    class,
+    role,
+    trained,
+    mean_func,
+    cov_func,
+    pool,
+    log,
+    objects,
+    prefix,
+    keep_original_cols,
+    skip,
+    id,
+    case_weights
+  ) {
     step(
       subclass = "classdist",
       terms = terms,
@@ -257,7 +273,6 @@ mah_pooled <- function(means, x, cov_mat) {
   mahalanobis(x, means, cov_mat)
 }
 
-
 #' @export
 bake.step_classdist <- function(object, new_data, ...) {
   col_names <- names(object$objects[[1]][[1]])
@@ -291,7 +306,7 @@ bake.step_classdist <- function(object, new_data, ...) {
   colnames(new_values) <- new_names
 
   new_values <- check_name(new_values, new_data, object, new_names)
-  new_data <- vctrs::vec_cbind(new_data, new_values)
+  new_data <- vctrs::vec_cbind(new_data, new_values, .name_repair = "minimal")
   new_data <- remove_original_cols(new_data, object, col_names)
   new_data
 }
@@ -309,12 +324,16 @@ print.step_classdist <-
     } else {
       x_names <- NULL
     }
-    print_step(x_names, x$terms, x$trained, title, width,
-               case_weights = x$case_weights)
+    print_step(
+      x_names,
+      x$terms,
+      x$trained,
+      title,
+      width,
+      case_weights = x$case_weights
+    )
     invisible(x)
   }
-
-
 
 get_centroid <- function(x) {
   tibble(

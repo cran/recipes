@@ -1,3 +1,46 @@
+# recipes 1.2.0
+
+## Improvements
+
+* `recipe()`, `prep()`, and `bake()` now work with sparse tibbles. (#1364, #1366)
+
+* `recipe()`, `prep()`, and `bake()` now work with sparse matrices. (#1364, #1368, #1369)
+
+* The following steps has gained the argument `sparse`. When set to `"yes"`, they will produce sparse vectors. (#1392)
+    - `step_count()`
+    - `step_dummy_extract()`
+    - `step_dummy_multi_choice()`
+    - `step_dummy()`
+    - `step_dummy()`
+    - `step_holiday()`
+    - `step_indicate_na()`
+    - `step_regex()`
+
+* The following steps have been modified to preserve sparsity in its input. (#1395)
+    - `step_arrange()`
+    - `step_filter_missing()`
+    - `step_filter()`
+    - `step_impute_mean()`
+    - `step_impute_median()`
+    - `step_lag()`
+    - `step_lag()`
+    - `step_rename_at()`
+    - `step_rename()`
+    - `step_rm()`
+    - `step_sample()`
+    - `step_scale()`
+    - `step_select()`
+    - `step_shuffle()`
+    - `step_slice()`
+    - `step_sqrt()`
+    - `step_zv()`
+
+* All steps and checks now require arguments `trained`, `skip`, `role`, and `id` at all times. (#1387)
+
+## Bug Fixes
+
+* Fixed bug where name repaired column names would get changed when baked for some steps. (#1347)
+
 # recipes 1.1.1
 
 ## Improvements

@@ -1,4 +1,3 @@
-
 test_that("basic usage", {
   iris_tbl <- as_tibble(iris)
   iris_train <- slice(iris_tbl, 1:75)
@@ -88,10 +87,10 @@ test_that("quasiquotation", {
 
   rec_1 <-
     recipe(~., data = iris_train) %>%
-    step_select(all_of(sepal_vars))
+      step_select(all_of(sepal_vars))
   rec_2 <-
     recipe(~., data = iris_train) %>%
-    step_select(all_of(!!sepal_vars))
+      step_select(all_of(!!sepal_vars))
 
   # both work when local variable is available
   prepped_1 <- prep(rec_1, training = iris_train)
@@ -116,7 +115,9 @@ test_that("tidying", {
   set.seed(403)
   rec <- recipe(~., data = iris) %>%
     step_select(
-      species = Species, starts_with("Sepal"), all_of(petal),
+      species = Species,
+      starts_with("Sepal"),
+      all_of(petal),
       id = "select_no_qq"
     ) %>%
     step_select(all_of(!!petal), id = "select_qq")
@@ -130,6 +131,18 @@ test_that("tidying", {
     tidy(prepped, number = 1)
     tidy(prepped, number = 2)
   })
+})
+
+test_that("doesn't destroy sparsity", {
+  mtcars$vs <- sparsevctrs::as_sparse_integer(mtcars$vs)
+  mtcars$am <- sparsevctrs::as_sparse_integer(mtcars$am)
+
+  rec <- recipe(~., mtcars) %>%
+    step_select(vs, mpg, disp) %>%
+    prep()
+
+  expect_true(.recipes_preserve_sparsity(rec$steps[[1]]))
+  expect_true(sparsevctrs::is_sparse_integer(bake(rec, NULL)$vs))
 })
 
 # Infrastructure ---------------------------------------------------------------

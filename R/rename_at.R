@@ -23,6 +23,8 @@
 #'   \item{id}{character, id of this step}
 #' }
 #'
+#' @template sparse-preserve
+#'
 #' @template case-weights-not-supported
 #'
 #' @family dplyr steps
@@ -35,13 +37,16 @@
 #'   bake(new_data = NULL) %>%
 #'   slice(1:10)
 #' @export
-step_rename_at <- function(recipe, ...,
-                           fn,
-                           role = "predictor",
-                           trained = FALSE,
-                           inputs = NULL,
-                           skip = FALSE,
-                           id = rand_id("rename_at")) {
+step_rename_at <- function(
+  recipe,
+  ...,
+  fn,
+  role = "predictor",
+  trained = FALSE,
+  inputs = NULL,
+  skip = FALSE,
+  id = rand_id("rename_at")
+) {
   if (rlang::is_missing(fn)) {
     cli::cli_abort("Argument {.arg fn} must be specified.")
   }
@@ -113,4 +118,9 @@ tidy.step_rename_at <- function(x, ...) {
   }
   res$id <- x$id
   res
+}
+
+#' @export
+.recipes_preserve_sparsity.step_rename_at <- function(x, ...) {
+  TRUE
 }

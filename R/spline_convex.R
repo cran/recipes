@@ -67,19 +67,20 @@
 #' @template case-weights-not-supported
 #' @seealso [splines2::cSpline()]
 step_spline_convex <-
-  function(recipe,
-           ...,
-           role = "predictor",
-           trained = FALSE,
-           deg_free = 10,
-           degree = 3,
-           complete_set = TRUE,
-           options = NULL,
-           keep_original_cols = FALSE,
-           results = NULL,
-           skip = FALSE,
-           id = rand_id("spline_convex")) {
-
+  function(
+    recipe,
+    ...,
+    role = "predictor",
+    trained = FALSE,
+    deg_free = 10,
+    degree = 3,
+    complete_set = TRUE,
+    options = NULL,
+    keep_original_cols = FALSE,
+    results = NULL,
+    skip = FALSE,
+    id = rand_id("spline_convex")
+  ) {
     recipes_pkg_check(required_pkgs.step_spline_convex())
 
     add_step(
@@ -101,8 +102,20 @@ step_spline_convex <-
   }
 
 step_spline_convex_new <-
-  function(terms, trained, role, deg_free, degree, complete_set, options,
-           keep_original_cols, results, na_rm, skip, id) {
+  function(
+    terms,
+    trained,
+    role,
+    deg_free,
+    degree,
+    complete_set,
+    options,
+    keep_original_cols,
+    results,
+    na_rm,
+    skip,
+    id
+  ) {
     step(
       subclass = "spline_convex",
       terms = terms,
@@ -183,7 +196,7 @@ bake.step_spline_convex <- function(object, new_data, ...) {
   new_cols <- purrr::list_cbind(unname(new_cols))
   new_cols <- check_name(new_cols, new_data, object, names(new_cols))
 
-  new_data <- vec_cbind(new_data, new_cols)
+  new_data <- vec_cbind(new_data, new_cols, .name_repair = "minimal")
   new_data <- remove_original_cols(new_data, object, col_names)
 
   new_data
