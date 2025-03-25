@@ -1,6 +1,6 @@
 Package: recipes
 Title: Preprocessing and Feature Engineering Steps for Modeling
-Version: 1.2.0
+Version: 1.2.1
 Authors@R: c(
     person("Max", "Kuhn", , "max@posit.co", role = c("aut", "cre")),
     person("Hadley", "Wickham", , "hadley@posit.co", role = "aut"),
@@ -35,11 +35,11 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-03-17 20:48:02 UTC; max
+Packaged: 2025-03-25 21:02:52 UTC; emilhvitfeldt
 Author: Max Kuhn [aut, cre],
   Hadley Wickham [aut],
   Emil Hvitfeldt [aut],
   Posit Software, PBC [cph, fnd]
 Maintainer: Max Kuhn <max@posit.co>
 Repository: CRAN
-Date/Publication: 2025-03-17 21:40:02 UTC
+Date/Publication: 2025-03-25 22:10:02 UTC
