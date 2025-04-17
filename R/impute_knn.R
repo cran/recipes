@@ -8,29 +8,31 @@
 #' @inheritParams step_pca
 #' @param neighbors The number of neighbors.
 #' @param options A named list of options to pass to [gower::gower_topn()].
-#'  Available options are currently `nthread` and `eps`.
+#'   Available options are currently `nthread` and `eps`.
 #' @param ref_data A tibble of data that will reflect the data preprocessing
-#'  done up to the point of this imputation step. This is `NULL` until the step
-#'  is trained by [prep()].
+#'   done up to the point of this imputation step. This is `NULL` until the step
+#'   is trained by [prep()].
 #' @template step-return
 #' @family imputation steps
 #' @export
-#' @details The step uses the training set to impute any other data sets. The
-#'  only distance function available is Gower's distance which can be used for
-#'  mixtures of nominal and numeric data.
+#' @details
+#'
+#' The step uses the training set to impute any other data sets. The only
+#' distance function available is Gower's distance which can be used for
+#' mixtures of nominal and numeric data.
 #'
 #' Once the nearest neighbors are determined, the mode is used to predictor
-#'  nominal variables and the mean is used for numeric data. Note that, if the
-#'  underlying data are integer, the mean will be converted to an integer too.
+#' nominal variables and the mean is used for numeric data. Note that, if the
+#' underlying data are integer, the mean will be converted to an integer too.
 #'
-#' Note that if a variable that is to be imputed is also in `impute_with`,
-#'  this variable will be ignored.
+#' Note that if a variable that is to be imputed is also in `impute_with`, this
+#' variable will be ignored.
 #'
 #' It is possible that missing values will still occur after imputation if a
-#'  large majority (or all) of the imputing variables are also missing.
+#' large majority (or all) of the imputing variables are also missing.
 #'
-#' As of `recipes` 0.1.16, this function name changed from `step_knnimpute()`
-#'    to `step_impute_knn()`.
+#' As of `recipes` 0.1.16, this function name changed from `step_knnimpute()` to
+#' `step_impute_knn()`.
 #'
 #' # Tidying
 #'
@@ -102,37 +104,13 @@ step_impute_knn <-
     role = NA,
     trained = FALSE,
     neighbors = 5,
-    impute_with = imp_vars(all_predictors()),
+    impute_with = all_predictors(),
     options = list(nthread = 1, eps = 1e-08),
     ref_data = NULL,
     columns = NULL,
     skip = FALSE,
     id = rand_id("impute_knn")
   ) {
-    if (is.null(impute_with)) {
-      cli::cli_abort("{.arg impute_with} must not be empty.")
-    }
-
-    if (!is.list(options)) {
-      cli::cli_abort("{.arg options} should be a named list.")
-    }
-    opt_nms <- names(options)
-    if (length(options) > 0) {
-      if (any(!(opt_nms %in% c("eps", "nthread")))) {
-        cli::cli_abort(
-          "Valid values for {.arg options} are {.val eps} and {.val nthread}."
-        )
-      }
-      if (all(opt_nms != "nthread")) {
-        options$nthread <- 1
-      }
-      if (all(opt_nms != "eps")) {
-        options$eps <- 1e-08
-      }
-    } else {
-      options <- list(nthread = 1, eps = 1e-08)
-    }
-
     add_step(
       recipe,
       step_impute_knn_new(
@@ -140,7 +118,7 @@ step_impute_knn <-
         role = role,
         trained = trained,
         neighbors = neighbors,
-        impute_with = impute_with,
+        impute_with = enquos(impute_with),
         ref_data = ref_data,
         options = options,
         columns = columns,
@@ -181,6 +159,20 @@ step_impute_knn_new <-
 #' @export
 prep.step_impute_knn <- function(x, training, info = NULL, ...) {
   check_number_whole(x$neighbors, arg = "neighbors", min = 1)
+  check_options(x$options, include = c("nthread", "eps"))
+
+  if (length(x$options) > 0) {
+    opt_nms <- names(x$options)
+    if (all(opt_nms != "nthread")) {
+      x$options$nthread <- 1
+    }
+    if (all(opt_nms != "eps")) {
+      x$options$eps <- 1e-08
+    }
+  } else {
+    x$options <- list(nthread = 1, eps = 1e-08)
+  }
+
   var_lists <-
     impute_var_lists(
       to_impute = x$terms,
@@ -248,29 +240,48 @@ bake.step_impute_knn <- function(object, new_data, ...) {
     }
     preds <- object$columns[[col_name]]$x
     imp_data <- old_data[missing_rows, preds, drop = FALSE]
-    ## do a better job of checking this:
-    if (all(is.na(imp_data))) {
-      cli::cli_warn("All predictors are missing; cannot impute.")
-    } else {
-      imp_var_complete <- !is.na(object$ref_data[[col_name]])
-      nn_ind <- nn_index(
-        object$ref_data[imp_var_complete, ],
-        imp_data,
-        preds,
-        object$neighbors,
-        object$options
+
+    imp_data_all_missing <- vctrs::vec_detect_missing(imp_data)
+
+    if (any(imp_data_all_missing)) {
+      offenders <- which(missing_rows)[imp_data_all_missing]
+      missing_rows[offenders] <- FALSE
+
+      cli::cli_warn(
+        "The {.arg impute_with} variables for {.col {col_name}} only contains
+        missing values for row: {offenders}. Cannot impute for those rows.",
       )
-      pred_vals <-
-        apply(
-          nn_ind,
-          2,
-          nn_pred,
-          dat = object$ref_data[imp_var_complete, col_name]
-        )
-      pred_vals <- cast(pred_vals, object$ref_data[[col_name]])
-      new_data[[col_name]] <- vec_cast(new_data[[col_name]], pred_vals)
-      new_data[missing_rows, col_name] <- pred_vals
+
+      imp_data <- imp_data[!imp_data_all_missing, , drop = FALSE]
+
+      if (nrow(imp_data) == 0) {
+        next
+      }
     }
+    # make sure imp_data as same types as ref_data
+    imp_data <- vctrs::tib_cast(
+      imp_data,
+      select(object$ref_data, names(imp_data))
+    )
+
+    imp_var_complete <- !is.na(object$ref_data[[col_name]])
+    nn_ind <- nn_index(
+      object$ref_data[imp_var_complete, ],
+      imp_data,
+      preds,
+      object$neighbors,
+      object$options
+    )
+    pred_vals <-
+      apply(
+        nn_ind,
+        2,
+        nn_pred,
+        dat = object$ref_data[imp_var_complete, col_name]
+      )
+    pred_vals <- cast(pred_vals, object$ref_data[[col_name]])
+    new_data[[col_name]] <- vec_cast(new_data[[col_name]], pred_vals)
+    new_data[missing_rows, col_name] <- pred_vals
   }
   new_data
 }

@@ -15,25 +15,26 @@
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_center
-#' @param num_run A positive integer for the number of computations runs used
-#'  to obtain a consensus projection.
+#' @param num_run A positive integer for the number of computations runs used to
+#'   obtain a consensus projection.
 #' @param options A list of options to `nmf()` in the NMF package by way of the
-#'  `NNMF()` function in the `dimRed` package. **Note** that the arguments
-#'  `data` and `ndim` should not be passed here, and that NMF's parallel
-#'  processing is turned off in favor of resample-level parallelization.
-#' @param res The `NNMF()` object is stored
-#'  here once this preprocessing step has been trained by
-#'  [prep()].
-#' @param prefix A character string that will be the prefix to the
-#'  resulting new variables. See notes below.
-#' @param seed An integer that will be used to set the seed in isolation
-#'  when computing the factorization.
+#'   `NNMF()` function in the `dimRed` package. **Note** that the arguments
+#'   `data` and `ndim` should not be passed here, and that NMF's parallel
+#'   processing is turned off in favor of resample-level parallelization.
+#' @param res The `NNMF()` object is stored here once this preprocessing step
+#'   has been trained by [prep()].
+#' @param prefix A character string that will be the prefix to the resulting new
+#'   variables. See notes below.
+#' @param seed An integer that will be used to set the seed in isolation when
+#'   computing the factorization.
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
-#' @details Non-negative matrix factorization computes latent components that
-#'  have non-negative values and take into account that the original data
-#'  have non-negative values.
+#' @details
+#'
+#' Non-negative matrix factorization computes latent components that have
+#' non-negative values and take into account that the original data have
+#' non-negative values.
 #'
 #' ```{r, echo = FALSE, results="asis"}
 #' prefix <- "NNMF"
@@ -152,13 +153,14 @@ step_nnmf_new <-
 prep.step_nnmf <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
+  check_options(x$options, exclude = c("data", "ndim"))
 
   if (x$num_comp > 0 && length(col_names) > 0) {
     x$num_comp <- min(x$num_comp, length(col_names))
 
     nmf_opts <- list(parallel = FALSE, parallel.required = FALSE)
 
-    nnm <- try(
+    nnm <- try_fetch_eval_tidy(
       eval_dimred_call(
         "embed",
         .method = "NNMF",
@@ -169,17 +171,8 @@ prep.step_nnmf <- function(x, training, info = NULL, ...) {
         .mute = c("message", "output"),
         options = x$options,
         .options = nmf_opts
-      ),
-      silent = TRUE
-    )
-    if (inherits(nnm, "try-error")) {
-      cli::cli_abort(
-        c(
-          x = "Failed with error:",
-          i = as.character(nnm)
-        )
       )
-    }
+    )
   } else {
     nnm <- NULL
   }

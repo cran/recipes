@@ -27,27 +27,15 @@ summary(ref_cell)
 # Get a row for each factor level
 bake(ref_cell, new_data = NULL, original, starts_with("Species")) %>% distinct()
 
-## ----defaults-----------------------------------------------------------------
-param <- getOption("contrasts")
-param
-
 ## ----iris-helmert-------------------------------------------------------------
-# change it:
-go_helmert <- param
-go_helmert["unordered"] <- "contr.helmert"
-options(contrasts = go_helmert)
-
 # now make dummy variables with new parameterization
 helmert <- 
   iris_rec %>% 
-  step_dummy(Species) %>%
+  step_dummy(Species, contrasts = "contr.helmert") %>%
   prep(training = iris)
 summary(helmert)
 
 bake(helmert, new_data = NULL, original, starts_with("Species")) %>% distinct()
-
-# Yuk; go back to the original method
-options(contrasts = param)
 
 ## ----iris-2int----------------------------------------------------------------
 iris_int <- 
@@ -110,12 +98,9 @@ hot_reference <-
 
 hot_reference
 
-# from above
-options(contrasts = go_helmert)
-
 hot_helmert <- 
   iris_rec %>% 
-  step_dummy(Species, one_hot = TRUE) %>%
+  step_dummy(Species, one_hot = TRUE, contrasts = "contr.helmert") %>%
   prep(training = iris) %>%
   bake(original, new_data = NULL, starts_with("Species")) %>%
   distinct()

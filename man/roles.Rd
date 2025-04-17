@@ -33,8 +33,8 @@ the variables have only a single role.}
 An updated recipe object.
 }
 \description{
-\code{update_role()} alters an existing role in the recipe or assigns an initial
-role to variables that do not yet have a declared role.
+\code{update_role()} alters an existing role in the recipe or assigns
+an initial role to variables that do not yet have a declared role.
 
 \code{add_role()} adds an \emph{additional} role to variables that already have a role
 in the recipe. It does not overwrite old roles, as a single variable can have
@@ -47,12 +47,12 @@ multiple roles.
 before any of the steps or checks, regardless of where they are located in
 position. This means that roles can only be changed with these three
 functions for columns that are already present in the original data supplied
-to \code{recipe()}. See the \code{role} argument in some step functions to update
-roles for columns created by steps.
+to \code{recipe()}. See the \code{role} argument in some step functions to update roles
+for columns created by steps.
 
 Variables can have any arbitrary role (see the examples) but there are three
-special standard roles, \code{"predictor"}, \code{"outcome"}, and \code{"case_weights"}.
-The first two roles are typically required when fitting a model.
+special standard roles, \code{"predictor"}, \code{"outcome"}, and \code{"case_weights"}. The
+first two roles are typically required when fitting a model.
 
 \code{update_role()} should be used when a variable doesn't currently have a role
 in the recipe, or to replace an \code{old_role} with a \code{new_role}. \code{add_role()}
@@ -140,8 +140,6 @@ recipe(HHV ~ ., data = biomass) \%>\%
   update_role(sample, new_role = NA_character_)
 }
 
-# ------------------------------------------------------------------------------
-
 # Variables can have more than one role. `add_role()` can be used
 # if the column already has at least one role:
 recipe(HHV ~ ., data = biomass) \%>\%
@@ -155,15 +153,13 @@ recipe(HHV ~ ., data = biomass) \%>\%
   update_role(carbon, new_role = "something else", old_role = "something") \%>\%
   summary()
 
-# `carbon` has two roles at the end, so the last `update_roles()` fails since
+# `carbon` has two roles at the end, so the last `update_role()` fails since
 # `old_role` was not given.
 \dontrun{
 recipe(HHV ~ ., data = biomass) \%>\%
   add_role(carbon, sulfur, new_role = "something") \%>\%
   update_role(carbon, new_role = "something else")
 }
-
-# ------------------------------------------------------------------------------
 
 # To remove a role, `remove_role()` can be used to remove a single role.
 recipe(HHV ~ ., data = biomass) \%>\%
@@ -177,8 +173,6 @@ recipe(HHV ~ ., data = biomass) \%>\%
   remove_role(carbon, old_role = "something") \%>\%
   remove_role(carbon, old_role = "predictor") \%>\%
   summary()
-
-# ------------------------------------------------------------------------------
 
 # If the formula method is not used, all columns have a missing role:
 recipe(biomass) \%>\%

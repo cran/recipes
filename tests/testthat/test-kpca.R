@@ -108,6 +108,17 @@ test_that("rethrows error correctly from implementation", {
   )
 })
 
+test_that("check_options() is used", {
+  skip_if_not_installed("kernlab")
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~mpg, data = mtcars) %>%
+      step_kpca(mpg, options = TRUE) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -227,5 +238,23 @@ test_that("bad args", {
       step_kpca(all_numeric_predictors(), prefix = 1) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  skip_if_not_installed("kernlab")
+
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_kpca(all_numeric_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

@@ -13,19 +13,19 @@
         prep()
     Condition
       Error in `step_impute_knn()`:
-      ! `impute_with` must not be empty.
+      Caused by error in `prep()`:
+      ! `impute_with` must not be `NULL`.
 
-# warn if all values of predictor are missing
+# Warns when impute_with contains all NAs in a row
 
     Code
-      tmp <- recipe(~., data = mtcars) %>% step_impute_knn(mpg, disp, vs) %>% prep()
+      tmp <- recipe(~., data = mtcars) %>% step_impute_knn(mpg, disp, vs,
+        impute_with = c(am, gear)) %>% prep()
     Condition
       Warning:
-      All predictors are missing; cannot impute.
+      The `impute_with` variables for `mpg` only contains missing values for row: 2 and 3. Cannot impute for those rows.
       Warning:
-      All predictors are missing; cannot impute.
-      Warning:
-      All predictors are missing; cannot impute.
+      The `impute_with` variables for `disp` only contains missing values for row: 10. Cannot impute for those rows.
 
 # error on wrong options argument
 
@@ -34,7 +34,8 @@
         wrong = "wrong")) %>% prep()
     Condition
       Error in `step_impute_knn()`:
-      ! Valid values for `options` are "eps" and "nthread".
+      Caused by error in `prep()`:
+      ! `options` must only contain elements nthread and eps, the following are not allowed: wrong.
 
 ---
 
@@ -43,7 +44,27 @@
         wrong = "wrong")) %>% prep()
     Condition
       Error in `step_impute_knn()`:
-      ! `options` should be a named list.
+      Caused by error in `prep()`:
+      ! `options` must be a list, not a string.
+
+# check_options() is used
+
+    Code
+      recipe(~mpg, data = mtcars) %>% step_impute_knn(mpg, options = TRUE) %>% prep()
+    Condition
+      Error in `step_impute_knn()`:
+      Caused by error in `prep()`:
+      ! `options` must be a list, not `TRUE`.
+
+# recipes_argument_select() is used
+
+    Code
+      recipe(mpg ~ ., data = mtcars) %>% step_impute_knn(disp, impute_with = NULL) %>%
+        prep()
+    Condition
+      Error in `step_impute_knn()`:
+      Caused by error in `prep()`:
+      ! `impute_with` must not be `NULL`.
 
 # bake method errors when needed non-standard role columns are missing
 

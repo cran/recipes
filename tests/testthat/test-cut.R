@@ -181,12 +181,12 @@ test_that("tidy method works", {
   )
 })
 
-test_that("step_cut() provides informative error on missing values", {
+test_that("step_cut() provides informative warning on missing values", {
   # Single missing value
   mtcars_with_na <- mtcars
   mtcars_with_na[1, "mpg"] <- NA
 
-  expect_warning(
+  expect_snapshot(
     recipe(~., data = mtcars_with_na) %>%
       step_cut(mpg, breaks = 20) %>%
       prep()
@@ -196,10 +196,29 @@ test_that("step_cut() provides informative error on missing values", {
   mtcars_with_nas <- mtcars
   mtcars_with_nas[c(1, 3, 5), "mpg"] <- NA
 
-  expect_warning(
+  expect_snapshot(
     recipe(~., data = mtcars_with_nas) %>%
       step_cut(mpg, breaks = 20) %>%
       prep()
+  )
+})
+
+test_that("step_cut() can handle missig missing values in bake() (#1304)", {
+  mtcars_with_na <- mtcars
+  mtcars_with_na[c(1, 10, 20), "mpg"] <- NA
+
+  suppressWarnings(
+    rec <- recipe(~., data = mtcars_with_na) %>%
+      step_cut(mpg, breaks = 20) %>%
+      prep()
+  )
+
+  exp <- bake(rec, mtcars)$mpg
+  exp[c(1, 10, 20)] <- NA
+
+  expect_identical(
+    bake(rec, mtcars_with_na)$mpg,
+    exp
   )
 })
 
@@ -279,4 +298,20 @@ test_that("printing", {
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_cut(disp, breaks = 100) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
+  )
 })

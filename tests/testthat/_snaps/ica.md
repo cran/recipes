@@ -35,8 +35,19 @@
     Condition
       Error in `step_ica()`:
       Caused by error in `prep()`:
-      x Failed with error:
-      i Error in fastICA::fastICA(n.comp = 5, X = as.matrix(training[, col_names]), : mocked error
+      ! Failed to compute:
+      Caused by error in `fastICA::fastICA()`:
+      ! mocked error
+
+# check_options() is used
+
+    Code
+      recipe(~., data = mtcars) %>% step_ica(all_predictors(), options = TRUE) %>%
+        prep()
+    Condition
+      Error in `step_ica()`:
+      Caused by error in `prep()`:
+      ! `options` must be a list, not `TRUE`.
 
 # bake method errors when needed non-standard role columns are missing
 

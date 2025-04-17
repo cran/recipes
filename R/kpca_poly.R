@@ -7,10 +7,9 @@
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param degree,scale_factor,offset Numeric values for the polynomial kernel
-#' function. See the documentation at [kernlab::polydot()].
-#' @param res An S4 [kernlab::kpca()] object is stored
-#'  here once this preprocessing step has be trained by
-#'  [prep()].
+#'   function. See the documentation at [kernlab::polydot()].
+#' @param res An S4 [kernlab::kpca()] object is stored here once this
+#'   preprocessing step has be trained by [prep()].
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
@@ -160,15 +159,7 @@ prep.step_kpca_poly <- function(x, training, info = NULL, ...) {
           offset = x$offset
         )
       )
-    kprc <- try(rlang::eval_tidy(cl), silent = TRUE)
-    if (inherits(kprc, "try-error")) {
-      cli::cli_abort(
-        c(
-          x = "Failed with error:",
-          i = as.character(kprc)
-        )
-      )
-    }
+    kprc <- try_fetch_eval_tidy(rlang::eval_tidy(cl))
   } else {
     kprc <- NULL
   }

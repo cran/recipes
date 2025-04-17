@@ -70,6 +70,19 @@ test_that("no exclusions", {
   expect_true(all(colnames(test_res_2) == c("carbon", "hydrogen")))
 })
 
+test_that("doesn't remove both variables if identical (#1357)", {
+  mtcars <- as_tibble(mtcars[1])
+  exp <- mtcars
+  mtcars$mpg_copy <- mtcars$mpg
+
+  res <- recipe(~., data = mtcars) %>%
+    step_lincomb(all_numeric_predictors()) %>%
+    prep() |>
+    bake(NULL)
+
+  expect_identical(res, exp)
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -130,5 +143,21 @@ test_that("bad args", {
       step_lincomb(all_predictors(), max_steps = 0) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_lincomb(all_numeric_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

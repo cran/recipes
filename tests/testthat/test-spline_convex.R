@@ -170,6 +170,29 @@ test_that("works when baked with 1 row", {
   expect_identical(nrow(res), 1L)
 })
 
+test_that("errors with zero variance predictors (#1455)", {
+  mtcars$disp <- 1
+  mtcars$vs <- 1
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_spline_convex(all_numeric_predictors()) %>%
+      prep()
+  )
+})
+
+test_that("check_options() is used", {
+  skip_if_not_installed("splines2")
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~mpg, data = mtcars) %>%
+      step_spline_convex(mpg, options = TRUE) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -292,5 +315,23 @@ test_that("bad args", {
       step_spline_convex(disp, complete_set = 1) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  skip_if_not_installed("splines2")
+
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_spline_convex(mpg, disp) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

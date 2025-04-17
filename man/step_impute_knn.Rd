@@ -10,7 +10,7 @@ step_impute_knn(
   role = NA,
   trained = FALSE,
   neighbors = 5,
-  impute_with = imp_vars(all_predictors()),
+  impute_with = all_predictors(),
   options = list(nthread = 1, eps = 1e-08),
   ref_data = NULL,
   columns = NULL,
@@ -19,27 +19,27 @@ step_impute_knn(
 )
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the
-sequence of operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the sequence of
+operations for this recipe.}
 
 \item{...}{One or more selector functions to choose variables to be imputed.
 When used with \code{imp_vars}, these dots indicate which variables are used to
 predict the missing data in each variable. See \code{\link[=selections]{selections()}} for more
 details.}
 
-\item{role}{Not used by this step since no new variables are
-created.}
+\item{role}{Not used by this step since no new variables are created.}
 
-\item{trained}{A logical to indicate if the quantities for
-preprocessing have been estimated.}
+\item{trained}{A logical to indicate if the quantities for preprocessing have
+been estimated.}
 
 \item{neighbors}{The number of neighbors.}
 
-\item{impute_with}{A call to \code{imp_vars} to specify which variables are used
-to impute the variables that can include specific variable names separated
-by commas or different selectors (see \code{\link[=selections]{selections()}}). If a column is
-included in both lists to be imputed and to be an imputation predictor, it
-will be removed from the latter and not used to impute itself.}
+\item{impute_with}{Bare names or selectors functions that specify which
+variables are used to impute the variables that can include specific
+variable names separated by commas or different selectors (see
+\code{\link[=selections]{selections()}}). If a column is included in both lists to be imputed and to
+be an imputation predictor, it will be removed from the latter and not used
+to impute itself.}
 
 \item{options}{A named list of options to pass to \code{\link[gower:gower_topn]{gower::gower_topn()}}.
 Available options are currently \code{nthread} and \code{eps}.}
@@ -51,12 +51,11 @@ is trained by \code{\link[=prep]{prep()}}.}
 \item{columns}{A character string of the selected variable names. This field
 is a placeholder and will be populated once \code{\link[=prep]{prep()}} is used.}
 
-\item{skip}{A logical. Should the step be skipped when the
-recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
-when \code{\link[=prep]{prep()}} is run, some operations may not be able to be
-conducted on new data (e.g. processing the outcome variable(s)).
-Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations.}
+\item{skip}{A logical. Should the step be skipped when the recipe is baked by
+\code{\link[=bake]{bake()}}? While all operations are baked when \code{\link[=prep]{prep()}} is run, some
+operations may not be able to be conducted on new data (e.g. processing the
+outcome variable(s)). Care should be taken when using \code{skip = TRUE} as it
+may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
 }
@@ -69,22 +68,22 @@ sequence of any existing operations.
 impute missing data using nearest neighbors.
 }
 \details{
-The step uses the training set to impute any other data sets. The
-only distance function available is Gower's distance which can be used for
+The step uses the training set to impute any other data sets. The only
+distance function available is Gower's distance which can be used for
 mixtures of nominal and numeric data.
 
 Once the nearest neighbors are determined, the mode is used to predictor
 nominal variables and the mean is used for numeric data. Note that, if the
 underlying data are integer, the mean will be converted to an integer too.
 
-Note that if a variable that is to be imputed is also in \code{impute_with},
-this variable will be ignored.
+Note that if a variable that is to be imputed is also in \code{impute_with}, this
+variable will be ignored.
 
 It is possible that missing values will still occur after imputation if a
 large majority (or all) of the imputing variables are also missing.
 
-As of \code{recipes} 0.1.16, this function name changed from \code{step_knnimpute()}
-to \code{step_impute_knn()}.
+As of \code{recipes} 0.1.16, this function name changed from \code{step_knnimpute()} to
+\code{step_impute_knn()}.
 }
 \section{Tidying}{
 When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble is returned with

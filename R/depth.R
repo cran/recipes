@@ -1,56 +1,49 @@
 #' Data depths
 #'
 #' `step_depth()` creates a *specification* of a recipe step that will convert
-#' numeric data into a measurement of *data depth*. This is done for each value of
-#' a categorical class variable.
+#' numeric data into a measurement of *data depth*. This is done for each value
+#' of a categorical class variable.
 #'
 #' @inheritParams step_classdist
 #' @inheritParams step_pca
 #' @inheritParams step_center
-#' @param class A single character string that specifies a single
-#'  categorical variable to be used as the class.
-#' @param metric A character string specifying the depth metric.
-#'  Possible values are "potential", "halfspace", "Mahalanobis",
-#'  "simplicialVolume", "spatial", and "zonoid".
-#' @param options A list of options to pass to the underlying
-#'  depth functions. See [ddalpha::depth.halfspace()],
-#'  [ddalpha::depth.Mahalanobis()],
-#'  [ddalpha::depth.potential()],
-#'  [ddalpha::depth.projection()],
-#'  [ddalpha::depth.simplicial()],
-#'  [ddalpha::depth.simplicialVolume()],
-#'  [ddalpha::depth.spatial()],
-#'  [ddalpha::depth.zonoid()].
-#' @param data The training data are stored here once after
-#'  [prep()] is executed.
+#' @param metric A character string specifying the depth metric. Possible values
+#'   are `"potential"`, `"halfspace"`, `"Mahalanobis"`, `"simplicialVolume"`,
+#'   `"spatial"`, and `"zonoid"`.
+#' @param options A list of options to pass to the underlying depth functions.
+#'   See [ddalpha::depth.halfspace()], [ddalpha::depth.Mahalanobis()],
+#'   [ddalpha::depth.potential()], [ddalpha::depth.projection()],
+#'   [ddalpha::depth.simplicial()], [ddalpha::depth.simplicialVolume()],
+#'   [ddalpha::depth.spatial()], [ddalpha::depth.zonoid()].
+#' @param data The training data are stored here once after [prep()] is
+#'   executed.
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
-#' @details Data depth metrics attempt to measure how close data a
-#'  data point is to the center of its distribution. There are a
-#'  number of methods for calculating depth but a simple example is
-#'  the inverse of the distance of a data point to the centroid of
-#'  the distribution. Generally, small values indicate that a data
-#'  point not close to the centroid. `step_depth` can compute a
-#'  class-specific depth for a new data point based on the proximity
-#'  of the new value to the training set distribution.
+#' @details
 #'
-#' This step requires the \pkg{ddalpha} package. If not installed, the
-#'  step will stop with a note about installing the package.
+#' Data depth metrics attempt to measure how close data a data point is to the
+#' center of its distribution. There are a number of methods for calculating
+#' depth but a simple example is the inverse of the distance of a data point to
+#' the centroid of the distribution. Generally, small values indicate that a
+#' data point not close to the centroid. `step_depth()` can compute a
+#' class-specific depth for a new data point based on the proximity of the new
+#' value to the training set distribution.
 #'
-#' Note that the entire training set is saved to compute future
-#'  depth values. The saved data have been trained (i.e. prepared)
-#'  and baked (i.e. processed) up to the point before the location
-#'  that `step_depth` occupies in the recipe. Also, the data
-#'  requirements for the different step methods may vary. For
-#'  example, using `metric = "Mahalanobis"` requires that each
-#'  class should have at least as many rows as variables listed in
-#'  the `terms` argument.
+#' This step requires the \pkg{ddalpha} package. If not installed, the step will
+#' stop with a note about installing the package.
 #'
-#'  The function will create a new column for every unique value of
-#'  the `class` variable. The resulting variables will not
-#'  replace the original values and by default have the prefix `depth_`. The
-#'  naming format can be changed using the `prefix` argument.
+#' Note that the entire training set is saved to compute future depth values.
+#' The saved data have been trained (i.e. prepared) and baked (i.e. processed)
+#' up to the point before the location that `step_depth()` occupies in the
+#' recipe. Also, the data requirements for the different step methods may vary.
+#' For example, using `metric = "Mahalanobis"` requires that each class should
+#' have at least as many rows as variables listed in the `terms` argument.
+#'
+#' The function will create a new column for every unique value of the `class`
+#' variable. The resulting variables will not replace the original values and by
+#' default have the prefix `depth_`. The naming format can be changed using the
+#' `prefix` argument.
 #'
 #' # Tidying
 #'
@@ -69,13 +62,13 @@
 #'
 #' # halfspace depth is the default
 #' rec <- recipe(Species ~ ., data = iris) %>%
-#'   step_depth(all_numeric_predictors(), class = "Species")
+#'   step_depth(all_numeric_predictors(), class = Species)
 #'
 #' # use zonoid metric instead
 #' # also, define naming convention for new columns
 #' rec <- recipe(Species ~ ., data = iris) %>%
 #'   step_depth(all_numeric_predictors(),
-#'     class = "Species",
+#'     class = Species,
 #'     metric = "zonoid", prefix = "zonoid_"
 #'   )
 #'
@@ -101,14 +94,13 @@ step_depth <-
     skip = FALSE,
     id = rand_id("depth")
   ) {
-    check_string(class)
     recipes_pkg_check(required_pkgs.step_depth())
 
     add_step(
       recipe,
       step_depth_new(
         terms = enquos(...),
-        class = class,
+        class = enquos(class),
         role = role,
         trained = trained,
         metric = metric,
@@ -164,18 +156,18 @@ depth_metric <- c(
 #' @export
 prep.step_depth <- function(x, training, info = NULL, ...) {
   x_names <- recipes_eval_select(x$terms, training, info)
+  class_var <- recipes_argument_select(x$class, training, info)
   check_type(training[, x_names], types = c("double", "integer"))
   metric <- x$metric
   rlang::arg_match(metric, depth_metric)
   check_string(x$prefix, allow_empty = FALSE, arg = "prefix")
-
-  class_var <- x$class[1]
+  check_options(x$options, exclude = c("data", "x"))
 
   x_dat <- split(training[, x_names], training[[class_var]])
   x_dat <- lapply(x_dat, as.matrix)
   step_depth_new(
     terms = x$terms,
-    class = x$class,
+    class = class_var,
     role = x$role,
     trained = TRUE,
     metric = x$metric,
@@ -189,8 +181,8 @@ prep.step_depth <- function(x, training, info = NULL, ...) {
 }
 
 get_depth <- function(tr_dat, new_dat, metric, opts) {
-  if (ncol(new_dat) == 0L) {
-    # ddalpha can't handle 0 col inputs
+  if (ncol(new_dat) == 0L || nrow(new_dat) == 0L) {
+    # ddalpha can't handle 0 col inputs or 0 row inputs
     return(rep(NA_real_, nrow(new_dat)))
   }
 
@@ -236,11 +228,12 @@ bake.step_depth <- function(object, new_data, ...) {
 #' @export
 print.step_depth <-
   function(x, width = max(20, options()$width - 30), ...) {
-    title <- glue("Data depth by {x$class} for ")
-
     if (x$trained) {
+      title <- glue("Data depth by {x$class} for ")
       x_names <- colnames(x$data[[1]])
     } else {
+      class <- rlang::quo_name(x$class[[1]])
+      title <- glue("Data depth by {class} for ")
       x_names <- character()
     }
 

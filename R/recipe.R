@@ -20,6 +20,8 @@
 #' @param roles A character string (the same length of `vars`) that describes a
 #'   single role that the variable will take. This value could be anything but
 #'   common roles are `"outcome"`, `"predictor"`, `"case_weight"`, or `"ID"`.
+#' @param strings_as_factors A logical, should character columns be converted to
+#'   factors? See Details below.
 #'
 #' @includeRmd man/rmd/recipes.Rmd details
 #'
@@ -60,7 +62,6 @@
 #'   step_spatialsign(all_numeric_predictors())
 #' sp_signed
 #'
-#' # ---------------------------------------------------------------------------
 #' # formula multivariate example:
 #' # no need for `cbind(carbon, hydrogen)` for left-hand side
 #'
@@ -71,7 +72,6 @@
 #'   step_center(all_numeric_predictors()) %>%
 #'   step_scale(all_numeric_predictors())
 #'
-#' # ---------------------------------------------------------------------------
 #' # example using `update_role` instead of formula:
 #' # best choice for high-dimensional data
 #'
@@ -108,7 +108,14 @@ recipe.default <- function(x, ...) {
 #' @rdname recipe
 #' @export
 recipe.data.frame <-
-  function(x, formula = NULL, ..., vars = NULL, roles = NULL) {
+  function(
+    x,
+    formula = NULL,
+    ...,
+    vars = NULL,
+    roles = NULL,
+    strings_as_factors = NULL
+  ) {
     if (!is.null(formula)) {
       if (!is.null(vars)) {
         cli::cli_abort(
@@ -198,7 +205,8 @@ recipe.data.frame <-
       levels = NULL,
       retained = NA,
       requirements = requirements,
-      ptype = vctrs::vec_ptype(x)
+      ptype = vctrs::vec_ptype(x),
+      strings_as_factors = strings_as_factors
     )
     class(out) <- "recipe"
     out
@@ -211,17 +219,9 @@ recipe.formula <- function(formula, data, ...) {
     cli::cli_abort("{.arg data} is missing with no default.")
   }
 
-  if (is.table(data)) {
-    cli::cli_warn(
-      "Passing a table to {.fn recipe} is undocumented unsupported behavior.
-      This will no longer be possible in the next release of {.pkg recipes}."
-    )
-    data <- as_tibble(data)
-  }
-
   if (!is.data.frame(data) && !is.matrix(data) && !is_sparse_matrix(data)) {
     cli::cli_abort(
-      "{.arg data} must be a data frame, matrix, or sparse matrix, 
+      "{.arg data} must be a data frame, matrix, or sparse matrix,
       not {.obj_type_friendly {data}}."
     )
   }
@@ -239,6 +239,11 @@ recipe.formula <- function(formula, data, ...) {
 
   if (is_sparse_matrix(data)) {
     data <- sparsevctrs::coerce_to_sparse_tibble(data, call = caller_env(0))
+  }
+
+  # Dealing with sf data sets
+  if (rlang::inherits_any(data, "sf")) {
+    class(data) <- setdiff(class(data), "sf")
   }
 
   if (!is_tibble(data)) {
@@ -356,9 +361,9 @@ inline_check <- function(x, data, call) {
 #' @param log_changes A logical for printing a summary for each step regarding
 #'   which (if any) columns were added or removed during training.
 #' @param strings_as_factors A logical: should character columns that have role
-#'   `"predictor"` or `"outcome"` be converted to factors? This affects the
-#'   preprocessed training set (when `retain = TRUE`) as well as the results of
-#'   [bake()].
+#'   `"predictor"` or `"outcome"` be converted to factors? **This option has now
+#'   been moved to [recipe()]**; please specify `strings_as_factors` there and
+#'   see the notes in the Details section for that function.
 #'
 #' @details
 #'
@@ -431,6 +436,19 @@ prep.recipe <-
 
     # Record the original levels for later checking
     orig_lvls <- lapply(training, get_levels)
+
+    if (!missing(strings_as_factors)) {
+      lifecycle::deprecate_soft(
+        when = "1.3.0",
+        what = "recipes::prep.recipe(strings_as_factors)",
+        with = "recipes::recipe(strings_as_factors)"
+      )
+    }
+
+    if (!is.null(x$strings_as_factors)) {
+      strings_as_factors <- x$strings_as_factors
+    }
+
     if (strings_as_factors) {
       lvls <- lapply(training, get_levels)
       lvls <- kill_levels(lvls, x$var_info)
@@ -647,11 +665,12 @@ prep.recipe <-
 #'   that `prep(retain = TRUE)` was used). See [sparse_data] for more
 #'   information about use of sparse data.
 #' @param composition Either `"tibble"`, `"matrix"`, `"data.frame"`, or
-#'   `"dgCMatrix"``for the format of the processed data set. Note that all
-#'   computations during the baking process are done in a non-sparse format.
-#'   Also, note that this argument should be called **after** any selectors and
-#'   the selectors should only resolve to numeric columns (otherwise an error is
-#'   thrown).
+#'   `"dgCMatrix"``for the format of the processed data set. Also, note that
+#'   this argument should be called **after** any selectors and the selectors
+#'   should only resolve to numeric columns if `composition` is set to
+#'   `"matrix"` or `"dgCMatrix"`. If the data contains sparse columns they will
+#'   be perseved for `"tibble"` and `"data.frame"`, and efficiently used for
+#'   `"dgCMatrix"`.
 #'
 #' @details
 #'
@@ -793,6 +812,13 @@ bake.recipe <- function(object, new_data, ..., composition = "tibble") {
   # set.
   info <- object$last_term_info
 
+  # Handle old grouped data.frames
+  if (!is.null(attr(info, "vars"))) {
+    group_vars <- attr(info, "vars")
+    info <- dplyr::ungroup(info)
+    info <- dplyr::group_by(info, dplyr::pick(group_vars))
+  }
+
   # Now reduce to only user selected columns
   out_names <- recipes_eval_select(
     terms,
@@ -910,13 +936,13 @@ print.recipe <- function(x, form_width = 30, ...) {
 #'   set when the recipe was defined.
 #' @param ... further arguments passed to or from other methods (not currently
 #'   used).
-#' @return A tibble with columns `variable`, `type`, `role`,
-#'   and `source`. When `original = TRUE`, an additional column is included
-#'   named `required_to_bake` (based on the results of
-#'   [update_role_requirements()]).
+#' @return A tibble with columns `variable`, `type`, `role`, and `source`. When
+#'   `original = TRUE`, an additional column is included named
+#'   `required_to_bake` (based on the results of [update_role_requirements()]).
 #' @details
-#' Note that, until the recipe has been trained,
-#' the current and original variables are the same.
+#'
+#' Note that, until the recipe has been trained, the current and original
+#' variables are the same.
 #'
 #' It is possible for variables to have multiple roles by adding them with
 #' [add_role()]. If a variable has multiple roles, it will have more than one
@@ -956,8 +982,7 @@ bake_req_tibble <- function(x) {
 
 #' Extract transformed training set
 #'
-#' @description
-#' `r lifecycle::badge('superseded')`
+#' @description `r lifecycle::badge('superseded')`
 #'
 #' As of `recipes` version 0.1.14, **`juice()` is superseded** in favor of
 #' `bake(object, new_data = NULL)`.
@@ -971,6 +996,7 @@ bake_req_tibble <- function(x) {
 #'   `retain = TRUE`.
 #'
 #' @details
+#'
 #' `juice()` will return the results of a recipe where _all steps_ have been
 #' applied to the data, irrespective of the value of the step's `skip` argument.
 #'

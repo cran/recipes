@@ -6,22 +6,24 @@
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param penalty A non-negative number used as a penalization factor for the
-#' loadings. Values are usually between zero and one.
+#'   loadings. Values are usually between zero and one.
 #' @param options A list of options to `nmf()` in the RcppML package. That
-#'  package has a separate function `setRcppMLthreads()` that controls the
-#'  amount of internal parallelization. **Note** that the argument `A`, `k`,
-#'  `L1`, and `seed` should not be passed here.
+#'   package has a separate function `setRcppMLthreads()` that controls the
+#'   amount of internal parallelization. **Note** that the argument `A`, `k`,
+#'   `L1`, and `seed` should not be passed here.
 #' @param res A matrix of loadings is stored here, along with the names of the
-#'  original predictors, once this preprocessing step has been trained by
-#'  [prep()].
+#'   original predictors, once this preprocessing step has been trained by
+#'   [prep()].
 #' @param seed An integer that will be used to set the seed in isolation when
-#'  computing the factorization.
+#'   computing the factorization.
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
-#' @details Non-negative matrix factorization computes latent components that
-#'  have non-negative values and take into account that the original data have
-#'  non-negative values.
+#' @details
+#'
+#' Non-negative matrix factorization computes latent components that have
+#' non-negative values and take into account that the original data have
+#' non-negative values.
 #'
 #' ```{r, echo = FALSE, results="asis"}
 #' prefix <- "NNMF"
@@ -171,35 +173,31 @@ prep.step_nnmf_sparse <- function(x, training, info = NULL, ...) {
   check_number_whole(x$num_comp, arg = "num_comp", min = 0)
   check_number_decimal(x$penalty, arg = "penalty", min = .Machine$double.eps)
   check_string(x$prefix, arg = "prefix")
+  check_options(x$options, exclude = c("A", "k", "L1", "seed"))
 
   if (x$num_comp > 0 && length(col_names) > 0) {
     x$num_comp <- min(x$num_comp, length(col_names))
     dat <- tibble_to_sparse(training[, col_names], transp = TRUE)
     cl <- nnmf_pen_call(x)
 
-    nnm <- try(rlang::eval_tidy(cl), silent = TRUE)
+    if (!"package:Matrix" %in% search()) {
+      attachNamespace("Matrix")
+    }
 
-    if (inherits(nnm, "try-error")) {
+    nnm <- try_fetch_eval_tidy(rlang::eval_tidy(cl))
+
+    na_w <- sum(is.na(nnm$w))
+    if (na_w > 0) {
       cli::cli_abort(
         c(
-          x = "Failed with error:",
-          i = as.character(nnm)
+          x = "The NNMF loadings are missing.",
+          i = "The penalty may have been too high or missing values are present in data."
         )
       )
     } else {
-      na_w <- sum(is.na(nnm$w))
-      if (na_w > 0) {
-        cli::cli_abort(
-          c(
-            x = "The NNMF loadings are missing.",
-            i = "The penalty may have been too high or missing values are present in data."
-          )
-        )
-      } else {
-        nnm <- list(x_vars = col_names, w = nnm$w)
-        rownames(nnm$w) <- col_names
-        colnames(nnm$w) <- names0(ncol(nnm$w), x$prefix)
-      }
+      nnm <- list(x_vars = col_names, w = nnm$w)
+      rownames(nnm$w) <- col_names
+      colnames(nnm$w) <- names0(ncol(nnm$w), x$prefix)
     }
   } else {
     nnm <- list(x_vars = col_names, w = NULL)

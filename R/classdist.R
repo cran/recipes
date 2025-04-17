@@ -6,41 +6,42 @@
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_center
-#' @param class A single character string that specifies a single
-#'  categorical variable to be used as the class.
-#' @param mean_func A function to compute the center of the
-#'  distribution.
+#' @param class A bare name that specifies a single categorical variable to be
+#'   used as the class. Can also be a string or tidyselect for backwards
+#'   compatibility.
+#' @param mean_func A function to compute the center of the distribution.
 #' @param cov_func A function that computes the covariance matrix
-#' @param pool A logical: should the covariance matrix be computed
-#'  by pooling the data for all of the classes?
-#' @param log A logical: should the distances be transformed by
-#'  the natural log function?
-#' @param objects Statistics are stored here once this step has
-#'  been trained by [prep()].
+#' @param pool A logical: should the covariance matrix be computed by pooling
+#'   the data for all of the classes?
+#' @param log A logical: should the distances be transformed by the natural log
+#'   function?
+#' @param objects Statistics are stored here once this step has been trained by
+#'   [prep()].
 #' @param keep_original_cols A logical to keep the original variables in the
-#'  output. Defaults to `TRUE`.
+#'   output. Defaults to `TRUE`.
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
-#' @details `step_classdist` will create a new column for every unique value of
-#' the `class` variable. The resulting variables will not replace the original
+#' @details
+#'
+#' `step_classdist()` will create a new column for every unique value of the
+#' `class` variable. The resulting variables will not replace the original
 #' values and, by default, have the prefix `classdist_`. The naming format can
 #' be changed using the `prefix` argument.
 #'
 #' Class-specific centroids are the multivariate averages of each predictor
-#' using the data from each class in the training set. When pre-processing a
-#' new data point, this step computes the distance from the new point to each
-#' of the class centroids. These distance features can be very effective at
-#' capturing linear class boundaries. For this reason, they can be useful to
-#' add to an existing predictor set used within a nonlinear model. If the true
-#' boundary is actually linear, the model will have an easier time learning the
-#' training data patterns.
+#' using the data from each class in the training set. When pre-processing a new
+#' data point, this step computes the distance from the new point to each of the
+#' class centroids. These distance features can be very effective at capturing
+#' linear class boundaries. For this reason, they can be useful to add to an
+#' existing predictor set used within a nonlinear model. If the true boundary is
+#' actually linear, the model will have an easier time learning the training
+#' data patterns.
 #'
-#' Note that, by default, the default covariance function requires
-#'  that each class should have at least as many rows as variables
-#'  listed in the `terms` argument. If `pool = TRUE`,
-#'  there must be at least as many data points are variables
-#'  overall.
+#' Note that, by default, the default covariance function requires that each
+#' class should have at least as many rows as variables listed in the `terms`
+#' argument. If `pool = TRUE`, there must be at least as many data points are
+#' variables overall.
 #'
 #' # Tidying
 #'
@@ -68,14 +69,14 @@
 #' # define naming convention
 #' rec <- recipe(species ~ ., data = penguins) %>%
 #'   step_classdist(all_numeric_predictors(),
-#'     class = "species",
+#'     class = species,
 #'     pool = FALSE, mean_func = mean2, prefix = "centroid_"
 #'   )
 #'
 #' # default naming
 #' rec <- recipe(species ~ ., data = penguins) %>%
 #'   step_classdist(all_numeric_predictors(),
-#'     class = "species",
+#'     class = species,
 #'     pool = FALSE, mean_func = mean2
 #'   )
 #'
@@ -104,13 +105,11 @@ step_classdist <- function(
   skip = FALSE,
   id = rand_id("classdist")
 ) {
-  check_string(class)
-
   add_step(
     recipe,
     step_classdist_new(
       terms = enquos(...),
-      class = class,
+      class = enquos(class),
       role = role,
       trained = trained,
       mean_func = mean_func,
@@ -201,9 +200,13 @@ get_both <- function(x, wts = NULL, mfun = mean, cfun = cov) {
 #' @export
 prep.step_classdist <- function(x, training, info = NULL, ...) {
   x_names <- recipes_eval_select(x$terms, training, info)
+  class_var <- recipes_argument_select(
+    x$class,
+    training,
+    info,
+    arg_name = "class"
+  )
   check_type(training[, x_names], types = c("double", "integer"))
-
-  class_var <- x$class[1]
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts)
@@ -239,7 +242,7 @@ prep.step_classdist <- function(x, training, info = NULL, ...) {
   }
   step_classdist_new(
     terms = x$terms,
-    class = x$class,
+    class = class_var,
     role = x$role,
     trained = TRUE,
     mean_func = x$mean_func,
@@ -314,14 +317,16 @@ bake.step_classdist <- function(object, new_data, ...) {
 #' @export
 print.step_classdist <-
   function(x, width = max(20, options()$width - 30), ...) {
-    title <- glue("Distances to {x$class} for ")
     if (x$trained) {
+      title <- glue("Distances to {x$class} for ")
       x_names <- if (x$pool) {
         names(x$objects[["center"]][[1]])
       } else {
         names(x$objects[[1]]$center)
       }
     } else {
+      class <- rlang::quo_name(x$class[[1]])
+      title <- glue("Distances to {class} for ")
       x_names <- NULL
     }
     print_step(

@@ -49,36 +49,35 @@ get_rhs_vars <- function(formula, data, no_lhs = FALSE) {
 
 #' Naming Tools
 #'
-#' `names0` creates a series of `num` names with a common prefix.
-#'  The names are numbered with leading zeros (e.g.
-#'  `prefix01`-`prefix10` instead of `prefix1`-`prefix10`).
-#'  `dummy_names` can be used for renaming unordered and ordered
-#'  dummy variables (in [step_dummy()]).
+#' `names0()` creates a series of `num` names with a common prefix. The names
+#' are numbered with leading zeros (e.g. `prefix01`-`prefix10` instead of
+#' `prefix1`-`prefix10`). `dummy_names` can be used for renaming unordered and
+#' ordered dummy variables (in [step_dummy()]).
 #'
 #' @param num A single integer for how many elements are created.
 #' @param prefix A character string that will start each name.
 #' @param var A single string for the original factor name.
-#' @param lvl A character vectors of the factor levels (in order).
-#'  When used with [step_dummy()], `lvl` would be the suffixes
-#'  that result _after_ `model.matrix` is called (see the
-#'  example below).
+#' @param lvl A character vectors of the factor levels (in order). When used
+#'   with [step_dummy()], `lvl` would be the suffixes that result _after_
+#'   `model.matrix` is called (see the example below).
 #' @param ordinal A logical; was the original factor ordered?
 #' @param sep A single character value for the separator between the names and
-#'  levels.
+#'   levels.
 #' @param call The execution environment of a currently running function, e.g.
 #'   `caller_env()`. The function will be mentioned in error messages as the
 #'   source of the error. See the call argument of [rlang::abort()] for more
 #'   information.
-#' @details When using `dummy_names()`, factor levels that are not valid
-#'  variable names (e.g. "some text  with spaces") will be changed to valid
-#'  names by [base::make.names()]; see example below. This function will also
-#'  change the names of ordinal dummy variables. Instead of values such as
-#'  "`.L`", "`.Q`", or "`^4`", ordinal dummy variables are given simple integer
-#'  suffixes such as "`_1`", "`_2`", etc.
+#' @details
 #'
-#' @return `names0` returns a character string of length `num` and
-#'  `dummy_names` generates a character vector the same length as
-#'  `lvl`.
+#' When using `dummy_names()`, factor levels that are not valid variable names
+#' (e.g. "some text  with spaces") will be changed to valid names by
+#' [base::make.names()]; see example below. This function will also change the
+#' names of ordinal dummy variables. Instead of values such as `".L"`, `".Q"`,
+#' or `"^4"`, ordinal dummy variables are given simple integer suffixes such as
+#' `"_1"`, `"_2"`, etc.
+#'
+#' @return `names0()` returns a character string of length `num` and
+#'   `dummy_names()` generates a character vector the same length as `lvl`.
 #'
 #' @seealso [developer_functions]
 #'
@@ -201,11 +200,12 @@ kill_levels <- function(lvls, var_info) {
 }
 
 strings2factors <- function(x, info) {
-  check_lvls <- has_lvls(info)
-  if (!any(check_lvls)) {
-    return(x)
-  }
-  info <- info[check_lvls]
+  to_factor <- vapply(
+    info,
+    function(x) !is.null(x$factor),
+    FUN.VALUE = logical(1)
+  )
+  info <- info[to_factor]
   vars <- names(info)
   info <- info[vars %in% names(x)]
   for (i in seq_along(info)) {
@@ -223,10 +223,10 @@ strings2factors <- function(x, info) {
 
 # ------------------------------------------------------------------------------
 
-# `vec_detect_complete` fails on list columns. This version counts a list column
-# as missing if _all_ values are missing. For if a list vector element is a
-# data frame with one missing value, that element of the list column will
-# be counted as complete.
+# `vec_detect_complete()` fails on list columns. This version counts a list
+# column as missing if _all_ values are missing. For if a list vector element is
+# a data frame with one missing value, that element of the list column will be
+# counted as complete.
 n_complete_rows <- function(x) {
   is_list_col <- purrr::map_lgl(x, is.list)
   pos_list_cols <- which(is_list_col)
@@ -315,13 +315,12 @@ ellipse_check <- function(...) {
 
 #' Printing Workhorse Function
 #'
-#' `printer()` is used for printing steps.
+#' `printer()` is used for printing steps. `r lifecycle::badge("deprecated")`
 #'
-#' @param tr_obj A character vector of names that have been
-#'  resolved during preparing the recipe (e.g. the `columns` object
-#'  of [step_log()]).
-#' @param untr_obj An object of selectors prior to prepping the
-#'  recipe (e.g. `terms` in most steps).
+#' @param tr_obj A character vector of names that have been resolved during
+#'   preparing the recipe (e.g. the `columns` object of [step_log()]).
+#' @param untr_obj An object of selectors prior to prepping the recipe (e.g.
+#'   `terms` in most steps).
 #' @param trained A logical for whether the step has been trained.
 #' @param width An integer denoting where the output should be wrapped.
 #'
@@ -336,6 +335,8 @@ printer <- function(
   trained = FALSE,
   width = max(20, options()$width - 30)
 ) {
+  lifecycle::deprecate_soft("1.3.0", "printer()", "print_step()")
+
   if (trained) {
     txt <- format_ch_vec(tr_obj, width = width)
   } else {
@@ -357,21 +358,12 @@ printer <- function(
   invisible(NULL)
 }
 
-#' @keywords internal
-#' @rdname recipes-internal
-#' @export
-prepare <- function(x, ...) {
-  cli::cli_abort(
-    "As of version 0.0.1.9006 please use {.fn prep} instead of {.fn prepare}."
-  )
-}
-
 #' Check to see if a recipe is trained/prepared
 #'
 #' @param x A recipe
 #' @return A logical which is true if all of the recipe steps have been run
-#'  through `prep`. If no steps have been added to the recipe, `TRUE` is
-#'  returned only if the recipe has been prepped.
+#'   through `prep`. If no steps have been added to the recipe, `TRUE` is
+#'   returned only if the recipe has been prepped.
 #' @export
 #'
 #' @seealso [developer_functions]
@@ -434,9 +426,9 @@ is_qual <- function(x) {
 
 #' Quantitatively check on variables
 #'
-#' This internal function is to be used in the prep function to ensure that
-#'   the type of the variables matches the expectation. Throws an error if
-#'   check fails.
+#' This internal function is to be used in the prep function to ensure that the
+#' type of the variables matches the expectation. Throws an error if check
+#' fails.
 #' @param dat A data frame or tibble of the training data.
 #' @param quant A logical indicating whether the data is expected to be numeric
 #'   (TRUE) or a factor/character (FALSE). Is ignored if `types` is specified.
@@ -444,12 +436,12 @@ is_qual <- function(x) {
 #'   [has_role()]. See details for more.
 #'
 #' @details
-#' Using `types` is a more fine-tuned way to use this. function compared to using
-#' `quant`. `types` should specify all allowed types as designated by
+#'
+#' Using `types` is a more fine-tuned way to use this. function compared to
+#' using `quant`. `types` should specify all allowed types as designated by
 #' [.get_data_types]. Suppose you want to allow doubles, integers, characters,
-#' factors and ordered factors, then you should specify
-#' `types = c("double", "integer", "string", "factor", "ordered")` to get a
-#' clear error message.
+#' factors and ordered factors, then you should specify `types = c("double",
+#' "integer", "string", "factor", "ordered")` to get a clear error message.
 #'
 #' @seealso [developer_functions]
 #'
@@ -577,16 +569,16 @@ simple_terms <- function(x, ...) {
 
 #' check that newly created variable names don't overlap
 #'
-#' `check_name` is to be used in the bake function to ensure that
-#'   newly created variable names don't overlap with existing names.
-#'   Throws an error if check fails.
+#' `check_name` is to be used in the bake function to ensure that newly created
+#' variable names don't overlap with existing names. Throws an error if check
+#' fails.
 #' @param res A data frame or tibble of the newly created variables.
 #' @param new_data A data frame or tibble passed to the bake function.
 #' @param object A trained object passed to the bake function.
-#' @param newname A string of variable names if prefix isn't specified
-#'   in the trained object.
-#' @param names A logical determining if the names should be set using
-#' the names function (TRUE) or colnames function (FALSE).
+#' @param newname A string of variable names if prefix isn't specified in the
+#'   trained object.
+#' @param names A logical determining if the names should be set using the names
+#'   function (TRUE) or colnames function (FALSE).
 #' @param call The execution environment of a currently running function, e.g.
 #'   `caller_env()`. The function will be mentioned in error messages as the
 #'   source of the error. See the call argument of [rlang::abort()] for more
@@ -634,7 +626,7 @@ check_name <- function(
 #' @param prefix A single character string
 #' @param len An integer for the number of random characters
 #' @return A character string with the prefix and random letters separated by
-#'  and underscore.
+#'   and underscore.
 #'
 #' @seealso [developer_functions]
 #' @keywords internal
@@ -861,8 +853,8 @@ uses_dim_red <- function(x) {
 
 #' Check for required column at bake-time
 #'
-#' When baking a step, create an information error message when a column that
-#' is used by the step is not present in `new_data`.
+#' When baking a step, create an information error message when a column that is
+#' used by the step is not present in `new_data`.
 #'
 #' @param req A character vector of required columns.
 #' @param object A step object.
@@ -937,8 +929,8 @@ vec_paste0 <- function(..., collapse = NULL) {
 #' @param new_data A tibble.
 #' @param object A step object.
 #' @param col_names A character vector, denoting columns to remove.
-#' @return new_data with `col_names` removed if
-#'     `get_keep_original_cols(object) == TRUE` or `object$preserve == TRUE`.
+#' @return new_data with `col_names` removed if `get_keep_original_cols(object)
+#'   == TRUE` or `object$preserve == TRUE`.
 #' @keywords internal
 #'
 #' @seealso [developer_functions]
@@ -1015,4 +1007,227 @@ get_from_info <- function(info, role) {
   res <- info$variable[info$role == role & !is.na(info$role)]
 
   res
+}
+
+check_zv <- function(data, call = rlang::caller_env()) {
+  vz_ind <- vapply(data, one_unique, logical(1))
+
+  if (any(vz_ind)) {
+    col_names <- colnames(data)
+    offenders <- col_names[vz_ind]
+    cli::cli_abort(
+      c(
+        "!" = "{cli::qty(offenders)} The following column{?s} {?has/have} zero \\
+        variance making computations unable to proceed: {offenders}.",
+        "i" = "Consider using {.help [?step_zv](recipes::step_zv)} to remove \\
+        those columns before this step."
+      ),
+      call = call
+    )
+  }
+}
+
+try_fetch_eval_tidy <- function(x, call = rlang::caller_env(1)) {
+  rlang::try_fetch(
+    x,
+    error = function(cnd) {
+      cli::cli_abort("Failed to compute:", parent = cnd, call = call)
+    }
+  )
+}
+
+#' Check that options argument contain the right elements
+#'
+#' `check_options()` is to be used in the prep function to ensure that `options`
+#' arguments are lists and contain the right elements.
+#'
+#' @param options options to be checked.
+#' @param exclude Character vector, elements that can't be present in `options`.
+#' @param include Character vector, Allowed elements in `options`.
+#'
+#' @seealso [developer_functions]
+#'
+#' @export
+#' @keywords internal
+check_options <- function(
+  options,
+  exclude = NULL,
+  include = NULL,
+  call = caller_env()
+) {
+  if (is.null(options)) {
+    return(NULL)
+  }
+  if (identical(options, list())) {
+    return(NULL)
+  }
+
+  if (!is.list(options)) {
+    cli::cli_abort(
+      "{.arg options} must be a list, not {.obj_type_friendly {options}}.",
+      call = call
+    )
+  }
+  names <- names(options)
+
+  if (is.null(names)) {
+    cli::cli_abort(
+      "The list passed to {.arg options} must be named.",
+      call = call
+    )
+  }
+  if (!is.null(exclude) && any(exclude %in% names)) {
+    offenders <- names[exclude %in% names]
+    cli::cli_abort(
+      "The following element{?s} of the list passed to {.arg options} {?is/are}
+      not allowed: {.field {offenders}}.",
+      call = call
+    )
+  }
+  if (!is.null(include) && any(!names %in% include)) {
+    offenders <- names[!names %in% include]
+    cli::cli_abort(
+      "{.arg options} must only contain elements {.field {include}}, the
+      following are not allowed: {.field {offenders}}.",
+      call = call
+    )
+  }
+}
+
+#' Evaluate a selection with tidyselect semantics for arguments
+#'
+#' @description `recipes_argument_select()` is a variant of
+#' [recipes_eval_select()] that is tailored to work well with arguments in steps
+#' that specify variables. Such as `denom` in [step_ratio()].
+#'
+#' This is a developer tool that is only useful for creating new recipes steps.
+#'
+#' @param quos A list of quosures describing the selection. Captured with
+#'   [rlang::enquos()] and stored in the step object corresponding to the
+#'   argument.
+#'
+#' @param data A data frame to use as the context to evaluate the selection in.
+#'   This is generally the `training` data passed to the [prep()] method of your
+#'   step.
+#'
+#' @param info A data frame of term information describing each column's type
+#'   and role for use with the recipes selectors. This is generally the `info`
+#'   data passed to the [prep()] method of your step.
+#'
+#' @param single A logical. Should an error be thrown if more than 1 variable is
+#'   selected. Defaults to `TRUE`.
+#'
+#' @param arg_name A string. Name of argument, used to enrich error messages.
+#'
+#' @param call The execution environment of a currently running function, e.g.
+#'   `caller_env()`. The function will be mentioned in error messages as the
+#'   source of the error. See the call argument of [rlang::abort()] for more
+#'   information.
+#'
+#' @details
+#'
+#' This function is written to be backwards compatible with previous input types
+#' of these arguments. Will thus accept strings, tidyselect, recipes selections,
+#' helper functions [imp_vars()] in addition to the prefered bare names.
+#'
+#' @return
+#' A character vector containing the evaluated selection.
+#'
+#' @seealso [developer_functions]
+#'
+#' @export
+#' @examplesIf rlang::is_installed("modeldata")
+#' library(rlang)
+#' data(scat, package = "modeldata")
+#'
+#' rec <- recipe(Species ~ ., data = scat)
+#'
+#' info <- summary(rec)
+#' info
+#'
+#' recipes_argument_select(quos(Year), scat, info)
+#' recipes_argument_select(vars(Year), scat, info)
+#' recipes_argument_select(imp_vars(Year), scat, info)
+recipes_argument_select <- function(
+  quos,
+  data,
+  info,
+  single = TRUE,
+  arg_name = "outcome",
+  call = caller_env()
+) {
+  # Because we know the input will be a list of qousures
+  expr <- quos[[1]]
+
+  if (quo_is_null(expr)) {
+    cli::cli_abort(
+      "{.arg {arg_name}} must not be {.code NULL}.",
+      call = call
+    )
+  }
+
+  if (
+    rlang::quo_is_call(expr, name = "vars", ns = c("dplyr", "")) ||
+      rlang::quo_is_call(expr, name = "imp_vars", ns = c("recipes", "")) ||
+      rlang::quo_is_call(expr, name = "denom_vars", ns = c("recipes", ""))
+  ) {
+    expr <- eval_tidy(expr)
+
+    if (single && length(expr) != 1) {
+      cli::cli_abort(
+        c(
+          x = "only 1 selection is allowed in {.arg {arg_name}},
+              not {length(expr)}.",
+          i = "For this argument consider using bare names instead."
+        ),
+        call = call
+      )
+    }
+    expr <- expr(c(!!!expr))
+  }
+
+  # Maintain ordering between `data` column names and `info$variable` so
+  # `eval_select()` and recipes selectors return compatible positions
+  matches <- vctrs::vec_locate_matches(
+    names(data),
+    info$variable,
+    no_match = "error"
+  )
+  data_info <- vec_slice(info, matches$haystack)
+
+  data_nest <- data_info[names(data_info) != "variable"]
+  data_nest <- tibble::new_tibble(data_nest, nrow = vctrs::vec_size(data_nest))
+
+  nested_info <- vctrs::vec_split(data_nest, by = data_info$variable)
+  nested_info <- list(variable = nested_info$key, data = nested_info$val)
+  nested_info <- tibble::new_tibble(
+    nested_info,
+    nrow = length(nested_info$variable)
+  )
+  local_current_info(nested_info)
+
+  out <- tidyselect::eval_select(
+    expr,
+    data,
+    allow_rename = FALSE,
+    error_call = call
+  )
+
+  if ((single && length(out) != 1) || (!single && length(out) == 0)) {
+    cli::cli_abort(
+      "only 1 selection is allowed in {.arg {arg_name}}, not {length(out)}.",
+      call = call
+    )
+  }
+
+  out <- names(out)
+
+  if (any(out %in% info$variable[info$role == "case_weights"])) {
+    cli::cli_abort(
+      "Cannot select case weights variable for {.arg {arg_name}}.",
+      call = call
+    )
+  }
+
+  out
 }

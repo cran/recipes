@@ -9,8 +9,9 @@
 #'   non-zero coefficients for each PLS component (via regularization).
 #' @param preserve Use `keep_original_cols` instead to specify whether the
 #'   original predictor data should be retained along with the new features.
-#' @param outcome When a single outcome is available, character string or call
-#'   to [dplyr::vars()] can be used to specify a single outcome variable.
+#' @param outcome When a single outcome is available, bare name, character
+#'   strings or call to [dplyr::vars()] can be used to specify a single outcome
+#'   variable.
 #' @param options A list of options to `mixOmics::pls()`, `mixOmics::spls()`,
 #'   `mixOmics::plsda()`, or `mixOmics::splsda()` (depending on the data and
 #'   arguments).
@@ -86,11 +87,11 @@
 #'
 #' dense_pls <-
 #'   recipe(HHV ~ ., data = biom_tr) %>%
-#'   step_pls(all_numeric_predictors(), outcome = "HHV", num_comp = 3)
+#'   step_pls(all_numeric_predictors(), outcome = HHV, num_comp = 3)
 #'
 #' sparse_pls <-
 #'   recipe(HHV ~ ., data = biom_tr) %>%
-#'   step_pls(all_numeric_predictors(), outcome = "HHV", num_comp = 3,
+#'   step_pls(all_numeric_predictors(), outcome = HHV, num_comp = 3,
 #'            predictor_prop = 4 / 5)
 #'
 #' ## -----------------------------------------------------------------------------
@@ -109,11 +110,11 @@
 #'
 #' dense_plsda <-
 #'   recipe(class ~ ., data = cell_tr) %>%
-#'   step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5)
+#'   step_pls(all_numeric_predictors(), outcome = class, num_comp = 5)
 #'
 #' sparse_plsda <-
 #'   recipe(class ~ ., data = cell_tr) %>%
-#'   step_pls(all_numeric_predictors(), outcome = "class", num_comp = 5,
+#'   step_pls(all_numeric_predictors(), outcome = class, num_comp = 5,
 #'            predictor_prop = 1 / 4)
 step_pls <-
   function(
@@ -133,10 +134,6 @@ step_pls <-
     skip = FALSE,
     id = rand_id("pls")
   ) {
-    if (is.null(outcome)) {
-      cli::cli_abort("{.arg outcome} should select at least one column.")
-    }
-
     if (lifecycle::is_present(preserve)) {
       lifecycle::deprecate_stop(
         "0.1.16",
@@ -155,7 +152,7 @@ step_pls <-
         trained = trained,
         num_comp = num_comp,
         predictor_prop = predictor_prop,
-        outcome = outcome,
+        outcome = enquos(outcome),
         options = options,
         preserve = keep_original_cols,
         res = res,
@@ -367,7 +364,7 @@ get_columns_pls <- function(x) {
 #' @export
 prep.step_pls <- function(x, training, info = NULL, ...) {
   x_names <- recipes_eval_select(x$terms, training, info)
-  y_names <- recipes_eval_select(x$outcome, training, info)
+  y_names <- recipes_argument_select(x$outcome, training, info, single = FALSE)
 
   check_type(training[, x_names], types = c("double", "integer"))
   check_number_decimal(
@@ -378,6 +375,7 @@ prep.step_pls <- function(x, training, info = NULL, ...) {
   )
   check_string(x$prefix, arg = "prefix")
   check_number_whole(x$num_comp, arg = "num_comp", min = 0)
+  check_options(x$options)
 
   if (length(y_names) > 1 && any(!map_lgl(training[y_names], is.numeric))) {
     cli::cli_abort(
@@ -393,15 +391,9 @@ prep.step_pls <- function(x, training, info = NULL, ...) {
     nterm <- prop2int(x$predictor_prop, length(x_names))
 
     cl <- make_pls_call(ncomp, nterm, y_names, x$options)
-    res <- try(rlang::eval_tidy(cl), silent = TRUE)
-    if (inherits(res, "try-error")) {
-      cli::cli_warn(
-        "{.fn step_pls} failed with error: {as.character(res)}.",
-      )
-      res <- list(x_vars = x_names, y_vars = y_names)
-    } else {
-      res <- butcher_pls(res)
-    }
+    res <- try_fetch_eval_tidy(rlang::eval_tidy(cl))
+
+    res <- butcher_pls(res)
   } else {
     res <- NULL
   }
@@ -412,7 +404,7 @@ prep.step_pls <- function(x, training, info = NULL, ...) {
     trained = TRUE,
     num_comp = x$num_comp,
     predictor_prop = x$predictor_prop,
-    outcome = x$outcome,
+    outcome = y_names,
     options = x$options,
     preserve = x$preserve,
     res = res,

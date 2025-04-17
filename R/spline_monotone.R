@@ -5,27 +5,27 @@
 #'
 #' @inheritParams step_spline_b
 #' @param degree The degree of I-spline defined to be the degree of the
-#'  associated M-spline instead of actual polynomial degree. For example,
-#'  I-spline basis of degree 2 is defined as the integral of associated M-spline
-#'  basis of degree 2.
-#' @param options A list of options for [splines2::iSpline()]
-#'  which should not include `x`, `df`, `degree`, `periodic`, or `intercept`.
+#'   associated M-spline instead of actual polynomial degree. For example,
+#'   I-spline basis of degree 2 is defined as the integral of associated
+#'   M-spline basis of degree 2.
+#' @param options A list of options for [splines2::iSpline()] which should not
+#'   include `x`, `df`, `degree`, `periodic`, or `intercept`.
 #' @return An object with classes `"step_spline_monotone"` and `"step"`.
 #' @export
 #' @details
 #'
 #' Spline transformations take a numeric column and create multiple features
 #' that, when used in a model, can estimate nonlinear trends between the column
-#' and some outcome. The degrees of freedom determines how many new features
-#' are added to the data.
+#' and some outcome. The degrees of freedom determines how many new features are
+#' added to the data.
 #'
 #' These splines are integrated forms of M-splines and are non-negative and
 #' monotonic. This means that, when used with a fitting function that produces
 #' non-negative regression coefficients, the resulting fit is monotonic.
 #'
-#' If the spline expansion fails for a selected column, the step will
-#' remove that column's results (but will retain the original data). Use the
-#' `tidy()` method to determine which columns were used.
+#' If the spline expansion fails for a selected column, the step will remove
+#' that column's results (but will retain the original data). Use the `tidy()`
+#' method to determine which columns were used.
 #'
 #' # Tidying
 #'
@@ -141,6 +141,12 @@ prep.step_spline_monotone <- function(x, training, info = NULL, ...) {
   check_bool(x$complete_set, arg = "complete_set")
   check_number_whole(x$degree, arg = "degree", min = 0)
   check_number_whole(x$deg_free, arg = "deg_free", min = 0)
+  check_options(
+    x$options,
+    exclude = c("x", "df", "degree", "intercept")
+  )
+
+  check_zv(training[, col_names])
 
   res <- list()
 

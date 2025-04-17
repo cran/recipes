@@ -5,7 +5,6 @@
 \alias{estimate_yj}
 \alias{ellipse_check}
 \alias{printer}
-\alias{prepare}
 \alias{is_trained}
 \alias{sel2char}
 \alias{print_step}
@@ -30,8 +29,6 @@ printer(
   width = max(20, options()$width - 30)
 )
 
-prepare(x, ...)
-
 is_trained(x)
 
 sel2char(x)
@@ -50,12 +47,11 @@ print_step(
 
 \item{...}{Arguments pass in from a call to \code{step}.}
 
-\item{tr_obj}{A character vector of names that have been
-resolved during preparing the recipe (e.g. the \code{columns} object
-of \code{\link[=step_log]{step_log()}}).}
+\item{tr_obj}{A character vector of names that have been resolved during
+preparing the recipe (e.g. the \code{columns} object of \code{\link[=step_log]{step_log()}}).}
 
-\item{untr_obj}{An object of selectors prior to prepping the
-recipe (e.g. \code{terms} in most steps).}
+\item{untr_obj}{An object of selectors prior to prepping the recipe (e.g.
+\code{terms} in most steps).}
 
 \item{trained}{A logical for whether the step has been trained.}
 
@@ -79,7 +75,7 @@ error is thrown.
 \code{ellipse_check()} is deprecated. Instead, empty selections should be
 supported by all steps.
 
-\code{printer()} is used for printing steps.
+\code{printer()} is used for printing steps. \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 
 \code{is_trained()} is a helper function that returned a single logical to
 indicate whether a recipe is traine or not.

@@ -5,21 +5,21 @@
 #'
 #' @inheritParams step_spline_b
 #' @param degree The degrees of the polynomial. As the degrees for a polynomial
-#'  increase, more flexible and complex curves can be generated.
-#' @param options A list of options for [splines2::bernsteinPoly()]
-#'  which should not include `x` or `degree`.
-#' @return An object with classes `"step_poly_bernstein"` and `"step"`.
+#'   increase, more flexible and complex curves can be generated.
+#' @param options A list of options for [splines2::bernsteinPoly()] which should
+#'   not include `x` or `degree`.
+#' @template step-return
 #' @export
 #' @details
 #'
 #' Polynomial transformations take a numeric column and create multiple features
 #' that, when used in a model, can estimate nonlinear trends between the column
-#' and some outcome. The degrees of freedom determines how many new features
-#' are added to the data.
+#' and some outcome. The degrees of freedom determines how many new features are
+#' added to the data.
 #'
-#' If the spline expansion fails for a selected column, the step will
-#' remove that column's results (but will retain the original data). Use the
-#' `tidy()` method to determine which columns were used.
+#' If the spline expansion fails for a selected column, the step will remove
+#' that column's results (but will retain the original data). Use the `tidy()`
+#' method to determine which columns were used.
 #'
 #' # Tidying
 #'
@@ -130,6 +130,7 @@ prep.step_poly_bernstein <- function(x, training, info = NULL, ...) {
   check_type(training[, col_names], types = c("double", "integer"))
   check_bool(x$complete_set, arg = "complete_set")
   check_number_whole(x$degree, arg = "degree", min = 0)
+  check_options(x$options, exclude = c("x", 'degree'))
 
   x$options <- c(x$options, degree = x$degree)
 

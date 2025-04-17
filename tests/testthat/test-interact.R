@@ -338,10 +338,31 @@ test_that("gives informative error if terms isn't a formula (#1299)", {
   mtcars$am <- as.character(mtcars$am)
 
   expect_snapshot(
-    tmp <- recipe(mpg ~ ., data = mtcars) %>%
+    tmp <- recipe(mpg ~ ., data = mtcars, strings_as_factors = FALSE) %>%
       step_interact(~disp:am) %>%
-      prep(strings_as_factors = FALSE)
+      prep()
   )
+})
+
+test_that("one-sided empty selections works (#1299)", {
+  res <- recipe(~., data = mtcars) %>%
+    step_interact(~any_of("vs"):any_of("not_am")) %>%
+    prep() %>%
+    bake(NULL)
+  exp <- as_tibble(mtcars)
+
+  expect_identical(res, exp)
+
+  res <- recipe(~., data = mtcars) %>%
+    step_interact(~hp:mpg + any_of("vs"):any_of("not_am")) %>%
+    prep() %>%
+    bake(NULL)
+  exp <- recipe(~., data = mtcars) %>%
+    step_interact(~hp:mpg) %>%
+    prep() %>%
+    bake(NULL)
+
+  expect_identical(res, exp)
 })
 
 # Infrastructure ---------------------------------------------------------------
@@ -455,5 +476,21 @@ test_that("bad args", {
       step_interact(~disp::wt, sep = TRUE) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_interact(~disp:mpg) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

@@ -361,3 +361,19 @@ test_that("bad args", {
     error = TRUE
   )
 })
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- examples
+  rec <- recipe(~., data) %>%
+    step_date(all_date_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
+  )
+})

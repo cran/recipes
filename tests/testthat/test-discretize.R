@@ -186,6 +186,40 @@ test_that("war when less breaks are generated", {
   )
 })
 
+test_that("bake works predicting on only NAs (#1350)", {
+  rec <- recipe(~mpg, data = mtcars) %>%
+    step_discretize(mpg, min_unique = 4) %>%
+    prep()
+
+  exp_levels <- rec %>%
+    bake(data.frame(mpg = numeric(0))) %>%
+    pull() %>%
+    levels()
+
+  expect_identical(
+    rec %>%
+      bake(data.frame(mpg = NA)) %>%
+      pull(mpg),
+    factor(NA, exp_levels)
+  )
+
+  expect_identical(
+    rec %>%
+      bake(data.frame(mpg = c(NA, NA))) %>%
+      pull(mpg),
+    factor(c(NA, NA), exp_levels)
+  )
+})
+
+test_that("check_options() is used", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~mpg, data = mtcars) %>%
+      step_discretize(mpg, options = TRUE) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -270,5 +304,21 @@ test_that("bad args", {
       step_discretize(disp, min_unique = -1) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_discretize(mpg, min_unique = 3) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

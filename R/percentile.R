@@ -6,9 +6,9 @@
 #' @inheritParams step_pca
 #' @inheritParams step_center
 #' @param ref_dist The computed percentiles is stored here once this
-#'  preprocessing step has be trained by [prep()].
-#' @param options A named list of options to pass to [stats::quantile()].
-#'   See Details for more information.
+#'   preprocessing step has be trained by [prep()].
+#' @param options A named list of options to pass to [stats::quantile()]. See
+#'   Details for more information.
 #' @param outside A character, describing how interpolation is to take place
 #'   outside the interval `[min(x), max(x)]`. `none` means nothing will happen
 #'   and values outside the range will be `NA`. `lower` means that new values
@@ -118,6 +118,7 @@ step_percentile_new <-
 prep.step_percentile <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
+  check_options(x$options)
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)

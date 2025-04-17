@@ -10,6 +10,7 @@ step_dummy(
   role = "predictor",
   trained = FALSE,
   one_hot = FALSE,
+  contrasts = list(unordered = "contr.treatment", ordered = "contr.poly"),
   preserve = deprecated(),
   naming = dummy_names,
   levels = NULL,
@@ -20,22 +21,26 @@ step_dummy(
 )
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the
-sequence of operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the sequence of
+operations for this recipe.}
 
 \item{...}{One or more selector functions to choose variables for this step.
 See \code{\link[=selections]{selections()}} for more details. The selected variables \emph{must} be
 factors.}
 
 \item{role}{For model terms created by this step, what analysis role should
-they be assigned? By default, the new columns created by this step from
-the original variables will be used as \emph{predictors} in a model.}
+they be assigned? By default, the new columns created by this step from the
+original variables will be used as \emph{predictors} in a model.}
 
-\item{trained}{A logical to indicate if the quantities for
-preprocessing have been estimated.}
+\item{trained}{A logical to indicate if the quantities for preprocessing have
+been estimated.}
 
 \item{one_hot}{A logical. For C levels, should C dummy variables be created
 rather than C-1?}
+
+\item{contrasts}{A named vector or list of contrast functions names. Defaults
+to \code{list(unordered = "contr.treatment", ordered = "contr.poly")}. If only a
+single string is passed it will be used for both \code{unordered} and \code{ordered}.}
 
 \item{preserve}{This argument has been deprecated. Please use
 \code{keep_original_cols} instead.}
@@ -54,12 +59,11 @@ then workflows can determine the best option. Defaults to \code{"auto"}.}
 \item{keep_original_cols}{A logical to keep the original variables in the
 output. Defaults to \code{FALSE}.}
 
-\item{skip}{A logical. Should the step be skipped when the
-recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
-when \code{\link[=prep]{prep()}} is run, some operations may not be able to be
-conducted on new data (e.g. processing the outcome variable(s)).
-Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations.}
+\item{skip}{A logical. Should the step be skipped when the recipe is baked by
+\code{\link[=bake]{bake()}}? While all operations are baked when \code{\link[=prep]{prep()}} is run, some
+operations may not be able to be conducted on new data (e.g. processing the
+outcome variable(s)). Care should be taken when using \code{skip = TRUE} as it
+may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
 }
@@ -75,10 +79,14 @@ corresponding to the levels of the original data.
 \details{
 \code{step_dummy()} will create a set of binary dummy variables from a factor
 variable. For example, if an unordered factor column in the data set has
-levels of "red", "green", "blue", the dummy variable bake will create two
-additional columns of 0/1 data for two of those three values (and remove the
-original column). For ordered factors, polynomial contrasts are used to
-encode the numeric values.
+levels of \code{"red"}, \code{"green"}, \code{"blue"}, the dummy variable bake will create
+two additional columns of 0/1 data for two of those three values (and remove
+the original column). For ordered factors, polynomial contrasts are used to
+encode the numeric values. These defaults are controlled by the \code{contrasts}
+argument. Note that since the contrasts are specified via character strings
+you will need to have those packages loaded. If you are using this with the
+tune package, you might need to add that these packages to the \code{pkg} option
+in \code{control_grid()}.
 
 By default, the excluded dummy variable (i.e. the reference cell) will
 correspond to the first level of the unordered factor being converted.
@@ -92,9 +100,6 @@ new variable called \code{x_b}. The naming format can be changed using
 the \code{naming} argument; the function \code{\link[=dummy_names]{dummy_names()}} is the
 default.
 
-To change the type of contrast being used, change the global contrast option
-via \code{options}.
-
 When the factor being converted has a missing value, all of the corresponding
 dummy variables are also missing. See \code{\link[=step_unknown]{step_unknown()}} for a solution.
 
@@ -106,17 +111,16 @@ If no columns are selected (perhaps due to an earlier \code{step_zv()}), \code{\
 will return the data as-is (e.g. with no dummy variables).
 
 Note that, by default, the new dummy variable column names obey the naming
-rules for columns. If there are levels such as "0", \code{\link[=dummy_names]{dummy_names()}} will put
-a leading "X" in front of the level (since it uses \code{\link[=make.names]{make.names()}}). This can
-be changed by passing in a different function to the \code{naming} argument for
-this step.
+rules for columns. If there are levels such as \code{"0"}, \code{\link[=dummy_names]{dummy_names()}} will
+put a leading \code{"X"} in front of the level (since it uses \code{\link[=make.names]{make.names()}}).
+This can be changed by passing in a different function to the \code{naming}
+argument for this step.
 
 Also, there are a number of contrast methods that return fractional values.
-The columns returned by this step are doubles (not integers) when
-\code{sparse = FALSE}. The columns returned when \code{sparse = TRUE} are integers.
+The columns returned by this step are doubles (not integers) when \code{sparse = FALSE}. The columns returned when \code{sparse = TRUE} are integers.
 
-The \href{https://recipes.tidymodels.org/articles/Dummies.html}{package vignette for dummy variables}
-and interactions has more information.
+The \href{https://recipes.tidymodels.org/articles/Dummies.html}{package vignette for dummy variables} and
+interactions has more information.
 }
 \section{Tidying}{
 When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble is returned with
@@ -162,28 +166,39 @@ rec <- recipe(~ city + sqft + price, data = Sacramento)
 # Default dummy coding: 36 dummy variables
 dummies <- rec \%>\%
   step_dummy(city) \%>\%
-  prep(training = Sacramento)
+  prep()
 
 dummy_data <- bake(dummies, new_data = NULL)
 
 dummy_data \%>\%
   select(starts_with("city")) \%>\%
-  names() # level "anything" is the reference level
+  glimpse() # level "anything" is the reference level
 
 # Obtain the full set of 37 dummy variables using `one_hot` option
 dummies_one_hot <- rec \%>\%
   step_dummy(city, one_hot = TRUE) \%>\%
-  prep(training = Sacramento)
+  prep()
 
 dummy_data_one_hot <- bake(dummies_one_hot, new_data = NULL)
 
 dummy_data_one_hot \%>\%
   select(starts_with("city")) \%>\%
-  names() # no reference level
+  glimpse() # no reference level
 
+# Obtain the full set of 37 dummy variables using helmert contrasts
+dummies_helmert <- rec \%>\%
+  step_dummy(city, contrasts = "contr.helmert") \%>\%
+  prep()
+
+dummy_data_helmert <- bake(dummies_helmert, new_data = NULL)
+
+dummy_data_helmert \%>\%
+  select(starts_with("city")) \%>\%
+  glimpse() # no reference level
 
 tidy(dummies, number = 1)
 tidy(dummies_one_hot, number = 1)
+tidy(dummies_helmert, number = 1)
 \dontshow{\}) # examplesIf}
 }
 \seealso{

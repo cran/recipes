@@ -44,11 +44,8 @@ spline2_create <- function(
       intercept = complete_set,
       !!!fn_opts
     )
-  res <- try(rlang::eval_tidy(.cl), silent = TRUE)
-  if (inherits(res, "try-error")) {
-    spline_msg(res)
-    return(NULL)
-  }
+  res <- try_fetch_eval_tidy(rlang::eval_tidy(.cl))
+
   res <- attributes(res)
   res$x <- NULL
   res$class <- NULL
@@ -59,20 +56,6 @@ spline2_create <- function(
   res
 }
 
-spline_msg <- function(x) {
-  x <- as.character(x)
-  # Error messages can contain brackets (e.g. "Error in if (df < 0) { : missing value")
-  # For glue string interpolation, the default open/close deliminators the
-  # brackets. cli_abort calls rlang's abort and that can't pass the arguments
-  # to change the delimiters but will ignore them if they are doubled. So we
-  # change "{" to "{{" (and also for close). Simultaneous substitution via
-  # `pattern = "(\\{)|(\\})"` produces poor results so we do them one at a time.
-  x <- gsub("(\\{)", "\\1\\1", x)
-  x <- gsub("(\\})", "\\1\\1", x)
-  x <- strsplit(x, "\\n")[[1]]
-  cli::cli_abort(x)
-}
-
 spline2_apply <- function(object, new_data) {
   .ns <- object$.ns
   .fn <- object$.fn
@@ -80,6 +63,11 @@ spline2_apply <- function(object, new_data) {
   object$.ns <- NULL
   object$.fn <- NULL
   object$nm <- NULL
+
+  if (NROW(new_data) == 0) {
+    new_data <- object$Boundary.knots[[1]]
+  }
+
   .cl <- rlang::call2(
     .ns = .ns,
     .fn = .fn,
@@ -87,6 +75,11 @@ spline2_apply <- function(object, new_data) {
     x = rlang::expr(new_data)
   )
   res <- rlang::eval_tidy(.cl)
+
+  if (NROW(new_data) == 0) {
+    res <- res[0, , drop = FALSE]
+  }
+
   attributes(res) <- list(dim = dim(res), dimnames = dimnames(res))
   if (length(new_data) == 1) {
     res <- matrix(res, nrow = 1, dimnames = dimnames(res))

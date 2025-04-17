@@ -16,6 +16,15 @@
     Message
       The `degree` argument is now a main argument instead of being within `options`.
 
+# check_options() is used
+
+    Code
+      recipe(~mpg, data = mtcars) %>% step_poly(mpg, options = TRUE) %>% prep()
+    Condition
+      Error in `step_poly()`:
+      Caused by error in `prep()`:
+      ! `options` must be a list, not `TRUE`.
+
 # bake method errors when needed non-standard role columns are missing
 
     Code
@@ -38,7 +47,7 @@
       predictor: 10
       
       -- Operations 
-      * Orthogonal polynomials on: <none>
+      * Polynomial expansion on: <none>
 
 ---
 
@@ -57,7 +66,7 @@
       Training data contained 32 data points and no incomplete rows.
       
       -- Operations 
-      * Orthogonal polynomials on: <none> | Trained
+      * Polynomial expansion on: <none> | Trained
 
 # keep_original_cols - can prep recipes with it missing
 
@@ -82,7 +91,7 @@
       predictor: 5
       
       -- Operations 
-      * Orthogonal polynomials on: carbon hydrogen
+      * Polynomial expansion on: carbon hydrogen
 
 ---
 
@@ -101,7 +110,7 @@
       Training data contained 456 data points and no incomplete rows.
       
       -- Operations 
-      * Orthogonal polynomials on: carbon hydrogen | Trained
+      * Polynomial expansion on: carbon hydrogen | Trained
 
 # bad args
 

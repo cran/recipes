@@ -12,12 +12,10 @@ ex_dat <- data.frame(
   stringsAsFactors = FALSE
 )
 
-rec <- recipe(~., data = ex_dat)
-
 test_that("basic functionality", {
-  ex_1 <- rec %>%
+  ex_1 <- recipe(~., data = ex_dat, strings_as_factors = FALSE) %>%
     step_factor2string(y, z) %>%
-    prep(ex_dat, strings_as_factors = FALSE) %>%
+    prep(ex_dat) %>%
     bake(new_data = NULL)
   expect_equal(class(ex_1$w), "character")
   expect_equal(class(ex_1$x), "character")
@@ -26,20 +24,20 @@ test_that("basic functionality", {
 test_that("bad args", {
   expect_snapshot(
     error = TRUE,
-    rec %>%
+    recipe(~., data = ex_dat, strings_as_factors = FALSE) %>%
       step_factor2string(w, x) %>%
-      prep(ex_dat, strings_as_factors = FALSE)
+      prep(ex_dat)
   )
 })
 
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
-  ex_1 <- rec %>%
+  ex_1 <- recipe(~., data = ex_dat, strings_as_factors = FALSE) %>%
     step_factor2string(y, z) %>%
     update_role(y, z, new_role = "potato") %>%
     update_role_requirements(role = "potato", bake = FALSE) %>%
-    prep(ex_dat, strings_as_factors = FALSE)
+    prep(ex_dat)
 
   expect_snapshot(error = TRUE, bake(ex_1, new_data = ex_dat[, 1:3]))
 })
@@ -87,4 +85,20 @@ test_that("printing", {
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- iris
+  rec <- recipe(~., data) %>%
+    step_factor2string(all_nominal_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
+  )
 })

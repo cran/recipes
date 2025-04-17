@@ -40,8 +40,18 @@
     Condition
       Error in `step_kpca()`:
       Caused by error in `prep()`:
-      x Failed with error:
-      i Error in kernlab::kpca(x = as.matrix(training[, col_names]), features = 5, : mocked error
+      ! Failed to compute:
+      Caused by error in `kernlab::kpca()`:
+      ! mocked error
+
+# check_options() is used
+
+    Code
+      recipe(~mpg, data = mtcars) %>% step_kpca(mpg, options = TRUE) %>% prep()
+    Condition
+      Error in `step_kpca()`:
+      Caused by error in `prep()`:
+      ! `options` must be a list, not `TRUE`.
 
 # bake method errors when needed non-standard role columns are missing
 

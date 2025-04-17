@@ -69,8 +69,9 @@
     Code
       prepare(recipe(HHV ~ ., data = biomass), training = biomass)
     Condition
-      Error in `prepare()`:
-      ! As of version 0.0.1.9006 please use `prep()` instead of `prepare()`.
+      Error:
+      ! `prepare()` was deprecated in recipes 0.0.1.9006 and is now defunct.
+      i Please use `prep()` instead.
 
 # bake without prep
 
@@ -381,4 +382,13 @@
       Error in `recipe()`:
       x `x` should be a data frame, matrix, formula, or tibble.
       i `x` is an empty list.
+
+# recipe() error for table input (#1416)
+
+    Code
+      recipe(Titanic, Survived ~ .)
+    Condition
+      Error in `recipe()`:
+      x `x` should be a data frame, matrix, formula, or tibble.
+      i `x` is a <table> object.
 

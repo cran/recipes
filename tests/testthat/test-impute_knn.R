@@ -26,7 +26,7 @@ test_that("imputation values", {
     step_impute_knn(
       carbon,
       nitrogen,
-      impute_with = imp_vars(hydrogen, oxygen, nitrogen),
+      impute_with = c(hydrogen, oxygen, nitrogen),
       neighbors = 3,
       id = ""
     )
@@ -94,7 +94,7 @@ test_that("All NA values", {
     step_impute_knn(
       carbon,
       nitrogen,
-      impute_with = imp_vars(hydrogen, oxygen, nitrogen),
+      impute_with = c(hydrogen, oxygen, nitrogen),
       neighbors = 3
     ) %>%
     prep(biomass_tr)
@@ -108,33 +108,36 @@ test_that("options", {
     step_impute_knn(
       carbon,
       nitrogen,
-      impute_with = imp_vars(hydrogen, oxygen, nitrogen),
+      impute_with = c(hydrogen, oxygen, nitrogen),
       neighbors = 3,
       options = list(),
       id = ""
-    )
+    ) %>%
+    prep()
   expect_equal(rec_1$steps[[1]]$options, list(nthread = 1, eps = 1e-08))
 
   rec_2 <- rec %>%
     step_impute_knn(
       carbon,
       nitrogen,
-      impute_with = imp_vars(hydrogen, oxygen, nitrogen),
+      impute_with = c(hydrogen, oxygen, nitrogen),
       neighbors = 3,
       options = list(nthread = 10),
       id = ""
-    )
+    ) %>%
+    prep()
   expect_equal(rec_2$steps[[1]]$options, list(nthread = 10, eps = 1e-08))
 
   rec_3 <- rec %>%
     step_impute_knn(
       carbon,
       nitrogen,
-      impute_with = imp_vars(hydrogen, oxygen, nitrogen),
+      impute_with = c(hydrogen, oxygen, nitrogen),
       neighbors = 3,
       options = list(eps = 10),
       id = ""
-    )
+    ) %>%
+    prep()
   expect_equal(rec_3$steps[[1]]$options, list(eps = 10, nthread = 1))
 
   dat_1 <-
@@ -203,15 +206,18 @@ test_that("impute_with errors with nothing selected", {
   )
 })
 
-test_that("warn if all values of predictor are missing", {
-  mtcars[, 1:11] <- NA_real_
+test_that("Warns when impute_with contains all NAs in a row", {
+  mtcars[1:3, 1] <- NA_real_
+  mtcars[10, 3] <- NA_real_
+
+  mtcars[c(2, 3, 10), 9:10] <- NA_real_
+
   expect_snapshot(
     tmp <- recipe(~., data = mtcars) %>%
-      step_impute_knn(mpg, disp, vs) %>%
+      step_impute_knn(mpg, disp, vs, impute_with = c(am, gear)) %>%
       prep()
   )
 })
-
 test_that("error on wrong options argument", {
   expect_snapshot(
     error = TRUE,
@@ -227,12 +233,86 @@ test_that("error on wrong options argument", {
   )
 })
 
+test_that("step_impute_knn() can prep with character vectors (#926)", {
+  set.seed(42)
+
+  dat <- tibble(
+    criterion = rnorm(50),
+    num_pred_a = rnorm(50) + .8 * criterion,
+    char_pred = ifelse(
+      criterion < .2,
+      sample(c("a", "b"), 1, prob = c(.75, .25)),
+      sample(c("a", "b"), 1, prob = c(.5, .5))
+    )
+  )
+
+  dat[sample(1:nrow(dat), 2), 2] <- NA
+  dat[sample(1:nrow(dat), 2), 3] <- NA
+
+  rec <- recipe(criterion ~ ., data = dat, strings_as_factors = TRUE) %>%
+    step_impute_knn(all_predictors())
+
+  rec_prepped <- prep(rec, dat)
+
+  expect_no_error(
+    bake(rec_prepped, dat)
+  )
+})
+
+test_that("check_options() is used", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~mpg, data = mtcars) %>%
+      step_impute_knn(mpg, options = TRUE) %>%
+      prep()
+  )
+})
+
+test_that("recipes_argument_select() is used", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_impute_knn(disp, impute_with = NULL) %>%
+      prep()
+  )
+})
+
+test_that("addition of recipes_argument_select() is backwards compatible", {
+  rec <- recipe(mpg ~ ., data = mtcars) %>%
+    step_impute_knn(disp) %>%
+    prep()
+
+  exp <- bake(rec, mtcars)
+
+  rec$steps[[1]]$impute_with <- rlang::new_quosures(
+    list(
+      rlang::new_quosure(
+        quote(all_predictors())
+      )
+    )
+  )
+
+  expect_identical(
+    bake(rec, mtcars),
+    exp
+  )
+
+  rec_old <- recipe(mpg ~ ., data = mtcars) %>%
+    step_impute_knn(disp, impute_with = imp_vars(all_predictors())) %>%
+    prep()
+
+  expect_identical(
+    bake(rec_old, mtcars),
+    exp
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
   imputed <-
     recipe(HHV ~ carbon + hydrogen + oxygen, data = biomass) %>%
-      step_impute_knn(carbon, impute_with = imp_vars(hydrogen, oxygen)) %>%
+      step_impute_knn(carbon, impute_with = c(hydrogen, oxygen)) %>%
       update_role(hydrogen, new_role = "potato") %>%
       update_role_requirements(role = "potato", bake = FALSE)
 
@@ -294,7 +374,7 @@ test_that("printing", {
     step_impute_knn(
       carbon,
       nitrogen,
-      impute_with = imp_vars(hydrogen, oxygen, nitrogen)
+      impute_with = c(hydrogen, oxygen, nitrogen)
     )
 
   expect_snapshot(print(rec))
@@ -324,5 +404,21 @@ test_that("bad args", {
       ) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_impute_knn(disp, mpg) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

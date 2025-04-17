@@ -6,13 +6,15 @@
 #' @inheritParams step_center
 #' @inheritParams step_pca
 #' @param offset A numeric value to modify values of the columns that are either
-#' one or zero. They are modified to be `x - offset` or `offset`, respectively.
+#'   one or zero. They are modified to be `x - offset` or `offset`,
+#'   respectively.
 #' @template step-return
 #' @family individual transformation steps
 #' @export
-#' @details The logit transformation takes values between
-#'  zero and one and translates them to be on the real line using
-#'  the function `f(p) = log(p/(1-p))`.
+#' @details
+#'
+#' The logit transformation takes values between zero and one and translates
+#' them to be on the real line using the function `f(p) = log(p/(1-p))`.
 #'
 #' # Tidying
 #'
@@ -109,6 +111,10 @@ pre_logit <- function(x, eps = 0) {
 bake.step_logit <- function(object, new_data, ...) {
   col_names <- names(object$columns)
   check_new_data(col_names, object, new_data)
+
+  if (nrow(new_data) == 0) {
+    return(new_data)
+  }
 
   for (col_name in col_names) {
     new_data[[col_name]] <- binomial()$linkfun(

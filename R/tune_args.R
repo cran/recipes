@@ -32,9 +32,6 @@ tune_args.step <- function(object, full = FALSE, ...) {
 
   tune_param_list <- tunable(object)$name
 
-  # remove the non-tunable arguments as they are not important
-  object <- object[tune_param_list]
-
   # Remove NULL argument steps. These are reserved
   # for deprecated args or those set at prep() time.
   object <- object[!purrr::map_lgl(object, is.null)]
@@ -47,9 +44,11 @@ tune_args.step <- function(object, full = FALSE, ...) {
   }
   res <- ifelse(res == "", names(res), res)
 
+  is_tunable <- unname(!is.na(res)) & res %in% tune_param_list
+
   tune_tbl(
     name = names(res),
-    tunable = unname(!is.na(res)),
+    tunable = is_tunable,
     id = unname(res),
     source = "recipe",
     component = step_type,
@@ -97,7 +96,7 @@ tune_tbl <- function(
   )
 
   if (!full) {
-    vry_tbl <- vry_tbl[vry_tbl$tunable, ]
+    vry_tbl <- vry_tbl[!is.na(vry_tbl$id), ]
   }
 
   vry_tbl
@@ -124,7 +123,7 @@ tune_id <- function(x) {
 
     # [tune()] will always return a call object
     if (is.call(x)) {
-      if (rlang::call_name(x) == "tune") {
+      if (identical(rlang::call_name(x), "tune")) {
         # If an id was specified:
         if (length(x) > 1) {
           return(x[[2]])

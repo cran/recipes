@@ -72,6 +72,16 @@
 #' col_names <- recipes_eval_select(x$terms, training, info)
 #' ```
 #'
+#' [recipes_argument_select()] is used within `prep.step_*()` functions in the
+#' same way as [recipes_eval_select()] but is intended to be used for arguments
+#' such as `denom` in [step_ratio()].
+#'
+#' It will most likely be used like so:
+#'
+#' ```r
+#' outcome_var <- recipes_argument_select(x$outcome, training, info)
+#' ```
+#'
 #' [check_type()] can be used within `prep.step_*()` functions to check that the
 #' variables passed in are the right types. We recommend that you use the
 #' `types` argument as it offers higher flexibility and it matches the types
@@ -83,6 +93,21 @@
 #'
 #' ```r
 #' check_type(training[, col_names], types = c("double", "integer"))
+#' ```
+#'
+#' [check_options()] can be used within `prep.step_*()` functions to check that
+#' the `options` argument contains the right elements. It doens't check the
+#' types of the elements, just that `options` is a named list and it includes
+#' or excludes some names.
+#'
+#' It should be used like so:
+#'
+#' ```r
+#' # When you know some arguments are excluded
+#' check_options(xoptions, exclude = c("x", "pattern"))
+#'
+#' # When you know all legal elements
+#' check_options(xoptions, include = c("nthread", "eps"))
 #' ```
 #'
 #' [check_new_data()] should be used within `bake.step_*()`. This function is

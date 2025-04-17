@@ -32,9 +32,9 @@ te_miss$z[1] <- NA
 rec <- recipe(~., data = tr_dat)
 
 test_that("basic functionality", {
-  ex_1 <- rec %>%
+  ex_1 <- recipe(~., data = tr_dat, strings_as_factors = FALSE) %>%
     step_novel(all_predictors()) %>%
-    prep(tr_dat, strings_as_factors = FALSE)
+    prep(tr_dat)
 
   ex_1_tr <- bake(ex_1, new_data = tr_dat)
   ex_1_te <- bake(ex_1, new_data = te_dat)
@@ -106,11 +106,11 @@ test_that("missing values", {
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
-  ex_1 <- rec %>%
+  ex_1 <- recipe(~., data = tr_dat, strings_as_factors = FALSE) %>%
     step_novel(x) %>%
     update_role(x, new_role = "potato") %>%
     update_role_requirements(role = "potato", bake = FALSE) %>%
-    prep(tr_dat, strings_as_factors = FALSE)
+    prep(tr_dat)
 
   expect_snapshot(error = TRUE, bake(ex_1, new_data = tr_dat[, c(-3)]))
 })
@@ -158,4 +158,20 @@ test_that("printing", {
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- iris
+  rec <- recipe(~., data) %>%
+    step_novel(all_nominal_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
+  )
 })

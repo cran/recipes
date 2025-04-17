@@ -89,3 +89,21 @@ test_that("printing", {
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
 })
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- iris
+  data$Species <- as.ordered(data$Species)
+
+  rec <- recipe(~., data) %>%
+    step_unorder(Species) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
+  )
+})

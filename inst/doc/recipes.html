@@ -48,9 +48,8 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
-html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -61,7 +60,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -499,19 +498,24 @@ the variables:</p>
 <span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;  9    -0.977 -0.718 -1.27    -0.538 -0.246  -0.266 -0.295 -1.32   -1.65   </span></span>
 <span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; 10    -0.855  0.514 -0.100    0.744 -0.540  -0.488 -0.295 -0.185  -0.800  </span></span>
 <span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; # ℹ 1,104 more rows</span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; # ℹ 14 more variables: Status &lt;fct&gt;, Home_X1 &lt;dbl&gt;, Home_X2 &lt;dbl&gt;,</span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; #   Home_X3 &lt;dbl&gt;, Home_X4 &lt;dbl&gt;, Home_X5 &lt;dbl&gt;, Marital_X1 &lt;dbl&gt;,</span></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt; #   Marital_X2 &lt;dbl&gt;, Marital_X3 &lt;dbl&gt;, Marital_X4 &lt;dbl&gt;, Records_X1 &lt;dbl&gt;,</span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt; #   Job_X1 &lt;dbl&gt;, Job_X2 &lt;dbl&gt;, Job_X3 &lt;dbl&gt;</span></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="fu">vapply</span>(test_data, <span class="cf">function</span>(x) <span class="fu">mean</span>(<span class="sc">!</span><span class="fu">is.na</span>(x)), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt;  Seniority       Time        Age   Expenses     Income     Assets       Debt </span></span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;          1          1          1          1          1          1          1 </span></span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;     Amount      Price     Status    Home_X1    Home_X2    Home_X3    Home_X4 </span></span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt;          1          1          1          1          1          1          1 </span></span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt;    Home_X5 Marital_X1 Marital_X2 Marital_X3 Marital_X4 Records_X1     Job_X1 </span></span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;          1          1          1          1          1          1          1 </span></span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt;     Job_X2     Job_X3 </span></span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt;          1          1</span></span></code></pre></div>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; # ℹ 14 more variables: Status &lt;fct&gt;, Home_other &lt;dbl&gt;, Home_owner &lt;dbl&gt;,</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; #   Home_parents &lt;dbl&gt;, Home_priv &lt;dbl&gt;, Home_rent &lt;dbl&gt;,</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt; #   Marital_married &lt;dbl&gt;, Marital_separated &lt;dbl&gt;, Marital_single &lt;dbl&gt;,</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt; #   Marital_widow &lt;dbl&gt;, Records_yes &lt;dbl&gt;, Job_freelance &lt;dbl&gt;,</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt; #   Job_others &lt;dbl&gt;, Job_partime &lt;dbl&gt;</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="fu">vapply</span>(test_data, <span class="cf">function</span>(x) <span class="fu">mean</span>(<span class="sc">!</span><span class="fu">is.na</span>(x)), <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;         Seniority              Time               Age          Expenses </span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;                 1                 1                 1                 1 </span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt;            Income            Assets              Debt            Amount </span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt;                 1                 1                 1                 1 </span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;             Price            Status        Home_other        Home_owner </span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt;                 1                 1                 1                 1 </span></span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt;      Home_parents         Home_priv         Home_rent   Marital_married </span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="co">#&gt;                 1                 1                 1                 1 </span></span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="co">#&gt; Marital_separated    Marital_single     Marital_widow       Records_yes </span></span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="co">#&gt;                 1                 1                 1                 1 </span></span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co">#&gt;     Job_freelance        Job_others       Job_partime </span></span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="co">#&gt;                 1                 1                 1</span></span></code></pre></div>
 <p>Selectors can also be used. For example, if only the predictors are
 needed, you can use
 <code>bake(object, new_data, all_predictors())</code>.</p>
@@ -580,7 +584,8 @@ Checks are added in the same way as steps:</p>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">check_missing</span>(<span class="fu">contains</span>(<span class="st">&quot;Marital&quot;</span>))</span></code></pre></div>
 <p>Currently, <code>recipes</code> includes:</p>
 <pre><code>#&gt; [1] &quot;check_class&quot;      &quot;check_cols&quot;       &quot;check_missing&quot;    &quot;check_name&quot;      
-#&gt; [5] &quot;check_new_data&quot;   &quot;check_new_values&quot; &quot;check_range&quot;      &quot;check_type&quot;</code></pre>
+#&gt; [5] &quot;check_new_data&quot;   &quot;check_new_values&quot; &quot;check_options&quot;    &quot;check_range&quot;     
+#&gt; [9] &quot;check_type&quot;</code></pre>
 </div>
 
 

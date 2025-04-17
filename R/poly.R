@@ -148,6 +148,8 @@ prep.step_poly <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
   check_number_whole(x$degree, arg = "degree", min = 1)
+  check_options(x$options, exclude = c("x", "simple"))
+
   x$degree <- as.integer(x$degree)
 
   opts <- x$options
@@ -203,7 +205,7 @@ bake.step_poly <- function(object, new_data, ...) {
 #' @export
 print.step_poly <-
   function(x, width = max(20, options()$width - 35), ...) {
-    title <- "Orthogonal polynomials on "
+    title <- "Polynomial expansion on "
     print_step(names(x$objects), x$terms, x$trained, title, width)
     invisible(x)
   }

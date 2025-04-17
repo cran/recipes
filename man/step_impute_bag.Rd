@@ -10,7 +10,7 @@ step_impute_bag(
   ...,
   role = NA,
   trained = FALSE,
-  impute_with = imp_vars(all_predictors()),
+  impute_with = all_predictors(),
   trees = 25,
   models = NULL,
   options = list(keepX = FALSE),
@@ -22,25 +22,25 @@ step_impute_bag(
 imp_vars(...)
 }
 \arguments{
-\item{recipe}{A recipe object. The step will be added to the
-sequence of operations for this recipe.}
+\item{recipe}{A recipe object. The step will be added to the sequence of
+operations for this recipe.}
 
 \item{...}{One or more selector functions to choose variables to be imputed.
 When used with \code{imp_vars}, these dots indicate which variables are used to
 predict the missing data in each variable. See \code{\link[=selections]{selections()}} for more
 details.}
 
-\item{role}{Not used by this step since no new variables are
-created.}
+\item{role}{Not used by this step since no new variables are created.}
 
-\item{trained}{A logical to indicate if the quantities for
-preprocessing have been estimated.}
+\item{trained}{A logical to indicate if the quantities for preprocessing have
+been estimated.}
 
-\item{impute_with}{A call to \code{imp_vars} to specify which variables are used
-to impute the variables that can include specific variable names separated
-by commas or different selectors (see \code{\link[=selections]{selections()}}). If a column is
-included in both lists to be imputed and to be an imputation predictor, it
-will be removed from the latter and not used to impute itself.}
+\item{impute_with}{Bare names or selectors functions that specify which
+variables are used to impute the variables that can include specific
+variable names separated by commas or different selectors (see
+\code{\link[=selections]{selections()}}). If a column is included in both lists to be imputed and to
+be an imputation predictor, it will be removed from the latter and not used
+to impute itself.}
 
 \item{trees}{An integer for the number of bagged trees to use in each model.}
 
@@ -54,12 +54,11 @@ that the arguments \code{X} and \code{y} should not be passed here.}
 \item{seed_val}{An integer used to create reproducible models. The same seed
 is used across all imputation models.}
 
-\item{skip}{A logical. Should the step be skipped when the
-recipe is baked by \code{\link[=bake]{bake()}}? While all operations are baked
-when \code{\link[=prep]{prep()}} is run, some operations may not be able to be
-conducted on new data (e.g. processing the outcome variable(s)).
-Care should be taken when using \code{skip = TRUE} as it may affect
-the computations for subsequent operations.}
+\item{skip}{A logical. Should the step be skipped when the recipe is baked by
+\code{\link[=bake]{bake()}}? While all operations are baked when \code{\link[=prep]{prep()}} is run, some
+operations may not be able to be conducted on new data (e.g. processing the
+outcome variable(s)). Care should be taken when using \code{skip = TRUE} as it
+may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
 }
@@ -72,28 +71,24 @@ sequence of any existing operations.
 create bagged tree models to impute missing data.
 }
 \details{
-For each variable requiring imputation, a bagged tree is created
-where the outcome is the variable of interest and the predictors are any
-other variables listed in the \code{impute_with} formula. One advantage to the
-bagged tree is that is can accept predictors that have missing values
-themselves. This imputation method can be used when the variable of interest
-(and predictors) are numeric or categorical. Imputed categorical variables
-will remain categorical. Also, integers will be imputed to integer too.
+For each variable requiring imputation, a bagged tree is created where the
+outcome is the variable of interest and the predictors are any other
+variables listed in the \code{impute_with} formula. One advantage to the bagged
+tree is that is can accept predictors that have missing values themselves.
+This imputation method can be used when the variable of interest (and
+predictors) are numeric or categorical. Imputed categorical variables will
+remain categorical. Also, integers will be imputed to integer too.
 
-Note that if a variable that is to be imputed is also in \code{impute_with},
-this variable will be ignored.
+Note that if a variable that is to be imputed is also in \code{impute_with}, this
+variable will be ignored.
 
 It is possible that missing values will still occur after imputation if a
 large majority (or all) of the imputing variables are also missing.
 
-As of \code{recipes} 0.1.16, this function name changed from \code{step_bagimpute()}
-to \code{step_impute_bag()}.
+As of \code{recipes} 0.1.16, this function name changed from \code{step_bagimpute()} to
+\code{step_impute_bag()}.
 }
 \section{Tidying}{
-When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble with columns
-\code{terms} (the selectors or variables selected) and \code{model}
-(the bagged tree object) is returned.
-
 When you \code{\link[=tidy.recipe]{tidy()}} this step, a tibble is returned with
 columns \code{terms}, \code{model} , and \code{id}:
 
@@ -150,7 +145,7 @@ tidy(imp_models, number = 1)
 
 impute_rec <- rec \%>\%
   step_impute_bag(Status, Home, Marital, Job, Income, Assets, Debt,
-    impute_with = imp_vars(Time, Age, Expenses),
+    impute_with = c(Time, Age, Expenses),
     # for quick execution, nbagg lowered
     options = list(nbagg = 5, keepX = FALSE)
   )

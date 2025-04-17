@@ -27,8 +27,9 @@
     Condition
       Error in `step_isomap()`:
       Caused by error in `prep()`:
-      x Failed with error:
-      i Error : TridiagEigen: eigen decomposition failed
+      ! Failed to compute:
+      Caused by error:
+      ! TridiagEigen: eigen decomposition failed
 
 # check_name() is used
 
@@ -40,6 +41,15 @@
       Caused by error in `bake()`:
       ! Name collision occurred. The following variable names already exist:
       * `Isomap1`
+
+# check_options() is used
+
+    Code
+      recipe(~mpg, data = mtcars) %>% step_isomap(mpg, options = TRUE) %>% prep()
+    Condition
+      Error in `step_isomap()`:
+      Caused by error in `prep()`:
+      ! `options` must be a list, not `TRUE`.
 
 # bake method errors when needed non-standard role columns are missing
 

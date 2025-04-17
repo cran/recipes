@@ -110,13 +110,20 @@ test_that("vars without role in predictor/outcome avoid string processing", {
 })
 
 test_that("spline error messages", {
-  expect_snapshot(
-    recipes:::spline_msg("Error in if (df < 0) { : missing blah blah\n"),
-    error = TRUE
+  skip_if_not_installed("splines2")
+
+  local_mocked_bindings(
+    .package = "splines2",
+    cSpline = function(...) {
+      cli::cli_abort("mocked error")
+    }
   )
+
   expect_snapshot(
-    recipes:::spline_msg("craaazzyy {{}}{}{}"),
-    error = TRUE
+    error = TRUE,
+    recipe(. ~ disp, data = mtcars) %>%
+      step_spline_convex(disp) %>%
+      prep()
   )
 })
 
@@ -135,10 +142,224 @@ test_that("ellipse_check() errors on empty selection", {
 })
 
 test_that("ellipse_check() errors on empty selection", {
+  rlang::local_options(lifecycle_verbosity = "quiet")
+
   x <- 2
   class(x) <- "dimRedResult"
   expect_snapshot(
     error = TRUE,
     uses_dim_red(x)
+  )
+})
+
+test_that("check_options() works", {
+  expect_no_error(
+    check_options(NULL)
+  )
+  expect_no_error(
+    check_options(list())
+  )
+  expect_snapshot(
+    error = TRUE,
+    check_options(c("unname", "arguments"))
+  )
+  expect_snapshot(
+    error = TRUE,
+    check_options(list("unname", "arguments"))
+  )
+  expect_snapshot(
+    error = TRUE,
+    check_options(list(a = 1, b = 2), exclude = "b")
+  )
+  expect_snapshot(
+    error = TRUE,
+    check_options(list(a = 1, b = 2), include = "b")
+  )
+})
+
+test_that("recipes_argument_select() works with single selection", {
+  rec <- recipe(~., data = mtcars)
+  info <- rec$var_info
+  helper <- function(x) {
+    recipes_argument_select(enquos(x), mtcars, info)
+  }
+
+  expect_identical(
+    helper(drat),
+    "drat"
+  )
+  expect_identical(
+    helper("drat"),
+    "drat"
+  )
+  expect_identical(
+    helper(vars(drat)),
+    "drat"
+  )
+  expect_identical(
+    helper(imp_vars(drat)),
+    "drat"
+  )
+  expect_identical(
+    helper(starts_with("dra")),
+    "drat"
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    helper(NULL)
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(not_mpg)
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    helper(c())
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(vars())
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(imp_vars())
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    helper(c(mpg, disp))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(c("mpg", "disp"))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(vars(mpg, disp))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(imp_vars(mpg, disp))
+  )
+})
+
+test_that("recipes_argument_select() works with multiple selections", {
+  rec <- recipe(mpg ~ ., data = mtcars)
+  info <- rec$var_info
+  helper <- function(x) {
+    recipes_argument_select(enquos(x), mtcars, info, single = FALSE)
+  }
+
+  expect_identical(
+    helper(drat),
+    "drat"
+  )
+  expect_identical(
+    helper("drat"),
+    "drat"
+  )
+  expect_identical(
+    helper(vars(drat)),
+    "drat"
+  )
+  expect_identical(
+    helper(imp_vars(drat)),
+    "drat"
+  )
+  expect_identical(
+    helper(starts_with("dra")),
+    "drat"
+  )
+
+  expect_identical(
+    helper(c(mpg, disp)),
+    c("mpg", "disp")
+  )
+  expect_identical(
+    helper(c("mpg", "disp")),
+    c("mpg", "disp")
+  )
+  expect_identical(
+    helper(vars(mpg, disp)),
+    c("mpg", "disp")
+  )
+  expect_identical(
+    helper(imp_vars(mpg, disp)),
+    c("mpg", "disp")
+  )
+  expect_identical(
+    helper(all_predictors()),
+    setdiff(names(mtcars), "mpg")
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    helper(NULL)
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(not_mpg)
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    helper(c())
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(vars())
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(imp_vars())
+  )
+})
+
+test_that("recipes_argument_select() errors on case_weights", {
+  mtcars$gear <- hardhat::importance_weights(mtcars$gear)
+  rec <- recipe(mpg ~ ., data = mtcars)
+  info <- rec$var_info
+  helper <- function(x) {
+    recipes_argument_select(enquos(x), mtcars, info, single = FALSE)
+  }
+
+  expect_snapshot(
+    error = TRUE,
+    helper(gear)
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(gear)
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(vars(gear))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(imp_vars(gear))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(starts_with("gea"))
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    helper(c(mpg, gear))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(c("mpg", "gear"))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(vars(mpg, gear))
+  )
+  expect_snapshot(
+    error = TRUE,
+    helper(imp_vars(mpg, gear))
   )
 })

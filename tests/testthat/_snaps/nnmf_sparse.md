@@ -15,8 +15,9 @@
     Condition
       Error in `step_nnmf_sparse()`:
       Caused by error in `prep()`:
-      x Failed with error:
-      i Error in RcppML::nmf(A = dat, k = 2, L1 = c(0.001, 0.001), verbose = FALSE, : mocked error
+      ! Failed to compute:
+      Caused by error in `RcppML::nmf()`:
+      ! mocked error
 
 # errors for missing data
 
@@ -27,6 +28,16 @@
       Caused by error in `prep()`:
       x The NNMF loadings are missing.
       i The penalty may have been too high or missing values are present in data.
+
+# check_options() is used
+
+    Code
+      recipe(~mpg, data = mtcars) %>% step_nnmf_sparse(all_predictors(), options = TRUE) %>%
+        prep()
+    Condition
+      Error in `step_nnmf_sparse()`:
+      Caused by error in `prep()`:
+      ! `options` must be a list, not `TRUE`.
 
 # bake method errors when needed non-standard role columns are missing
 

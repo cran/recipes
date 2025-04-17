@@ -6,6 +6,313 @@ data(biomass, package = "modeldata")
 biomass_tr <- biomass[biomass$dataset == "Training", ]
 biomass_te <- biomass[biomass$dataset == "Testing", ]
 
+test_that("recipe specifications works - formula", {
+  exp_all_predictors <- tibble::tibble(
+    variable = c(
+      "mpg",
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb"
+    ),
+    role = "predictor"
+  )
+
+  rec <- recipe(~., data = mtcars)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_all_predictors
+  )
+
+  rec <- recipe(data = mtcars, ~.)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_all_predictors
+  )
+
+  exp_outcomes_predictors <- tibble::tibble(
+    variable = c(
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb",
+      "mpg"
+    ),
+    role = c(rep("predictor", 10), "outcome")
+  )
+
+  rec <- recipe(mpg ~ ., data = mtcars)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_outcomes_predictors
+  )
+
+  rec <- recipe(data = mtcars, mpg ~ .)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_outcomes_predictors
+  )
+
+  exp_just_some <- tibble::tibble(
+    variable = c(
+      "vs",
+      "am",
+      "mpg"
+    ),
+    role = c(rep("predictor", 2), "outcome")
+  )
+
+  rec <- recipe(mpg ~ vs + am, data = mtcars)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_just_some
+  )
+
+  rec <- recipe(data = mtcars, mpg ~ vs + am)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_just_some
+  )
+})
+
+test_that("recipe specifications works - vars and roles arguments", {
+  exp_all_predictors <- tibble::tibble(
+    variable = c(
+      "mpg",
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb"
+    ),
+    role = "predictor"
+  )
+
+  rec <- recipe(
+    mtcars,
+    vars = exp_all_predictors$variable,
+    roles = exp_all_predictors$role
+  )
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_all_predictors
+  )
+
+  exp_outcomes_predictors <- tibble::tibble(
+    variable = c(
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb",
+      "mpg"
+    ),
+    role = c(rep("predictor", 10), "outcome")
+  )
+
+  rec <- recipe(
+    mtcars,
+    vars = exp_outcomes_predictors$variable,
+    roles = exp_outcomes_predictors$role
+  )
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_outcomes_predictors
+  )
+
+  exp_just_some <- tibble::tibble(
+    variable = c(
+      "vs",
+      "am",
+      "mpg"
+    ),
+    role = c(rep("predictor", 2), "outcome")
+  )
+
+  rec <- recipe(
+    mtcars,
+    vars = exp_just_some$variable,
+    roles = exp_just_some$role
+  )
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_just_some
+  )
+})
+
+test_that("recipe specifications works - update_role()", {
+  exp_all_predictors <- tibble::tibble(
+    variable = c(
+      "mpg",
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb"
+    ),
+    role = NA_character_
+  )
+
+  rec <- recipe(mtcars)
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_all_predictors
+  )
+
+  exp_all_predictors <- tibble::tibble(
+    variable = c(
+      "mpg",
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb"
+    ),
+    role = "predictor"
+  )
+
+  rec <- recipe(mtcars) %>%
+    update_role(everything())
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_all_predictors
+  )
+
+  exp_outcomes_predictors <- tibble::tibble(
+    variable = c(
+      "mpg",
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb"
+    ),
+    role = c("outcome", rep("predictor", 10)),
+  )
+
+  rec <- recipe(mtcars) %>%
+    update_role(everything()) %>%
+    update_role(mpg, new_role = "outcome")
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_outcomes_predictors
+  )
+
+  exp_just_some <- tibble::tibble(
+    variable = c(
+      "mpg",
+      "cyl",
+      "disp",
+      "hp",
+      "drat",
+      "wt",
+      "qsec",
+      "vs",
+      "am",
+      "gear",
+      "carb"
+    ),
+    role = rep(c("outcome", NA, "predictor", NA), c(1L, 6L, 2L, 2L))
+  )
+
+  rec <- recipe(mtcars) %>%
+    update_role(vs, am) %>%
+    update_role(mpg, new_role = "outcome")
+
+  var_info <- summary(rec) %>%
+    select(variable, role)
+
+  expect_identical(
+    var_info,
+    exp_just_some
+  )
+})
+
 test_that("Recipe correctly identifies output variable", {
   raw_recipe <- recipe(HHV ~ ., data = biomass)
   var_info <- raw_recipe$var_info
@@ -40,19 +347,20 @@ test_that("Recipe on missspelled variables in formulas", {
 })
 
 test_that("return character or factor values", {
-  raw_recipe <- recipe(HHV ~ ., data = biomass)
-  centered <- raw_recipe %>%
+  rec_spec <- recipe(HHV ~ ., data = biomass, strings_as_factors = FALSE) %>%
     step_center(carbon, hydrogen, oxygen, nitrogen, sulfur)
 
   centered_char <- prep(
-    centered,
-    training = biomass,
-    strings_as_factors = FALSE
+    rec_spec,
+    training = biomass
   )
   char_var <- bake(centered_char, new_data = head(biomass))
   expect_equal(class(char_var$sample), "character")
 
-  centered_fac <- prep(centered, training = biomass, strings_as_factors = TRUE)
+  rec_spec <- recipe(HHV ~ ., data = biomass, strings_as_factors = TRUE) %>%
+    step_center(carbon, hydrogen, oxygen, nitrogen, sulfur)
+
+  centered_fac <- prep(rec_spec, training = biomass)
   fac_var <- bake(centered_fac, new_data = head(biomass))
   expect_equal(class(fac_var$sample), "factor")
   expect_equal(levels(fac_var$sample), sort(unique(biomass$sample)))
@@ -523,5 +831,99 @@ test_that("recipe() error for unsupported data types", {
   expect_snapshot(
     error = TRUE,
     recipe(list())
+  )
+})
+
+test_that("recipe() error for table input (#1416)", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(Titanic, Survived ~ .)
+  )
+})
+
+test_that("precedence for strings_as_factors in `recipe()`", {
+  local_options(lifecycle_verbosity = "quiet")
+
+  # Takes precedence over value in `prep()`
+  string_recipe <- recipe(HHV ~ ., data = biomass, strings_as_factors = FALSE)
+  prepped_string_recipe <- prep(
+    string_recipe,
+    training = biomass,
+    strings_as_factors = TRUE
+  )
+
+  factor_recipe <- recipe(HHV ~ ., data = biomass, strings_as_factors = TRUE)
+  prepped_factor_recipe <- prep(
+    factor_recipe,
+    training = biomass,
+    strings_as_factors = FALSE
+  )
+
+  char_var <- bake(prepped_string_recipe, new_data = head(biomass))
+  expect_identical(class(char_var$sample), "character")
+
+  factor_var <- bake(prepped_factor_recipe, new_data = head(biomass))
+  expect_identical(class(factor_var$sample), "factor")
+
+  # `prep()` takes precedence if it isn't set in `recipe()`
+  string_recipe <- recipe(HHV ~ ., data = biomass)
+
+  prepped_string_recipe <- prep(
+    string_recipe,
+    training = biomass,
+    strings_as_factors = FALSE
+  )
+
+  char_var <- bake(prepped_string_recipe, new_data = head(biomass))
+  expect_identical(class(char_var$sample), "character")
+})
+
+test_that("strings_as_factors in `recipe()` for different roles", {
+  # outcomes
+  # predictors
+  # id / other
+  # undeclared
+
+  ex_dat <- tibble(
+    outcome_string = letters,
+    outcome_factor = factor(letters),
+    predictor_string = letters,
+    predictor_factor = factor(letters),
+    id_string = letters,
+    id_factor = factor(letters),
+    undeclared_string = letters,
+    undeclared_factor = factor(letters)
+  )
+
+  res_false <- recipe(ex_dat, strings_as_factors = FALSE) %>%
+    update_role(starts_with("outcome"), new_role = "outcome") %>%
+    update_role(starts_with("predictor"), new_role = "predictor") %>%
+    update_role(starts_with("id"), new_role = "id") %>%
+    prep() %>%
+    bake(NULL)
+
+  expect_identical(vctrs::vec_ptype(ex_dat), vctrs::vec_ptype(res_false))
+
+  res_true <- recipe(ex_dat, strings_as_factors = TRUE) %>%
+    update_role(starts_with("outcome"), new_role = "outcome") %>%
+    update_role(starts_with("predictor"), new_role = "predictor") %>%
+    update_role(starts_with("id"), new_role = "id") %>%
+    prep() %>%
+    bake(NULL)
+
+  exp_true_classes <- list(
+    outcome_string = "factor",
+    outcome_factor = "factor",
+    predictor_string = "factor",
+    predictor_factor = "factor",
+    id_string = "character",
+    id_factor = "factor",
+    undeclared_string = "character",
+    undeclared_factor = "factor"
+  )
+
+  expect_identical(
+    lapply(res_true, class),
+    exp_true_classes
   )
 })

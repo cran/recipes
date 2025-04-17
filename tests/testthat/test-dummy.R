@@ -22,13 +22,12 @@ sacr_fac$city <- factor(sacr_fac$city)
 sacr_fac$zip <- factor(sacr_fac$zip)
 
 test_that("dummy variables with factor inputs", {
-  rec <- recipe(sqft ~ zip + city, data = sacr_fac)
+  rec <- recipe(sqft ~ zip + city, data = sacr_fac, strings_as_factors = FALSE)
   dummy <- rec %>% step_dummy(city, zip, id = "")
   dummy_trained <- prep(
     dummy,
     training = sacr_fac,
-    verbose = FALSE,
-    strings_as_factors = FALSE
+    verbose = FALSE
   )
   dummy_pred <- bake(dummy_trained, new_data = sacr_fac, all_predictors())
 
@@ -57,14 +56,14 @@ test_that("dummy variables with factor inputs", {
       columns = attributes(dummy_trained$steps[[1]]$levels$city)$values,
       id = ""
     ) %>%
-    slice(-1)
+      slice(-1)
   dum_tibble_prepped_2 <-
     tibble(
       terms = "zip",
       columns = attributes(dummy_trained$steps[[1]]$levels$zip)$values,
       id = ""
     ) %>%
-    slice(-1)
+      slice(-1)
   expect_equal(tidy(dummy, 1), dum_tibble)
   expect_equal(
     tidy(dummy_trained, 1),
@@ -73,12 +72,12 @@ test_that("dummy variables with factor inputs", {
 })
 
 test_that("dummy variables errors with character inputs", {
-  rec <- recipe(sqft ~ zip + city, data = sacr)
+  rec <- recipe(sqft ~ zip + city, data = sacr, strings_as_factors = FALSE)
   dummy <- rec %>% step_dummy(city, zip)
 
   expect_snapshot(
     error = TRUE,
-    prep(dummy, training = sacr, verbose = FALSE, strings_as_factors = FALSE)
+    prep(dummy, training = sacr, verbose = FALSE)
   )
 })
 
@@ -92,26 +91,28 @@ test_that("check_type() is used", {
 })
 
 test_that("create double dummy variables", {
-  rec <- recipe(sqft ~ zip + city, data = sacr_fac)
+  rec <- recipe(sqft ~ zip + city, data = sacr_fac, strings_as_factors = FALSE)
   dummy <- rec %>% step_dummy(city, zip, id = "")
   dummy_trained <- prep(
     dummy,
     training = sacr_fac,
-    verbose = FALSE,
-    strings_as_factors = FALSE
+    verbose = FALSE
   )
   dummy_pred <- bake(dummy_trained, new_data = sacr_fac, all_predictors())
   expect_true(all(vapply(dummy_pred, is.double, logical(1))))
 })
 
 test_that("create all dummy variables", {
-  rec <- recipe(sqft ~ zip + city + price, data = sacr_fac)
+  rec <- recipe(
+    sqft ~ zip + city + price,
+    data = sacr_fac,
+    strings_as_factors = FALSE
+  )
   dummy <- rec %>% step_dummy(city, zip, one_hot = TRUE, id = "")
   dummy_trained <- prep(
     dummy,
     training = sacr_fac,
-    verbose = FALSE,
-    strings_as_factors = FALSE
+    verbose = FALSE
   )
   dummy_pred <- bake(dummy_trained, new_data = sacr_fac, all_predictors())
   dummy_pred <- dummy_pred[, order(colnames(dummy_pred))]
@@ -147,6 +148,170 @@ test_that("create all dummy variables", {
   expect_equal(
     tidy(dummy_trained, 1),
     bind_rows(dum_tibble_prepped_1, dum_tibble_prepped_2)
+  )
+})
+
+test_that("make sure contrasts argument work", {
+  rec <- recipe(
+    ~city,
+    data = sacr_fac,
+    strings_as_factors = FALSE
+  )
+  dummy <- rec %>% step_dummy(city, contrasts = "contr.poly", id = "")
+  dummy_trained <- prep(
+    dummy,
+    training = sacr_fac,
+    verbose = FALSE
+  )
+  dummy_pred <- bake(dummy_trained, new_data = sacr_fac)
+
+  pred <- "city"
+  tmp <- model.matrix(
+    as.formula(paste("~", pred, "+ 0")),
+    data = sacr_fac,
+    contrasts.arg = setNames(list(contr.poly), pred)
+  )
+  exp_res <- as_tibble(tmp %*% attr(tmp, "contrasts")[[pred]])
+
+  expect_identical(unname(dummy_pred), unname(exp_res))
+})
+
+test_that("make sure contrasts argument work for ordered factors", {
+  sacr_fac$city <- as.ordered(sacr_fac$city)
+  rec <- recipe(
+    ~city,
+    data = sacr_fac,
+    strings_as_factors = FALSE
+  )
+  dummy <- rec %>%
+    step_dummy(
+      city,
+      one_hot = TRUE,
+      contrasts = list(
+        unordered = "contr.poly",
+        ordered = "contr.treatment"
+      ),
+      id = ""
+    )
+  dummy_trained <- prep(
+    dummy,
+    training = sacr_fac,
+    verbose = FALSE
+  )
+  dummy_pred <- bake(dummy_trained, new_data = sacr_fac)
+  dummy_pred <- as.data.frame(dummy_pred)
+  rownames(dummy_pred) <- NULL
+
+  pred <- "city"
+  tmp <- model.matrix(
+    as.formula(paste("~", pred, "+ 0")),
+    data = sacr_fac,
+    contrasts.arg = setNames(list("contr.treatment"), pred)
+  )
+  exp_res <- as.data.frame(tmp)
+  rownames(exp_res) <- NULL
+
+  expect_identical(unname(dummy_pred), unname(exp_res))
+})
+
+test_that("make sure contrasts argument work non-base contrasts", {
+  library(hardhat)
+  rec <- recipe(
+    ~city,
+    data = sacr_fac,
+    strings_as_factors = FALSE
+  )
+  dummy <- rec %>% step_dummy(city, contrasts = "contr_one_hot", id = "")
+  dummy_trained <- prep(
+    dummy,
+    training = sacr_fac,
+    verbose = FALSE
+  )
+  dummy_pred <- bake(dummy_trained, new_data = sacr_fac)
+  dummy_pred <- as.data.frame(dummy_pred)
+  rownames(dummy_pred) <- NULL
+
+  pred <- "city"
+  tmp <- model.matrix(
+    as.formula(paste("~", pred, "+ 0")),
+    data = sacr_fac,
+    contrasts.arg = setNames(list(contr_one_hot), pred)
+  )
+  exp_res <- as.data.frame(tmp)
+  rownames(exp_res) <- NULL
+
+  expect_identical(unname(dummy_pred), unname(exp_res))
+})
+
+test_that("make sure contrasts argument is checked", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~Species, iris) %>%
+      step_dummy(Species, contrasts = TRUE) %>%
+      prep()
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~Species, iris) %>%
+      step_dummy(Species, contrasts = list()) %>%
+      prep()
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~Species, iris) %>%
+      step_dummy(Species, contrasts = list(ordered = "contr.treatment")) %>%
+      prep()
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~Species, iris) %>%
+      step_dummy(
+        Species,
+        contrasts = list(ordered = 1, unordered = "contr.treatment")
+      ) %>%
+      prep()
+  )
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~Species, iris) %>%
+      step_dummy(
+        Species,
+        contrasts = list(ordered = "contr.treatment", unordered = 1)
+      ) %>%
+      prep()
+  )
+})
+
+test_that("getOption('contrasts') gives deprecation warning in step_dummy", {
+  param <- getOption("contrasts")
+
+  go_helmert <- param
+  go_helmert["unordered"] <- "contr.helmert"
+  withr::local_options("contrasts" = go_helmert)
+
+  expect_snapshot(
+    tmp <- recipe(~., data = iris) %>%
+      step_dummy(Species) %>%
+      prep()
+  )
+})
+
+test_that("backwards compatible for contrasts", {
+  rec <- recipe(~., data = iris) %>%
+    step_dummy(Species) %>%
+    prep()
+
+  exp <- bake(rec, iris)
+
+  rec$steps[[1]]$contrasts <- NULL
+
+  expect_identical(
+    bake(rec, iris),
+    exp
   )
 })
 
@@ -444,12 +609,8 @@ test_that("sparse = 'yes' works", {
 })
 
 test_that("sparse = 'yes' will go back to 'no' on unsupported contrasts", {
-  go_helmert <- getOption("contrasts")
-  go_helmert["unordered"] <- "contr.helmert"
-  withr::local_options(contrasts = go_helmert)
-
   rec <- recipe(~., data = tibble(x = letters)) %>%
-    step_dummy(x, sparse = "yes") %>%
+    step_dummy(x, sparse = "yes", contrasts = "contr.helmert") %>%
     prep()
 
   res <- bake(rec, tibble(x = letters))
@@ -501,7 +662,7 @@ test_that(".recipes_toggle_sparse_args works", {
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
-  rec <- recipe(sqft ~ zip + city, data = sacr_fac)
+  rec <- recipe(sqft ~ zip + city, data = sacr_fac, strings_as_factors = FALSE)
   dummy <- rec %>%
     step_dummy(city, zip, id = "") %>%
     update_role(city, zip, new_role = "potato") %>%
@@ -509,8 +670,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
   dummy_trained <- prep(
     dummy,
     training = sacr_fac,
-    verbose = FALSE,
-    strings_as_factors = FALSE
+    verbose = FALSE
   )
 
   expect_snapshot(
@@ -610,15 +770,31 @@ test_that("bad args", {
   data(Sacramento, package = "modeldata")
 
   expect_snapshot(
-    recipe(~ city + sqft + price, data = Sacramento) %>%
+    recipe(~city + sqft + price, data = Sacramento) %>%
       step_dummy(city, one_hot = 2) %>%
       prep(),
     error = TRUE
   )
   expect_snapshot(
-    recipe(~ city + sqft + price, data = Sacramento) %>%
+    recipe(~city + sqft + price, data = Sacramento) %>%
       step_dummy(city, naming = NULL) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- iris
+  rec <- recipe(~., data) %>%
+    step_dummy(all_nominal_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

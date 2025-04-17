@@ -105,8 +105,9 @@ test_that("high threshold - much removals", {
 test_that("low threshold - no removals", {
   sacr_te_chr <- sacr_te
 
-  others <- rec %>% step_other(city, zip, threshold = 10^-30, other = "another")
-  others <- prep(others, training = sacr_te_chr, strings_as_factors = FALSE)
+  others <- recipe(~city + zip, data = sacr_tr, strings_as_factors = FALSE) %>%
+    step_other(city, zip, threshold = 10^-30, other = "another")
+  others <- prep(others, training = sacr_te_chr)
   others_te <- bake(others, new_data = sacr_te_chr)
 
   expect_equal(is.na(sacr_te_chr$city), is.na(others_te$city))
@@ -119,8 +120,9 @@ test_that("low threshold - no removals", {
 test_that("zero threshold - no removals", {
   sacr_te_chr <- sacr_te
 
-  others <- rec %>% step_other(city, zip, threshold = 0, other = "another")
-  others <- prep(others, training = sacr_te_chr, strings_as_factors = FALSE)
+  others <- recipe(~city + zip, data = sacr_tr, strings_as_factors = FALSE) %>%
+    step_other(city, zip, threshold = 0, other = "another")
+  others <- prep(others, training = sacr_te_chr)
   others_te <- bake(others, new_data = sacr_te_chr)
 
   expect_equal(is.na(sacr_te_chr$city), is.na(others_te$city))
@@ -245,12 +247,12 @@ test_that("'other' already in use", {
 
   sacr_tr_chr$city[1] <- "other"
 
-  rec <- recipe(~city + zip, data = sacr_tr_chr)
+  rec <- recipe(~city + zip, data = sacr_tr_chr, strings_as_factors = FALSE)
 
   others <- rec %>% step_other(city, zip, threshold = 10^-10)
   expect_snapshot(
     error = TRUE,
-    prep(others, training = sacr_tr_chr, strings_as_factors = FALSE)
+    prep(others, training = sacr_tr_chr)
   )
 })
 
@@ -467,4 +469,20 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 1L)
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- iris
+  rec <- recipe(~., data) %>%
+    step_other(Species) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
+  )
 })

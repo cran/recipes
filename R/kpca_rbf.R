@@ -6,11 +6,10 @@
 #'
 #' @inheritParams step_pca
 #' @inheritParams step_center
-#' @param sigma A numeric value for the radial basis function parameter. See
-#' the documentation at [kernlab::rbfdot()].
-#' @param res An S4 [kernlab::kpca()] object is stored
-#'  here once this preprocessing step has be trained by
-#'  [prep()].
+#' @param sigma A numeric value for the radial basis function parameter. See the
+#'   documentation at [kernlab::rbfdot()].
+#' @param res An S4 [kernlab::kpca()] object is stored here once this
+#'   preprocessing step has be trained by [prep()].
 #' @template step-return
 #' @family multivariate transformation steps
 #' @export
@@ -146,15 +145,8 @@ prep.step_kpca_rbf <- function(x, training, info = NULL, ...) {
         kernel = "rbfdot",
         kpar = list(sigma = x$sigma)
       )
-    kprc <- try(rlang::eval_tidy(cl), silent = TRUE)
-    if (inherits(kprc, "try-error")) {
-      cli::cli_abort(
-        c(
-          x = "Failed with error:",
-          i = as.character(kprc)
-        )
-      )
-    }
+
+    kprc <- try_fetch_eval_tidy(rlang::eval_tidy(cl))
   } else {
     kprc <- NULL
   }

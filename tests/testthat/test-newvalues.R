@@ -130,9 +130,9 @@ test_that("check_new_values not ignoring NA argument", {
 
 check_new_values_data_type_unit_tests <- function(x1, x2, saf = TRUE) {
   expect_no_error(
-    res <- recipe(x1) %>%
+    res <- recipe(x1, strings_as_factors = saf) %>%
       check_new_values(a) %>%
-      prep(strings_as_factors = saf) %>%
+      prep() %>%
       bake(x1)
   )
 
@@ -238,5 +238,21 @@ test_that("bad args", {
       check_new_values(disp, ignore_NA = 2) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    check_new_values(all_numeric_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

@@ -18,7 +18,7 @@ test_that("imputation models", {
     step_impute_bag(
       carbon,
       fac,
-      impute_with = imp_vars(hydrogen, oxygen),
+      impute_with = c(hydrogen, oxygen),
       seed_val = 12,
       trees = 5
     )
@@ -87,7 +87,7 @@ test_that("All NA values", {
     step_impute_bag(
       carbon,
       fac,
-      impute_with = imp_vars(hydrogen, oxygen),
+      impute_with = c(hydrogen, oxygen),
       seed_val = 12,
       trees = 5
     ) %>%
@@ -102,7 +102,7 @@ test_that("tunable", {
     recipe(~., data = iris) %>%
       step_impute_bag(
         all_predictors(),
-        impute_with = imp_vars(all_predictors())
+        impute_with = all_predictors()
       )
   rec_param <- tunable.step_impute_bag(rec$steps[[1]])
   expect_equal(rec_param$name, c("trees"))
@@ -120,9 +120,9 @@ test_that("non-factor imputation", {
   scat$Location <- as.character(scat$Location)
   scat$Location[1] <- NA
   rec <-
-    recipe(Species ~ ., data = scat) %>%
-      step_impute_bag(Location, impute_with = imp_vars(all_predictors())) %>%
-      prep(strings_as_factors = FALSE)
+    recipe(Species ~ ., data = scat, strings_as_factors = FALSE) %>%
+      step_impute_bag(Location, impute_with = all_predictors()) %>%
+      prep()
   expect_true(is.character(bake(rec, NULL, Location)[[1]]))
 })
 
@@ -135,12 +135,75 @@ test_that("impute_with errors with nothing selected", {
   )
 })
 
-test_that("impute_with errors with nothing selected", {
-  mtcars[, 1:11] <- NA_real_
+test_that("Warns when impute_with contains all NAs in a row", {
+  mtcars[1:3, 1] <- NA_real_
+  mtcars[10, 3] <- NA_real_
+
+  mtcars[c(2, 3, 10), 9:10] <- NA_real_
+
   expect_snapshot(
     tmp <- recipe(~., data = mtcars) %>%
-      step_impute_bag(mpg, disp, vs) %>%
+      step_impute_bag(mpg, disp, vs, impute_with = c(am, gear)) %>%
       prep()
+  )
+})
+
+test_that("Better error message for nzv fit error (#209)", {
+  d <- data.frame(let = c(rep("a", 99), rep("b", 1)), num = seq_len(100))
+
+  expect_snapshot(
+    error = TRUE,
+    recipe(~., d) %>%
+      step_impute_bag(let) %>%
+      prep()
+  )
+})
+
+test_that("check_options() is used", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~mpg, data = mtcars) %>%
+      step_impute_bag(mpg, options = TRUE) %>%
+      prep()
+  )
+})
+
+test_that("recipes_argument_select() is used", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) %>%
+      step_impute_bag(disp, impute_with = NULL) %>%
+      prep()
+  )
+})
+
+test_that("addition of recipes_argument_select() is backwards compatible", {
+  rec <- recipe(mpg ~ ., data = mtcars) %>%
+    step_impute_bag(disp) %>%
+    prep()
+
+  exp <- bake(rec, mtcars)
+
+  rec$steps[[1]]$impute_with <- rlang::new_quosures(
+    list(
+      rlang::new_quosure(
+        quote(all_predictors())
+      )
+    )
+  )
+
+  expect_identical(
+    bake(rec, mtcars),
+    exp
+  )
+
+  rec_old <- recipe(mpg ~ ., data = mtcars) %>%
+    step_impute_bag(disp, impute_with = imp_vars(all_predictors())) %>%
+    prep()
+
+  expect_identical(
+    bake(rec_old, mtcars),
+    exp
   )
 })
 
@@ -151,7 +214,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
     step_impute_bag(
       carbon,
       fac,
-      impute_with = imp_vars(hydrogen, oxygen),
+      impute_with = c(hydrogen, oxygen),
       seed_val = 12,
       trees = 5
     ) %>%
@@ -208,7 +271,7 @@ test_that("printing", {
     HHV ~ carbon + hydrogen + oxygen + nitrogen + sulfur + fac,
     data = biomass
   ) %>%
-    step_impute_bag(carbon, impute_with = imp_vars(hydrogen))
+    step_impute_bag(carbon, impute_with = hydrogen)
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
@@ -246,5 +309,21 @@ test_that("bad args", {
       ) %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- mtcars
+  rec <- recipe(~., data) %>%
+    step_impute_bag(disp, mpg, impute_with = all_predictors()) %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

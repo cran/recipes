@@ -273,3 +273,9 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
   expect_s3_class(params, "parameters")
   expect_identical(nrow(params), 2L)
 })
+
+test_that("0 and 1 rows data work in bake method", {
+  # step_window() requires rows to apply itself to
+
+  expect_true(TRUE)
+})

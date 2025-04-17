@@ -132,6 +132,15 @@ test_that(".recipes_toggle_sparse_args works", {
   )
 })
 
+test_that("check_options() is used", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(~description, data = covers) %>%
+      step_count(description, options = TRUE) %>%
+      prep()
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -275,5 +284,21 @@ test_that("bad args", {
       step_count(description, pattern = "(rock|stony)", normalize = "yes") %>%
       prep(),
     error = TRUE
+  )
+})
+
+test_that("0 and 1 rows data work in bake method", {
+  data <- covers
+  rec <- recipe(~., data) %>%
+    step_count(description, pattern = "(rock|stony)") %>%
+    prep()
+
+  expect_identical(
+    nrow(bake(rec, slice(data, 1))),
+    1L
+  )
+  expect_identical(
+    nrow(bake(rec, slice(data, 0))),
+    0L
   )
 })

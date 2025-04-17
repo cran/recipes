@@ -480,10 +480,14 @@ test_that("old recipes from 1.0.1 work with new get_types", {
       source = 'character'
     )
   )
+
   expect_false(identical(old_rec_sac, rec_sac))
 
   # Avoid issue with new ptype field in 1.1.0
   rec_sac$ptype <- NULL
+
+  # Avoid issue with new strings_as_factors field in 1.3.0
+  rec_sac$strings_as_factors <- NULL
 
   expect_identical(
     prep(old_rec_sac),
