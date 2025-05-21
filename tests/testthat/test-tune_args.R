@@ -1,8 +1,8 @@
 test_that("tune_args() errors on multiple tune()s in same arg", {
   expect_snapshot(
     error = TRUE,
-    recipe(~., data = mtcars) %>%
-      step_pca(all_predictors(), num_comp = ~tune() + tune()) %>%
+    recipe(~., data = mtcars) |>
+      step_pca(all_predictors(), num_comp = ~ tune() + tune()) |>
       tune_args()
   )
 })
@@ -23,7 +23,7 @@ test_that("tune_tbl() errors on duplicate ids", {
 })
 
 test_that("tune_args() returns all arguments marked for tuning (#1296)", {
-  rec <- recipe(~., data = mtcars) %>%
+  rec <- recipe(~., data = mtcars) |>
     step_impute_bag(
       all_predictors(),
       # tunable
@@ -59,9 +59,27 @@ test_that("tune_args() doesn't error on namespaced selectors", {
   )
 
   expect_identical(
-    recipe(~., data = mtcars) %>%
-      step_pca(dplyr::contains("a")) %>%
+    recipe(~., data = mtcars) |>
+      step_pca(dplyr::contains("a")) |>
       tune_args(),
     exp
+  )
+})
+
+test_that("tune_args() wont detect tune() calls in parsnip objects (#1506)", {
+  skip_if_not_installed("parsnip")
+  skip_if_not_installed("rpart")
+
+  base_model <- parsnip::decision_tree(cost_complexity = hardhat::tune())
+
+  rec_empty <- recipe(mpg ~ ., data = mtcars) |>
+    step_testthat_helper(output = base_model)
+
+  rec_mod <- recipe(mpg ~ ., data = mtcars) |>
+    step_testthat_helper()
+
+  expect_identical(
+    extract_parameter_set_dials(rec_empty),
+    extract_parameter_set_dials(rec_mod)
   )
 })

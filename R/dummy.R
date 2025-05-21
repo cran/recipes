@@ -94,41 +94,41 @@
 #'
 #' # Original data: city has 37 levels
 #' length(unique(Sacramento$city))
-#' unique(Sacramento$city) %>% sort()
+#' unique(Sacramento$city) |> sort()
 #'
 #' rec <- recipe(~ city + sqft + price, data = Sacramento)
 #'
 #' # Default dummy coding: 36 dummy variables
-#' dummies <- rec %>%
-#'   step_dummy(city) %>%
+#' dummies <- rec |>
+#'   step_dummy(city) |>
 #'   prep()
 #'
 #' dummy_data <- bake(dummies, new_data = NULL)
 #'
-#' dummy_data %>%
-#'   select(starts_with("city")) %>%
+#' dummy_data |>
+#'   select(starts_with("city")) |>
 #'   glimpse() # level "anything" is the reference level
 #'
 #' # Obtain the full set of 37 dummy variables using `one_hot` option
-#' dummies_one_hot <- rec %>%
-#'   step_dummy(city, one_hot = TRUE) %>%
+#' dummies_one_hot <- rec |>
+#'   step_dummy(city, one_hot = TRUE) |>
 #'   prep()
 #'
 #' dummy_data_one_hot <- bake(dummies_one_hot, new_data = NULL)
 #'
-#' dummy_data_one_hot %>%
-#'   select(starts_with("city")) %>%
+#' dummy_data_one_hot |>
+#'   select(starts_with("city")) |>
 #'   glimpse() # no reference level
 #'
 #' # Obtain the full set of 37 dummy variables using helmert contrasts
-#' dummies_helmert <- rec %>%
-#'   step_dummy(city, contrasts = "contr.helmert") %>%
+#' dummies_helmert <- rec |>
+#'   step_dummy(city, contrasts = "contr.helmert") |>
 #'   prep()
 #'
 #' dummy_data_helmert <- bake(dummies_helmert, new_data = NULL)
 #'
-#' dummy_data_helmert %>%
-#'   select(starts_with("city")) %>%
+#' dummy_data_helmert |>
+#'   select(starts_with("city")) |>
 #'   glimpse() # no reference level
 #'
 #' tidy(dummies, number = 1)
@@ -257,7 +257,7 @@ prep.step_dummy <- function(x, training, info = NULL, ...) {
     for (i in seq_along(col_names)) {
       form <- rlang::new_formula(lhs = NULL, rhs = rlang::sym(col_names[i]))
       if (x$one_hot) {
-        form <- stats::update.formula(form, ~. - 1)
+        form <- stats::update.formula(form, ~ . - 1)
       }
       terms <- model.frame(
         formula = form,

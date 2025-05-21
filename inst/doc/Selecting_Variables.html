@@ -413,23 +413,23 @@ specific selectors such as <code>all_integer()</code> only select
 integer variables. A full hierarchy of types can be seen in
 <code>?has_role</code>.</p>
 <p>We can add a step to normalize numeric data:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>())</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">|&gt;</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>())</span></code></pre></div>
 <p>This will capture <em>any</em> variables that are either character
 integers or doubles: <code>bill_length_mm</code>,
 <code>bill_depth_mm</code>, <code>flipper_length_mm</code> and
 <code>body_mass_g</code>. However, since <code>body_mass_g</code> is our
 outcome, we might want to keep it as a factor so we can
 <em>subtract</em> that variable out either by name or by role:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(bill_length_mm, bill_depth_mm, </span>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">|&gt;</span> <span class="fu">step_normalize</span>(bill_length_mm, bill_depth_mm, </span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                                  flipper_length_mm) <span class="co"># or</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>(), <span class="sc">-</span> body_mass_g) <span class="co"># or</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">%&gt;%</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>()) <span class="co"># recommended</span></span></code></pre></div>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">|&gt;</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>(), <span class="sc">-</span> body_mass_g) <span class="co"># or</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>dummied <span class="ot">&lt;-</span> rec <span class="sc">|&gt;</span> <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>()) <span class="co"># recommended</span></span></code></pre></div>
 <p>Whenever possible, it is recommended to use the more specific
 <code>*_predictors()</code> variants to avoid accidentally selecting the
 outcomes.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>rec <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">step_dummy</span>(sex) <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">prep</span>() <span class="sc">%&gt;%</span></span>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>rec <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">step_dummy</span>(sex) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">prep</span>() <span class="sc">|&gt;</span></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">juice</span>()</span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; Warning: ! There are new levels in `sex`: NA.</span></span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; ℹ Consider using step_unknown() (`?recipes::step_unknown()`) before</span></span>

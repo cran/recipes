@@ -71,7 +71,7 @@
 #' rec <- recipe(~ city + zip, data = sacr_tr)
 #'
 #'
-#' rec <- rec %>%
+#' rec <- rec |>
 #'   step_other(city, zip, threshold = .1, other = "other values")
 #' rec <- prep(rec, training = sacr_tr)
 #'
@@ -88,14 +88,14 @@
 #' # threshold as a frequency
 #' rec <- recipe(~ city + zip, data = sacr_tr)
 #'
-#' rec <- rec %>%
+#' rec <- rec |>
 #'   step_other(city, zip, threshold = 2000, other = "other values")
 #' rec <- prep(rec, training = sacr_tr)
 #'
 #' tidy(rec, number = 1)
 #' # compare it to
-#' # sacr_tr %>% count(city, sort = TRUE) %>% top_n(4)
-#' # sacr_tr %>% count(zip, sort = TRUE) %>% top_n(3)
+#' # sacr_tr |> count(city, sort = TRUE) |> top_n(4)
+#' # sacr_tr |> count(zip, sort = TRUE) |> top_n(3)
 step_other <-
   function(
     recipe,
@@ -236,7 +236,7 @@ print.step_other <-
   function(x, width = max(20, options()$width - 30), ...) {
     title <- "Collapsing factor levels for "
     if (x$trained) {
-      columns <- map_lgl(x$objects, ~.x$collapse)
+      columns <- map_lgl(x$objects, \(.x) .x$collapse)
       columns <- names(columns)[columns]
     } else {
       columns <- names(x$objects)

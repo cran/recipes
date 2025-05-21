@@ -12,8 +12,8 @@ test_that("extract parameter set from recipe with no tunable parameters", {
   skip_if_not_installed("dials")
 
   rm_rec <-
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_rm(hp)
+    recipe(mpg ~ ., data = mtcars) |>
+    step_rm(hp)
 
   rm_info <- extract_parameter_set_dials(rm_rec)
   check_parameter_set_tibble(rm_info)
@@ -24,19 +24,19 @@ test_that("extract parameter set from recipe with tunable parameters", {
   skip_if_not_installed("dials")
 
   spline_rec <-
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_impute_knn(
-        all_numeric_predictors(),
-        neighbors = hardhat::tune("imputation")
-      ) %>%
-      step_other(all_nominal(), threshold = hardhat::tune()) %>%
-      step_dummy(all_nominal()) %>%
-      step_normalize(all_predictors()) %>%
-      step_bs(
-        all_predictors(),
-        deg_free = hardhat::tune(),
-        degree = hardhat::tune()
-      )
+    recipe(mpg ~ ., data = mtcars) |>
+    step_impute_knn(
+      all_numeric_predictors(),
+      neighbors = hardhat::tune("imputation")
+    ) |>
+    step_other(all_nominal(), threshold = hardhat::tune()) |>
+    step_dummy(all_nominal()) |>
+    step_normalize(all_predictors()) |>
+    step_bs(
+      all_predictors(),
+      deg_free = hardhat::tune(),
+      degree = hardhat::tune()
+    )
 
   spline_info <- extract_parameter_set_dials(spline_rec)
   check_parameter_set_tibble(spline_info)
@@ -74,8 +74,8 @@ test_that("extract single parameter from recipe with no tunable parameters", {
   skip_if_not_installed("dials")
 
   rm_rec <-
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_rm(hp)
+    recipe(mpg ~ ., data = mtcars) |>
+    step_rm(hp)
 
   expect_snapshot(
     error = TRUE,
@@ -87,19 +87,19 @@ test_that("extract single parameter from recipe with tunable parameters", {
   skip_if_not_installed("dials")
 
   spline_rec <-
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_impute_knn(
-        all_numeric_predictors(),
-        neighbors = hardhat::tune("imputation")
-      ) %>%
-      step_other(all_nominal(), threshold = hardhat::tune()) %>%
-      step_dummy(all_nominal()) %>%
-      step_normalize(all_predictors()) %>%
-      step_bs(
-        all_predictors(),
-        deg_free = hardhat::tune(),
-        degree = hardhat::tune()
-      )
+    recipe(mpg ~ ., data = mtcars) |>
+    step_impute_knn(
+      all_numeric_predictors(),
+      neighbors = hardhat::tune("imputation")
+    ) |>
+    step_other(all_nominal(), threshold = hardhat::tune()) |>
+    step_dummy(all_nominal()) |>
+    step_normalize(all_predictors()) |>
+    step_bs(
+      all_predictors(),
+      deg_free = hardhat::tune(),
+      degree = hardhat::tune()
+    )
 
   expect_equal(
     extract_parameter_dials(spline_rec, "imputation"),

@@ -67,14 +67,14 @@
 #' mean2 <- function(x) mean(x, na.rm = TRUE)
 #'
 #' # define naming convention
-#' rec <- recipe(species ~ ., data = penguins) %>%
+#' rec <- recipe(species ~ ., data = penguins) |>
 #'   step_classdist(all_numeric_predictors(),
 #'     class = species,
 #'     pool = FALSE, mean_func = mean2, prefix = "centroid_"
 #'   )
 #'
 #' # default naming
-#' rec <- recipe(species ~ ., data = penguins) %>%
+#' rec <- recipe(species ~ ., data = penguins) |>
 #'   step_classdist(all_numeric_predictors(),
 #'     class = species,
 #'     pool = FALSE, mean_func = mean2
@@ -221,7 +221,7 @@ prep.step_classdist <- function(x, training, info = NULL, ...) {
 
   x_dat <- split(training[, x_names], training[[class_var]])
   if (is.null(wts)) {
-    wts_split <- map(x_dat, ~NULL)
+    wts_split <- map(x_dat, \(x) NULL)
   } else {
     wts_split <- split(as.double(wts), training[[class_var]])
   }

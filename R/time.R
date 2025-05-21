@@ -47,7 +47,7 @@
 #'   times = ymd_hms("2022-05-06 23:51:07") +
 #'   hours(1:5) + minutes(1:5) + seconds(1:5)
 #' )
-#' time_rec <- recipe(~ times, examples) %>%
+#' time_rec <- recipe(~ times, examples) |>
 #'   step_time(all_predictors())
 #'
 #' tidy(time_rec, number = 1)
@@ -181,7 +181,7 @@ get_time_features <- function(dt, feats) {
     decimal_day = function(x) hour(x) + (second(x) + minute(x) * 60) / 3600
   )
 
-  res <- purrr::map(features[feats], ~.x(dt))
+  res <- purrr::map(features[feats], \(f) f(dt))
   res <- vctrs::vec_cbind(!!!res)
   res
 }

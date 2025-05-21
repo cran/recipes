@@ -23,7 +23,7 @@ dat_te <- data.frame(
 rec <- recipe(y ~ ., data = dat_tr)
 
 test_that("non-factor variables with dot", {
-  int_rec <- rec %>% step_interact(~(. - y - z)^3, sep = ":")
+  int_rec <- rec |> step_interact(~ (. - y - z)^3, sep = ":")
   int_rec_trained <-
     prep(int_rec, training = dat_tr, verbose = FALSE)
 
@@ -32,7 +32,7 @@ test_that("non-factor variables with dot", {
   te_new <- te_new[, sort(names(te_new))]
   te_new <- as.matrix(te_new)
 
-  og_terms <- terms(~(. - y - z)^3, data = dat_te)
+  og_terms <- terms(~ (. - y - z)^3, data = dat_te)
   te_og <- model.matrix(og_terms, data = dat_te)[, -1]
   te_og <- te_og[, sort(colnames(te_og))]
 
@@ -43,7 +43,7 @@ test_that("non-factor variables with dot", {
 })
 
 test_that("non-factor variables with specific variables", {
-  int_rec <- rec %>% step_interact(~x1:x2 + x3:x4:x5, sep = ":")
+  int_rec <- rec |> step_interact(~ x1:x2 + x3:x4:x5, sep = ":")
   int_rec_trained <-
     prep(int_rec, training = dat_tr, verbose = FALSE)
 
@@ -52,7 +52,7 @@ test_that("non-factor variables with specific variables", {
   te_new <- te_new[, sort(names(te_new))]
   te_new <- as.matrix(te_new)
 
-  og_terms <- terms(~x1 + x2 + x3 + x4 + x5 + x1:x2 + x3:x4:x5, data = dat_te)
+  og_terms <- terms(~ x1 + x2 + x3 + x4 + x5 + x1:x2 + x3:x4:x5, data = dat_te)
   te_og <- model.matrix(og_terms, data = dat_te)[, -1]
   te_og <- te_og[, sort(colnames(te_og))]
 
@@ -63,9 +63,9 @@ test_that("non-factor variables with specific variables", {
 })
 
 test_that("using selectors", {
-  int_rec <- rec %>%
-    step_dummy(z) %>%
-    step_interact(~starts_with("z"):x1)
+  int_rec <- rec |>
+    step_dummy(z) |>
+    step_interact(~ starts_with("z"):x1)
   int_rec_trained <-
     prep(int_rec, training = dat_tr, verbose = FALSE)
 
@@ -87,7 +87,7 @@ test_that("using selectors", {
     )
   ]
 
-  og_terms <- terms(~x1 + x2 + x3 + x4 + x5 + x1 * z, data = dat_te)
+  og_terms <- terms(~ x1 + x2 + x3 + x4 + x5 + x1 * z, data = dat_te)
   te_og <- model.matrix(og_terms, data = dat_te)[, -1]
   colnames(te_og) <- gsub(":", "_x_", colnames(te_og), fixed = TRUE)
   colnames(te_og) <- gsub("zb", "z_b", colnames(te_og), fixed = TRUE)
@@ -104,9 +104,9 @@ test_that("using selectors", {
 # Tests related to #648
 # https://github.com/tidymodels/recipes/issues/648
 test_that("using selectors when namespaces with ::", {
-  int_rec <- rec %>%
-    step_dummy(z) %>%
-    step_interact(~tidyselect::starts_with("z"):x1)
+  int_rec <- rec |>
+    step_dummy(z) |>
+    step_interact(~ tidyselect::starts_with("z"):x1)
   int_rec_trained <-
     prep(int_rec, training = dat_tr, verbose = FALSE)
 
@@ -128,7 +128,7 @@ test_that("using selectors when namespaces with ::", {
     )
   ]
 
-  og_terms <- terms(~x1 + x2 + x3 + x4 + x5 + x1 * z, data = dat_te)
+  og_terms <- terms(~ x1 + x2 + x3 + x4 + x5 + x1 * z, data = dat_te)
   te_og <- model.matrix(og_terms, data = dat_te)[, -1]
   colnames(te_og) <- gsub(":", "_x_", colnames(te_og), fixed = TRUE)
   colnames(te_og) <- gsub("zb", "z_b", colnames(te_og), fixed = TRUE)
@@ -143,9 +143,9 @@ test_that("using selectors when namespaces with ::", {
 })
 
 test_that("using where() works", {
-  ex_rec <- rec %>%
-    step_dummy(z) %>%
-    step_interact(~where(is.numeric):x1)
+  ex_rec <- rec |>
+    step_dummy(z) |>
+    step_interact(~ where(is.numeric):x1)
 
   x <- prep(ex_rec, dat_tr)
 
@@ -161,8 +161,8 @@ test_that("using where() works", {
 test_that("using all_of() works", {
   xvars <- c("x2", "x3")
 
-  ex_rec <- rec %>%
-    step_interact(~all_of(xvars):x1)
+  ex_rec <- rec |>
+    step_interact(~ all_of(xvars):x1)
 
   x <- prep(ex_rec, dat_tr)
 
@@ -179,8 +179,8 @@ test_that("check_name() is used", {
   dat <- dat_tr
   dat$x1ax2 <- dat$x1
 
-  rec <- recipe(y ~ ., data = dat) %>%
-    step_interact(~(. - y - z)^3, sep = "a")
+  rec <- recipe(y ~ ., data = dat) |>
+    step_interact(~ (. - y - z)^3, sep = "a")
 
   expect_snapshot(
     error = TRUE,
@@ -193,19 +193,19 @@ test_that("check_name() is used", {
 test_that("finding selectors in formulas", {
   expect_equal(
     recipes:::find_selectors(
-      ~(a + b + starts_with("huh?")):has_role("something")
+      ~ (a + b + starts_with("huh?")):has_role("something")
     ),
     list(quote(starts_with("huh?")), quote(has_role("something")))
   )
   expect_equal(
     recipes:::find_selectors(
-      ~all_predictors() + something
+      ~ all_predictors() + something
     ),
     list(quote(all_predictors()))
   )
   expect_equal(
     recipes:::find_selectors(
-      ~(matches("wat?"))^2
+      ~ (matches("wat?"))^2
     ),
     list(quote(matches("wat?")))
   )
@@ -220,33 +220,33 @@ test_that("finding selectors in formulas", {
 test_that("replacing selectors in formulas", {
   expect_equal(
     recipes:::replace_selectors(
-      ~(a + b + starts_with("huh?")):has_role("something"),
+      ~ (a + b + starts_with("huh?")):has_role("something"),
       quote(starts_with("huh?")),
       quote((x1 + x2 + x3))
     ),
-    expr(~(a + b + (x1 + x2 + x3)):has_role("something"))
+    expr(~ (a + b + (x1 + x2 + x3)):has_role("something"))
   )
   expect_equal(
     recipes:::replace_selectors(
-      ~(matches("wat?"))^2,
+      ~ (matches("wat?"))^2,
       quote(matches("wat?")),
       quote(a)
     ),
-    expr(~(a)^2)
+    expr(~ (a)^2)
   )
   expect_equal(
     recipes:::replace_selectors(
-      ~a + all_predictors(),
+      ~ a + all_predictors(),
       quote(all_predictors()),
       quote(a)
     ),
-    expr(~a + a)
+    expr(~ a + a)
   )
 })
 
 test_that('with factors', {
-  int_rec <- recipe(Sepal.Width ~ ., data = iris) %>%
-    step_interact(~(. - Sepal.Width)^2, sep = ":")
+  int_rec <- recipe(Sepal.Width ~ ., data = iris) |>
+    step_interact(~ (. - Sepal.Width)^2, sep = ":")
 
   suppressWarnings(
     int_rec_trained <- prep(int_rec, iris)
@@ -267,22 +267,22 @@ test_that('with factors', {
 })
 
 test_that("works when formula is passed in as an object", {
-  rec1 <- recipe(~., data = mtcars) %>%
-    step_interact(terms = ~vs:am, id = "") %>%
+  rec1 <- recipe(~., data = mtcars) |>
+    step_interact(terms = ~ vs:am, id = "") |>
     prep()
 
-  cars_formula <- ~vs:am
-  rec2 <- recipe(~., data = mtcars) %>%
-    step_interact(terms = cars_formula, id = "") %>%
+  cars_formula <- ~ vs:am
+  rec2 <- recipe(~., data = mtcars) |>
+    step_interact(terms = cars_formula, id = "") |>
     prep()
 
   rec1$fit_times$elapsed <- 0
   rec2$fit_times$elapsed <- 0
   expect_identical(rec1, rec2)
 
-  cars_formula <- ~vs:am
-  rec3 <- recipe(~., data = mtcars) %>%
-    step_interact(terms = !!cars_formula, id = "") %>%
+  cars_formula <- ~ vs:am
+  rec3 <- recipe(~., data = mtcars) |>
+    step_interact(terms = !!cars_formula, id = "") |>
     prep()
 
   rec3$fit_times$elapsed <- 0
@@ -304,22 +304,22 @@ test_that("works with long formulas (#1231)", {
     d = 1:10
   )
 
-  res_long <- recipe(df_long) %>%
+  res_long <- recipe(df_long) |>
     step_interact(
-      ~starts_with('bbbbbbbbbbbbbb'):starts_with('cccccccccccccc') +
+      ~ starts_with('bbbbbbbbbbbbbb'):starts_with('cccccccccccccc') +
         starts_with('bbbbbbbbbbbbbb'):starts_with('d')
-    ) %>%
-    prep() %>%
-    bake(new_data = NULL) %>%
+    ) |>
+    prep() |>
+    bake(new_data = NULL) |>
     unname()
 
-  res_short <- recipe(df_short) %>%
+  res_short <- recipe(df_short) |>
     step_interact(
-      ~starts_with('b'):starts_with('c') +
+      ~ starts_with('b'):starts_with('c') +
         starts_with('b'):starts_with('d')
-    ) %>%
-    prep() %>%
-    bake(new_data = NULL) %>%
+    ) |>
+    prep() |>
+    bake(new_data = NULL) |>
     unname()
 
   expect_identical(res_long, res_short)
@@ -328,8 +328,8 @@ test_that("works with long formulas (#1231)", {
 test_that("gives informative error if terms isn't a formula (#1299)", {
   expect_snapshot(
     error = TRUE,
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_interact(terms = starts_with("dis")) %>%
+    recipe(mpg ~ ., data = mtcars) |>
+      step_interact(terms = starts_with("dis")) |>
       prep()
   )
 })
@@ -338,28 +338,28 @@ test_that("gives informative error if terms isn't a formula (#1299)", {
   mtcars$am <- as.character(mtcars$am)
 
   expect_snapshot(
-    tmp <- recipe(mpg ~ ., data = mtcars, strings_as_factors = FALSE) %>%
-      step_interact(~disp:am) %>%
+    tmp <- recipe(mpg ~ ., data = mtcars, strings_as_factors = FALSE) |>
+      step_interact(~ disp:am) |>
       prep()
   )
 })
 
 test_that("one-sided empty selections works (#1299)", {
-  res <- recipe(~., data = mtcars) %>%
-    step_interact(~any_of("vs"):any_of("not_am")) %>%
-    prep() %>%
+  res <- recipe(~., data = mtcars) |>
+    step_interact(~ any_of("vs"):any_of("not_am")) |>
+    prep() |>
     bake(NULL)
   exp <- as_tibble(mtcars)
 
   expect_identical(res, exp)
 
-  res <- recipe(~., data = mtcars) %>%
-    step_interact(~hp:mpg + any_of("vs"):any_of("not_am")) %>%
-    prep() %>%
+  res <- recipe(~., data = mtcars) |>
+    step_interact(~ hp:mpg + any_of("vs"):any_of("not_am")) |>
+    prep() |>
     bake(NULL)
-  exp <- recipe(~., data = mtcars) %>%
-    step_interact(~hp:mpg) %>%
-    prep() %>%
+  exp <- recipe(~., data = mtcars) |>
+    step_interact(~ hp:mpg) |>
+    prep() |>
     bake(NULL)
 
   expect_identical(res, exp)
@@ -368,9 +368,9 @@ test_that("one-sided empty selections works (#1299)", {
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
-  int_rec <- rec %>%
-    step_interact(~starts_with("z"):x1, id = "") %>%
-    update_role(starts_with("z"):x1, new_role = "potato") %>%
+  int_rec <- rec |>
+    step_interact(~ starts_with("z"):x1, id = "") |>
+    update_role(starts_with("z"):x1, new_role = "potato") |>
     update_role_requirements(role = "potato", bake = FALSE)
 
   suppressWarnings(
@@ -424,8 +424,8 @@ test_that("empty selection tidy method works", {
 test_that("keep_original_cols works", {
   new_names <- c("x1_x_x2")
 
-  rec <- recipe(~x1 + x2, data = dat_tr) %>%
-    step_interact(~x1:x2, keep_original_cols = FALSE)
+  rec <- recipe(~ x1 + x2, data = dat_tr) |>
+    step_interact(~ x1:x2, keep_original_cols = FALSE)
 
   rec <- prep(rec)
   res <- bake(rec, new_data = NULL)
@@ -435,8 +435,8 @@ test_that("keep_original_cols works", {
     new_names
   )
 
-  rec <- recipe(~x1 + x2, data = dat_tr) %>%
-    step_interact(~x1:x2, keep_original_cols = TRUE)
+  rec <- recipe(~ x1 + x2, data = dat_tr) |>
+    step_interact(~ x1:x2, keep_original_cols = TRUE)
 
   rec <- prep(rec)
   res <- bake(rec, new_data = NULL)
@@ -448,8 +448,8 @@ test_that("keep_original_cols works", {
 })
 
 test_that("keep_original_cols - can prep recipes with it missing", {
-  rec <- recipe(~x1 + x2, data = dat_tr) %>%
-    step_interact(~x1:x2, keep_original_cols = FALSE)
+  rec <- recipe(~ x1 + x2, data = dat_tr) |>
+    step_interact(~ x1:x2, keep_original_cols = FALSE)
 
   rec$steps[[1]]$keep_original_cols <- NULL
 
@@ -463,8 +463,8 @@ test_that("keep_original_cols - can prep recipes with it missing", {
 })
 
 test_that("printing", {
-  rec <- recipe(y ~ ., data = dat_tr) %>%
-    step_interact(~x1:x2)
+  rec <- recipe(y ~ ., data = dat_tr) |>
+    step_interact(~ x1:x2)
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
@@ -472,8 +472,8 @@ test_that("printing", {
 
 test_that("bad args", {
   expect_snapshot(
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_interact(~disp::wt, sep = TRUE) %>%
+    recipe(mpg ~ ., data = mtcars) |>
+      step_interact(~ disp::wt, sep = TRUE) |>
       prep(),
     error = TRUE
   )
@@ -481,8 +481,8 @@ test_that("bad args", {
 
 test_that("0 and 1 rows data work in bake method", {
   data <- mtcars
-  rec <- recipe(~., data) %>%
-    step_interact(~disp:mpg) %>%
+  rec <- recipe(~., data) |>
+    step_interact(~ disp:mpg) |>
     prep()
 
   expect_identical(

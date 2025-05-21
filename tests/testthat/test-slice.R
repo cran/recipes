@@ -9,83 +9,83 @@ iris_rec <- recipe(~., data = iris)
 
 test_that("basic usage", {
   rec <-
-    iris_rec %>%
-      step_slice(1:5)
+    iris_rec |>
+    step_slice(1:5)
 
-  prepped <- prep(rec, training = iris %>% slice(1:75))
+  prepped <- prep(rec, training = iris |> slice(1:75))
 
   dplyr_train <-
-    iris %>%
-      as_tibble() %>%
-      slice(1:75) %>%
-      slice(1:5)
+    iris |>
+    as_tibble() |>
+    slice(1:75) |>
+    slice(1:5)
 
   rec_train <- bake(prepped, new_data = NULL)
   expect_equal(dplyr_train, rec_train)
 
   dplyr_test <-
-    iris %>%
-      as_tibble() %>%
-      slice(76:150)
+    iris |>
+    as_tibble() |>
+    slice(76:150)
   dplyr_test <- dplyr_test[, names(rec_train)]
-  rec_test <- bake(prepped, iris %>% slice(76:150))
+  rec_test <- bake(prepped, iris |> slice(76:150))
   expect_equal(dplyr_test, rec_test)
 })
 
 test_that("skip = FALSE", {
   rec <-
-    iris_rec %>%
-      step_slice(1:5, skip = FALSE)
+    iris_rec |>
+    step_slice(1:5, skip = FALSE)
 
-  prepped <- prep(rec, training = iris %>% slice(1:75))
+  prepped <- prep(rec, training = iris |> slice(1:75))
 
   dplyr_train <-
-    iris %>%
-      as_tibble() %>%
-      slice(1:75) %>%
-      slice(1:5)
+    iris |>
+    as_tibble() |>
+    slice(1:75) |>
+    slice(1:5)
 
   rec_train <- bake(prepped, new_data = NULL)
   expect_equal(dplyr_train, rec_train)
 
   dplyr_test <-
-    iris %>%
-      as_tibble() %>%
-      slice(76:150) %>%
-      slice(1:5)
-  rec_test <- bake(prepped, iris %>% slice(76:150))
+    iris |>
+    as_tibble() |>
+    slice(76:150) |>
+    slice(1:5)
+  rec_test <- bake(prepped, iris |> slice(76:150))
   expect_equal(dplyr_test, rec_test)
 })
 
 test_that("quasiquotation", {
   values <- 1:5
   rec_1 <-
-    iris_rec %>%
-      step_slice(values)
+    iris_rec |>
+    step_slice(values)
 
-  prepped_1 <- prep(rec_1, training = iris %>% slice(1:75))
+  prepped_1 <- prep(rec_1, training = iris |> slice(1:75))
 
   dplyr_train <-
-    iris %>%
-      as_tibble() %>%
-      slice(1:75) %>%
-      slice(values)
+    iris |>
+    as_tibble() |>
+    slice(1:75) |>
+    slice(values)
 
   rec_1_train <- bake(prepped_1, new_data = NULL)
   expect_equal(dplyr_train, rec_1_train)
 
   expect_no_error(
     rec_2 <-
-      iris_rec %>%
-        step_slice(!!values)
+      iris_rec |>
+      step_slice(!!values)
   )
 
-  prepped_2 <- prep(rec_2, training = iris %>% slice(1:75))
+  prepped_2 <- prep(rec_2, training = iris |> slice(1:75))
 
   rm(values)
-  expect_snapshot(error = TRUE, prep(rec_1, training = iris %>% slice(1:75)))
+  expect_snapshot(error = TRUE, prep(rec_1, training = iris |> slice(1:75)))
   expect_no_error(
-    prepped_2 <- prep(rec_2, training = iris %>% slice(1:75))
+    prepped_2 <- prep(rec_2, training = iris |> slice(1:75))
   )
   rec_2_train <- bake(prepped_2, new_data = NULL)
   expect_equal(dplyr_train, rec_2_train)
@@ -95,8 +95,8 @@ test_that("doesn't destroy sparsity", {
   mtcars$vs <- sparsevctrs::as_sparse_integer(mtcars$vs)
   mtcars$am <- sparsevctrs::as_sparse_integer(mtcars$am)
 
-  rec <- recipe(~., mtcars) %>%
-    step_slice(1:10) %>%
+  rec <- recipe(~., mtcars) |>
+    step_slice(1:10) |>
     prep()
 
   expect_true(.recipes_preserve_sparsity(rec$steps[[1]]))
@@ -150,7 +150,7 @@ test_that("empty selection tidy method works", {
 })
 
 test_that("printing", {
-  rec <- recipe(~., data = iris) %>%
+  rec <- recipe(~., data = iris) |>
     step_slice(1:2)
 
   expect_snapshot(print(rec))
@@ -159,8 +159,8 @@ test_that("printing", {
 
 test_that("0 and 1 rows data work in bake method", {
   data <- mtcars
-  rec <- recipe(~., data) %>%
-    step_slice(1:10) %>%
+  rec <- recipe(~., data) |>
+    step_slice(1:10) |>
     prep()
 
   expect_identical(

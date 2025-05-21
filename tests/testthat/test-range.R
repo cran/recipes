@@ -9,7 +9,7 @@ biomass_te <- biomass[c(13:14, 19, 522), ]
 rec <- recipe(HHV ~ carbon + hydrogen, data = biomass_tr)
 
 test_that("correct values", {
-  standardized <- rec %>%
+  standardized <- rec |>
     step_range(carbon, hydrogen, min = -12, id = "")
 
   standardized_trained <- prep(
@@ -32,18 +32,14 @@ test_that("correct values", {
   new_max <- 1
   new_range <- new_max - new_min
 
-  carb <- (
-    (new_range * (biomass_te$carbon - mins["carbon"])) /
-      (maxs["carbon"] - mins["carbon"])
-  ) +
+  carb <- ((new_range * (biomass_te$carbon - mins["carbon"])) /
+    (maxs["carbon"] - mins["carbon"])) +
     new_min
   carb <- ifelse(carb > new_max, new_max, carb)
   carb <- ifelse(carb < new_min, new_min, carb)
 
-  hydro <- (
-    (new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
-      (maxs["hydrogen"] - mins["hydrogen"])
-  ) +
+  hydro <- ((new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
+    (maxs["hydrogen"] - mins["hydrogen"])) +
     new_min
   hydro <- ifelse(hydro > new_max, new_max, hydro)
   hydro <- ifelse(hydro < new_min, new_min, hydro)
@@ -72,7 +68,7 @@ test_that("correct values", {
 })
 
 test_that("defaults", {
-  standardized <- rec %>%
+  standardized <- rec |>
     step_range(carbon, hydrogen)
 
   standardized_trained <- prep(
@@ -95,18 +91,14 @@ test_that("defaults", {
   new_max <- 1
   new_range <- new_max - new_min
 
-  carb <- (
-    (new_range * (biomass_te$carbon - mins["carbon"])) /
-      (maxs["carbon"] - mins["carbon"])
-  ) +
+  carb <- ((new_range * (biomass_te$carbon - mins["carbon"])) /
+    (maxs["carbon"] - mins["carbon"])) +
     new_min
   carb <- ifelse(carb > new_max, new_max, carb)
   carb <- ifelse(carb < new_min, new_min, carb)
 
-  hydro <- (
-    (new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
-      (maxs["hydrogen"] - mins["hydrogen"])
-  ) +
+  hydro <- ((new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
+    (maxs["hydrogen"] - mins["hydrogen"])) +
     new_min
   hydro <- ifelse(hydro > new_max, new_max, hydro)
   hydro <- ifelse(hydro < new_min, new_min, hydro)
@@ -117,7 +109,7 @@ test_that("defaults", {
 })
 
 test_that("one variable", {
-  standardized <- rec %>%
+  standardized <- rec |>
     step_range(carbon)
 
   standardized_trained <- prep(
@@ -135,10 +127,8 @@ test_that("one variable", {
   new_max <- 1
   new_range <- new_max - new_min
 
-  carb <- (
-    (new_range * (biomass_te$carbon - mins)) /
-      (maxs - mins)
-  ) +
+  carb <- ((new_range * (biomass_te$carbon - mins)) /
+    (maxs - mins)) +
     new_min
   carb <- ifelse(carb > new_max, new_max, carb)
   carb <- ifelse(carb < new_min, new_min, carb)
@@ -147,7 +137,7 @@ test_that("one variable", {
 })
 
 test_that("correct values", {
-  standardized <- rec %>%
+  standardized <- rec |>
     step_range(carbon, hydrogen, min = -12, id = "", clipping = FALSE)
 
   standardized_trained <- prep(
@@ -170,16 +160,12 @@ test_that("correct values", {
   new_max <- 1
   new_range <- new_max - new_min
 
-  carb <- (
-    (new_range * (biomass_te$carbon - mins["carbon"])) /
-      (maxs["carbon"] - mins["carbon"])
-  ) +
+  carb <- ((new_range * (biomass_te$carbon - mins["carbon"])) /
+    (maxs["carbon"] - mins["carbon"])) +
     new_min
 
-  hydro <- (
-    (new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
-      (maxs["hydrogen"] - mins["hydrogen"])
-  ) +
+  hydro <- ((new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
+    (maxs["hydrogen"] - mins["hydrogen"])) +
     new_min
 
   exp_pred <- cbind(carb, hydro)
@@ -188,7 +174,7 @@ test_that("correct values", {
 })
 
 test_that("backwards compatibility for before clipping <= 1.0.2 (#1090)", {
-  standardized <- rec %>%
+  standardized <- rec |>
     step_range(carbon, hydrogen, min = -12, id = "", clipping = TRUE)
 
   standardized_trained <- prep(
@@ -214,18 +200,14 @@ test_that("backwards compatibility for before clipping <= 1.0.2 (#1090)", {
   new_max <- 1
   new_range <- new_max - new_min
 
-  carb <- (
-    (new_range * (biomass_te$carbon - mins["carbon"])) /
-      (maxs["carbon"] - mins["carbon"])
-  ) +
+  carb <- ((new_range * (biomass_te$carbon - mins["carbon"])) /
+    (maxs["carbon"] - mins["carbon"])) +
     new_min
   carb <- ifelse(carb > new_max, new_max, carb)
   carb <- ifelse(carb < new_min, new_min, carb)
 
-  hydro <- (
-    (new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
-      (maxs["hydrogen"] - mins["hydrogen"])
-  ) +
+  hydro <- ((new_range * (biomass_te$hydrogen - mins["hydrogen"])) /
+    (maxs["hydrogen"] - mins["hydrogen"])) +
     new_min
   hydro <- ifelse(hydro > new_max, new_max, hydro)
   hydro <- ifelse(hydro < new_min, new_min, hydro)
@@ -236,17 +218,17 @@ test_that("backwards compatibility for before clipping <= 1.0.2 (#1090)", {
 })
 
 test_that("warns when NaN is returned due to zero variance", {
-  rec <- recipe(~., data = data.frame(x = rep(1, 10))) %>%
+  rec <- recipe(~., data = data.frame(x = rep(1, 10))) |>
     step_range(x)
   expect_snapshot(prep(rec))
 })
 
 test_that("warns when NaN is returned due to Inf or -Inf", {
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) %>%
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, Inf))) |>
     step_range(x)
   expect_snapshot(prep(rec))
 
-  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) %>%
+  rec <- recipe(~., data = data.frame(x = c(2, 3, 4, -Inf))) |>
     step_range(x)
   expect_snapshot(prep(rec))
 })
@@ -254,9 +236,9 @@ test_that("warns when NaN is returned due to Inf or -Inf", {
 # Infrastructure ---------------------------------------------------------------
 
 test_that("bake method errors when needed non-standard role columns are missing", {
-  standardized <- rec %>%
-    step_range(carbon, hydrogen, min = -12) %>%
-    update_role(carbon, hydrogen, new_role = "potato") %>%
+  standardized <- rec |>
+    step_range(carbon, hydrogen, min = -12) |>
+    update_role(carbon, hydrogen, new_role = "potato") |>
     update_role_requirements(role = "potato", bake = FALSE)
 
   standardized_trained <- prep(
@@ -314,7 +296,7 @@ test_that("empty selection tidy method works", {
 })
 
 test_that("printing", {
-  rec <- recipe(mpg ~ ., data = mtcars) %>%
+  rec <- recipe(mpg ~ ., data = mtcars) |>
     step_range(disp, wt)
 
   expect_snapshot(print(rec))
@@ -323,20 +305,20 @@ test_that("printing", {
 
 test_that("bad args", {
   expect_snapshot(
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_range(disp, wt, max = "max") %>%
+    recipe(mpg ~ ., data = mtcars) |>
+      step_range(disp, wt, max = "max") |>
       prep(),
     error = TRUE
   )
   expect_snapshot(
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_range(disp, wt, min = "min") %>%
+    recipe(mpg ~ ., data = mtcars) |>
+      step_range(disp, wt, min = "min") |>
       prep(),
     error = TRUE
   )
   expect_snapshot(
-    recipe(mpg ~ ., data = mtcars) %>%
-      step_range(disp, wt, clipping = "never") %>%
+    recipe(mpg ~ ., data = mtcars) |>
+      step_range(disp, wt, clipping = "never") |>
       prep(),
     error = TRUE
   )
@@ -344,8 +326,8 @@ test_that("bad args", {
 
 test_that("0 and 1 rows data work in bake method", {
   data <- mtcars
-  rec <- recipe(~., data) %>%
-    step_range(disp, mpg) %>%
+  rec <- recipe(~., data) |>
+    step_range(disp, mpg) |>
     prep()
 
   expect_identical(

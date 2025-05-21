@@ -70,7 +70,7 @@
 #' data = biomass_tr
 #' )
 #'
-#' nzv_filter <- rec %>%
+#' nzv_filter <- rec |>
 #'   step_nzv(all_predictors())
 #'
 #' filter_obj <- prep(nzv_filter, training = biomass_tr)
@@ -235,10 +235,8 @@ nzv <- function(x, wts, freq_cut = 95 / 5, unique_cut = 10) {
 
   out <-
     which(
-      (
-        freq_ratio > freq_cut &
-          pct_unique <= unique_cut
-      ) |
+      (freq_ratio > freq_cut &
+        pct_unique <= unique_cut) |
         zero_var
     )
   names(out) <- NULL
