@@ -69,6 +69,10 @@ specifically referenced by name. To avoid this, see the advice in the
 This step attempts to remove variables to keep the largest absolute
 correlation between the variables less than \code{threshold}.
 
+The filter tries to prioritize predictors for removal based on the global
+affect on the overall correlation structure. If you have two identical
+predictors, the variable ordered first will be removed.
+
 When a column has a single unique value, that column will be excluded from
 the correlation analysis. Also, if the data set has sporadic missing values
 (and an inappropriate value of \code{use} is chosen), some columns will also be
@@ -88,7 +92,7 @@ columns \code{terms} and \code{id}:
 }
 
 \section{Tuning Parameters}{
-This step has 1 tuning parameters:
+This step has 1 tuning parameter:
 \itemize{
 \item \code{threshold}: Threshold (type: double, default: 0.9)
 }
@@ -104,7 +108,7 @@ information, see the documentation in \link{case_weights} and the examples on
 }
 
 \examples{
-\dontshow{if (rlang::is_installed("modeldata")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("modeldata")) withAutoprint(\{ # examplesIf}
 data(biomass, package = "modeldata")
 
 set.seed(3535)

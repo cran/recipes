@@ -89,7 +89,7 @@ information, see the documentation in \link{case_weights} and the examples on
 }
 
 \examples{
-\dontshow{if (rlang::is_installed(c("modeldata", "ggplot2"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed(c("modeldata", "ggplot2"))) withAutoprint(\{ # examplesIf}
 data(ames, package = "modeldata")
 set.seed(393)
 ames_missing <- ames
@@ -121,7 +121,7 @@ ggplot(imputed, aes(x = original, y = imputed)) +
 \references{
 Kuhn, M. and Johnson, K. (2013).
 \emph{Feature Engineering and Selection}
-\url{https://bookdown.org/max/FES/handling-missing-data.html}
+\url{https://feat.engineering/08-Handling_Missing_Data.html}
 }
 \seealso{
 Other imputation steps: 
